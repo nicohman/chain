@@ -3,8 +3,8 @@ var socketclient = require('socket.io-client');
 var ip = require('ip');
 var format = require('biguint-format');
 var FlakeId = require('flake-idgen')
-var ports = ["2000", "3000", "4000"];
-var names = ["dragon", "defiant", "dragon's teeth"];
+var ports = ["2000", "3000", "4000", "5000", "6000"];
+var names = ["dragon", "defiant", "dragon's teeth", "saint", "weaver"];
 var selfId = format(new FlakeId({
     datacenter: 1,
     worker: parseInt(process.argv[2])
@@ -31,6 +31,7 @@ var to_open = ports[parseInt(process.argv[2])];
 console.log(to_open);
 io = io(to_open);
 var adjacent = [];
+
 function getDir(id) {
     var index = -1;
     adjacent.forEach(function(newid, newindex) {
@@ -40,6 +41,7 @@ function getDir(id) {
     });
     return index;
 }
+
 function flip(dir) {
     switch (dir) {
         case 0:
@@ -50,19 +52,29 @@ function flip(dir) {
             break;
     }
 }
-function passAlong(eventname, data){
-	onedir(eventname, data, flip(getDir(data.from)));
+
+function passAlong(eventname, data) {
+	var from = data.from;
+	console.log(from + " " + getDir(from));
+    onedir(eventname, data, flip(getDir(from)));
 }
+
 function alldir(eventname, data) {
     clients.forEach(function(client) {
         client.emit(eventname, data);
     });
 }
+
 function onedir(eventname, data, dir) {
     if (clients[dir]) {
         clients[dir].emit(eventname, data);
     }
 }
+
+function createPost(post) {
+    
+}
+
 function dirToString(dir) {
     switch (dir) {
         case -1:
@@ -76,6 +88,7 @@ function dirToString(dir) {
             break;
     }
 }
+
 function isNeighbor(id) {
     var neighbor = false;
     adjacent.forEach(function(adj) {
@@ -85,80 +98,90 @@ function isNeighbor(id) {
     })
     return neighbor;
 }
-io.on('connection', function(socket) {
-    socket.on('add_reg', function(toAdd) {
-        if (!reg[toAdd.from]) {
+    io.on('connection', function(socket) {
+        socket.on('add_reg', function(toAdd) {
+		console.log("recieve add");
+            if (!reg[reg.id]) {
+                reg[toAdd.id] = {
+                    name: toAdd.name,
+                    ip: toAdd.ip,
+                    id: toAdd.id
+                };
+                console.log("Added to registry " + toAdd.name);
+                //passAlong("add_reg", toAdd);
+            } else {
+                console.log(name + " already in registry");
+            }
+		toAdd.from = toAdd.recentFrom;
+		toAdd.recentFrom = selfId;
+		passAlong("add_reg", toAdd);
 
-            reg[toAdd.from] = {
-                name: toAdd.name,
-                ip: toAdd.ip,
-                id: toAdd.from
-            };
-            console.log("Added to registry " + toAdd.name);
-            passAlong("add_reg", toAdd);
-        } else {
-            console.log(name + " already in registry");
-        }
-    });
-    socket.on('get_reg', function(info) {
-        socket.emit("got_reg_" + info.from, reg);
-    });
-    socket.on('add_neighbor', function(toAdd) {
-        console.log("from:" + toAdd.from)
-        if (adjacent.length < 2 && !isNeighbor(toAdd.id) && toAdd.id != selfId) {
-            adjacent.push({
-                id: toAdd.from,
-                name: toAdd.name,
-                ip: toAdd.ip
-            });
-            console.log("New neighbor, named " + toAdd.name + " from the direction of " + dirToString(getDir(toAdd.from)));
-            socket.emit("neighbor_add_" + toAdd.from, {
-                from: selfId,
-                name: name,
-                condition: "once",
-                ip: ip.address()
-            });
-        } else {
-            console.log("Couldn't add " + toAdd.name);
-        }
-    });
-});
-function createClient(to_connect) {
-    var client = socketclient(to_connect);
-    client.on('connect', function() {
-        client.emit("add_neighbor", {
-            from: selfId,
-            condition: "once",
-            name: name,
-            ip: ip.address()
         });
-        client.once("neighbor_add_" + selfId, function(toAdd) {
+        socket.on('get_reg', function(info) {
+            socket.emit("got_reg_" + info.from, reg);
+        });
+        socket.on("create_post", function(post) {
+            createPost(post);
+        });
+        socket.on('add_neighbor', function(toAdd) {
+            console.log("from:" + toAdd.from)
             if (adjacent.length < 2 && !isNeighbor(toAdd.id) && toAdd.id != selfId) {
-                console.log(toAdd.from);
                 adjacent.push({
                     id: toAdd.from,
                     name: toAdd.name,
                     ip: toAdd.ip
                 });
                 console.log("New neighbor, named " + toAdd.name + " from the direction of " + dirToString(getDir(toAdd.from)));
+                socket.emit("neighbor_add_" + toAdd.from, {
+                    from: selfId,
+                    name: name,
+                    condition: "once",
+                    ip: ip.address()
+                });
+            } else {
+                console.log("Couldn't add " + toAdd.name);
             }
         });
-        client.emit("add_reg", {
-            from: selfId,
-            condition: "all",
-            name: name,
-            ip: ip.address()
-        });
-        client.emit("get_reg", {
-            from: selfId,
-            condition: "fulfill"
-        });
-        client.once("got_reg_" + selfId, function(upreg) {
-            Object.keys(upreg).forEach(function(key) {
-                reg[key] = upreg[key];
-            });
-            console.log(reg);
-        });
     });
-    clients.push(client);
-}
+    function createClient(to_connect) {
+        var client = socketclient(to_connect);
+        client.on('connect', function() {
+            client.emit("add_neighbor", {
+                from: selfId,
+                condition: "once",
+                name: name,
+		    recentFrom:selfId,
+                ip: ip.address()
+            });
+            client.once("neighbor_add_" + selfId, function(toAdd) {
+                if (adjacent.length < 2 && !isNeighbor(toAdd.id) && toAdd.id != selfId) {
+                    console.log(toAdd.from);
+                    adjacent.push({
+                        id: toAdd.from,
+                        name: toAdd.name,
+                        ip: toAdd.ip
+                    });
+                    console.log("New neighbor, named " + toAdd.name + " from the direction of " + dirToString(getDir(toAdd.from)));
+                }
+            });
+            client.emit("add_reg", {
+                from: selfId,
+                condition: "all",
+                name: name,
+		    id:selfId,
+		    recentFrom:selfId,
+                ip: ip.address()
+            });
+            client.emit("get_reg", {
+                from: selfId,
+                condition: "fulfill"
+            });
+            client.once("got_reg_" + selfId, function(upreg) {
+                Object.keys(upreg).forEach(function(key) {
+                    reg[key] = upreg[key];
+                });
+                console.log(reg);
+            });
+        });
+        clients.push(client);
+    }
