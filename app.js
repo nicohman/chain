@@ -58,7 +58,7 @@ function getDir(id) {
     return index;
 }
 
-function get_user(uid, socket, cb) {
+function get_user(uid, cb) {
     if (users[uid]) {
         cb(users[uid]);
     } else {
@@ -68,7 +68,7 @@ function get_user(uid, socket, cb) {
             uid: uid,
             condition: 'fulfill'
         });
-        socket.once('got_user_' + uid, function(got) {
+        io.once('got_user_' + uid, function(got) {
             cb(got);
         });
     }
@@ -94,7 +94,7 @@ function passAlong(eventname, data) {
 function alldir(eventname, data) {
     console.log(clients);
     clients.forEach(function(client) {
-        console.log("emit");
+        //console.log("emit");
         client.emit(eventname, data);
     });
     io.emit(eventname, data);
@@ -104,10 +104,10 @@ function onedir(eventname, data, dir) {
     console.log(dir);
     //console.log(clients);
     if (clients[dir]) {
-        console.log("hi");
         clients[dir].emit(eventname, data);
     } else {
         console.log("no hi");
+	    io.emit(eventname, data);
     }
 }
 
@@ -174,6 +174,16 @@ io.on('connection', function(gsocket) {
             createUser("nicohman", "dude");
         }, 10000);
     }
+	if (process.argv[2] == "3"){
+		console.log("timeout");
+		setTimeout(function(){
+			console.log("activate");
+			var users = require("./users.json");
+		get_user(Object.keys(users)[0], function(user){
+			console.log(user);
+		});	
+		},1100)
+	}
     console.log("co");
     var serv_handles = {
         "update_users": function(u) {
@@ -191,7 +201,7 @@ io.on('connection', function(gsocket) {
             }
         },
         "add_reg": function(toAdd) {
-            console.log("recieve add");
+            //console.log("recieve add");
             if (!reg[reg.id]) {
                 reg[toAdd.id] = {
                     name: toAdd.name,
@@ -213,14 +223,14 @@ io.on('connection', function(gsocket) {
         },
         "create_post": createPost,
         "add_neighbor": function(toAdd) {
-            console.log("from:" + toAdd.from)
+            //console.log("from:" + toAdd.from)
             if (adjacent.length < 2 && !isNeighbor(toAdd.id) && toAdd.id != selfId && !adjacent[flip(toAdd.dir)]) {
                 adjacent[flip(toAdd.dir)] = {
                     id: toAdd.original,
                     name: toAdd.name,
                     ip: toAdd.ip
                 };
-                console.log("adj:" + adjacent);
+                //console.log("adj:" + adjacent);
                 //createClient("http://127.0.0.1:" + toAdd.port);
 
                 console.log("New neighbor, named " + toAdd.name + " from the direction of " + dirToString(getDir(toAdd.from)));
@@ -266,11 +276,11 @@ function createClient(to_connect) {
             }
         }
     }
-    console.log(to_connect);
+    //console.log(to_connect);
     client.on('connect', function() {
-        console.log("connect");
+        //console.log("connect");
         client.on("*", function(data) {
-            console.log("hillo");
+            //console.log("hillo");
             console.log(data.data[0]);
         });
         var dir;
@@ -290,7 +300,7 @@ function createClient(to_connect) {
         });
         console.log("neighbor_add_" + selfId);
         client.once("neighbor_add_" + selfId, function(toAdd) {
-            console.log("req");
+            //console.log("req");
             if (adjacent.length < 2 && !isNeighbor(toAdd.id) && toAdd.id != selfId && !adjacent[flip(toAdd.dir)]) {
                 console.log(toAdd.from);
                 adjacent[flip(toAdd.dir)] = {
