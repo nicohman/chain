@@ -16,10 +16,10 @@ var selfId = format(new FlakeId({
     datacenter: 1,
     worker: parseInt(process.argv[2])
 }).next(), "dec");
-var shahash = require('crypto').createHash('sha1');
+var shahash = require('crypto');
 var clients = [];
 var users = require("./users.json");
-var posts = {};
+var posts = require('./posts.json');
 console.log(selfId)
 var name = names[parseInt(process.argv[2])];
 console.log("I am the " + name);
@@ -31,9 +31,8 @@ reg[selfId] = {
     ip: ip.address(),
     id: selfId
 };
-
 function hash(data) {
-    return shahash.update(data, 'utf-8').digest('hex');
+    return shahash.createHash('sha1').update(data, 'utf-8').digest('hex');
 }
 var globsocket;
 if (port != undefined) {
@@ -107,14 +106,39 @@ function onedir(eventname, data, dir) {
         clients[dir].emit(eventname, data);
     } else {
         console.log("no hi");
-	    io.emit(eventname, data);
+        io.emit(eventname, data);
     }
 }
 
 function createPost(post) {
-
+	var id = hash(post.title);
+	console.log("post");
+	posts[id] = {
+		id:id,
+		title:post.title,
+		auth:post.auth,
+		date:Date.now(),
+		tags:post.tags,
+		content:post.content
+	}
+	updatePosts();
+	alldir("update_posts", posts[id]);
 }
+function updatePosts(){
+    sem.take(function() {
+        var usersstring = JSON.stringify(posts);
+        fs.writeFile('posts.json', usersstring, function(err) {
+            if (err) {
+                console.log("Error creating user");
+            } else {
+                console.log("Created user successfully");
+            }
+            sem.leave();
+        });
+    })
 
+
+};
 function dirToString(dir) {
     switch (dir) {
         case -1:
@@ -174,16 +198,16 @@ io.on('connection', function(gsocket) {
             createUser("nicohman", "dude");
         }, 10000);
     }
-	if (process.argv[2] == "3"){
-		console.log("timeout");
-		setTimeout(function(){
-			console.log("activate");
-			var users = require("./users.json");
-		get_user(Object.keys(users)[0], function(user){
-			console.log(user);
-		});	
-		},1100)
-	}
+    if (process.argv[2] == "3") {
+        console.log("timeout");
+        setTimeout(function() {
+            console.log("activate");
+            var users = require("./users.json");
+            get_user(Object.keys(users)[0], function(user) {
+                console.log(user);
+            });
+        }, 1100)
+    }
     console.log("co");
     var serv_handles = {
         "update_users": function(u) {
@@ -192,6 +216,12 @@ io.on('connection', function(gsocket) {
                 updateUsers();
             }
         },
+	    "update_posts":function(post){
+	    if(!posts[post.id]){
+	    	posts[post.id] = post;
+		    updatePosts();
+	    }
+	    },
         "get_user": function(id) {
             if (users[id.uid]) {
                 onedir('got_user_' + uid, id, flip(getDir(id.id)));
@@ -269,14 +299,14 @@ function createClient(to_connect) {
     var client = socketclient(to_connect);
     patch(client);
     var client_handles = {
-        "update_users": function(u) {
-            if (!users[u.id]) {
-                users[u.id] = u;
-                updateUsers();
+            "update_users": function(u) {
+                if (!users[u.id]) {
+                    users[u.id] = u;
+                    updateUsers();
+                }
             }
         }
-    }
-    //console.log(to_connect);
+        //console.log(to_connect);
     client.on('connect', function() {
         //console.log("connect");
         client.on("*", function(data) {
@@ -334,8 +364,8 @@ function createClient(to_connect) {
     });
     Object.keys(client_handles).forEach(function(key) {
         console.log(key);
-        
-            client.on(key, client_handles[key]);
+
+        client.on(key, client_handles[key]);
     });
     client.on("disconnect", function() {
         console.log('discoonnect');
