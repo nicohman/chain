@@ -3,7 +3,7 @@ var socketclient = require('socket.io-client');
 var ip = require('ip');
 var format = require('biguint-format');
 var FlakeId = require('flake-idgen');
-var passwordHash = require('password-hash');
+var bcrypt = require('bcrypt');
 var ports = ["2000", "3000", "4000", "5000", "6000"];
 var wildcard = require("socketio-wildcard");
 var middleware = wildcard();
@@ -216,15 +216,17 @@ function updateUsers() {
 
 function createUser(username, password) {
     var id = hash(username);
-    users[id] = {
-        id: id,
-        date: Date.now(),
-        pass: passwordHash.generate(password),
-        username: username,
-        subbed: []
-    }
-    updateUsers();
-    alldir("update_users", users[id]);
+    bcrypt.hash(password, 10, function(err, hashed) {
+        users[id] = {
+            id: id,
+            date: Date.now(),
+            pass: hashed,
+            username: username,
+            subbed: []
+        }
+        updateUsers();
+        alldir("update_users", users[id]);
+    });
 }
 var socket = io.sockets;
 console.log(socket);
@@ -284,6 +286,21 @@ var serv_handles = {
         } else {
             id.from = selfId;
             passAlong('get_user', id);
+        }
+    },
+    "check_login": function(u) {
+        if (users[u.uid]) {
+            bcrypt.compare(u.pwd, users[u.pass], function(err, res) {
+                if (res) {
+                    onedir("check_result_" + u.uid, {
+                        user: u.uid,
+                        name: users[u.uid].username,
+                        result: res
+                    }, getDir(u.from));
+               }
+            });
+        } else {
+            passAlong("check_login");
         }
     },
     "add_reg": function(toAdd) {
