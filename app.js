@@ -31,6 +31,7 @@ reg[selfId] = {
     ip: ip.address(),
     id: selfId
 };
+
 function hash(data) {
     return shahash.createHash('sha1').update(data, 'utf-8').digest('hex');
 }
@@ -85,9 +86,10 @@ function flip(dir) {
 }
 
 function passAlong(eventname, data) {
-    var from = data.from;
-    console.log(from + " " + getDir(from));
-    onedir(eventname, data, getDir(from));
+    var from = flip(getDir(data.from));
+    console.log(from + " " + from);
+	data.from = selfId;
+    onedir(eventname, data, from);
 }
 
 function alldir(eventname, data) {
@@ -111,20 +113,21 @@ function onedir(eventname, data, dir) {
 }
 
 function createPost(post) {
-	var id = hash(post.title);
-	console.log("post");
-	posts[id] = {
-		id:id,
-		title:post.title,
-		auth:post.auth,
-		date:Date.now(),
-		tags:post.tags,
-		content:post.content
-	}
-	updatePosts();
-	alldir("update_posts", posts[id]);
+    var id = hash(post.title);
+    console.log("post");
+    posts[id] = {
+        id: id,
+        title: post.title,
+        auth: post.auth,
+        date: Date.now(),
+        tags: post.tags,
+        content: post.content
+    }
+    updatePosts();
+    alldir("update_posts", posts[id]);
 }
-function updatePosts(){
+
+function updatePosts() {
     sem.take(function() {
         var usersstring = JSON.stringify(posts);
         fs.writeFile('posts.json', usersstring, function(err) {
@@ -139,6 +142,7 @@ function updatePosts(){
 
 
 };
+
 function dirToString(dir) {
     switch (dir) {
         case -1:
@@ -152,7 +156,32 @@ function dirToString(dir) {
             break;
     }
 }
-
+function when(eventname, cb){
+	clients.forEach(function(client){
+		client.on(eventname, function(data){
+			never(eventname);
+			cb(data);
+		});		
+	})
+	io.on(eventname, function(data){
+		never(eventname);
+		cb(data)
+	});
+}
+function never(eventname){
+	clients.forEach(function(client){
+		client.removeAllListeners(eventname);
+	});
+	io.removeAllListeners(eventname);
+}
+function get_posts(criterion, cb){
+	alldir("get_posts", criterion);
+	console.log("got_posts_"+criterion.filter+"_"+criterion.filter_data);
+	when("got_posts_"+criterion.filter+"_"+criterion.filter_data, function(posts){
+		console.log("posts");
+		cb(posts);
+	});
+}
 function isNeighbor(id) {
     var neighbor = false;
     adjacent.forEach(function(adj) {
@@ -190,7 +219,7 @@ function createUser(username, password) {
     alldir("update_users", users[id]);
 }
 io.on('connection', function(gsocket) {
-    io.emit("hi");
+    
     var socket = io.sockets;
     console.log(socket);
     if (process.argv[2] == "1") {
@@ -204,9 +233,30 @@ io.on('connection', function(gsocket) {
             console.log("activate");
             var users = require("./users.json");
             get_user(Object.keys(users)[0], function(user) {
-                console.log(user);
+                console.log("Retrieved user: " + user.username);
+            });
+            createPost({
+                title: "First post, bitches",
+                auth: "nico",
+                tags: ["first", "post"],
+                content: "This is the first post"
             });
         }, 1100)
+    }
+    if (process.argv[2] == "3") {
+setTimeout(function(){
+        console.log("get post");
+        get_posts({
+            filter: "tag",
+            count: 10,
+            filter_data: ["first"],
+            original: selfId,
+            from: selfId,
+            posts: []
+        }, function(posts) {
+		console.log(posts);
+        });
+}, 1000);
     }
     console.log("co");
     var serv_handles = {
@@ -216,12 +266,12 @@ io.on('connection', function(gsocket) {
                 updateUsers();
             }
         },
-	    "update_posts":function(post){
-	    if(!posts[post.id]){
-	    	posts[post.id] = post;
-		    updatePosts();
-	    }
-	    },
+        "update_posts": function(post) {
+            if (!posts[post.id]) {
+                posts[post.id] = post;
+                updatePosts();
+            }
+        },
         "get_user": function(id) {
             if (users[id.uid]) {
                 onedir('got_user_' + uid, id, flip(getDir(id.id)));
@@ -251,6 +301,43 @@ io.on('connection', function(gsocket) {
             socket.emit("got_reg_" + info.from, reg);
 
         },
+        "get_posts": function(criterion) {
+		console.log("Request for posts");
+            Object.keys(posts).forEach(function(key) {
+		    var post = posts[key]
+                switch (criterion.filter) {
+                    case 'tag':
+                        if (criterion.posts.length < criterion.count) {
+                            post.tags.forEach(function(tag) {
+                                criterion.filter_data.forEach(function(filter) {
+                                    if (filter.trim() == tag.trim()) {
+					    console.log("Found a post");
+                                        criterion.posts.push(post);
+                                    }
+                                });
+                            });
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            });
+            if (criterion.posts.length < criterion.count && adjacent[flip(getDir(criterion.from))]) {
+		    console.log("Passing along");
+                passAlong("get_posts", criterion);
+            } else {
+		    console.log("Finishing requests");
+		    console.log("got_posts_" + criterion.filter+"_"+criterion.filter_data);
+                onedir("got_posts_" + criterion.filter+"_"+criterion.filter_data, {
+                    to: criterion.original,
+                    filter: criterion.filter,
+			posts:criterion.posts,
+		filter_data:criterion.filter_data,
+                    from: selfId,
+                    original: selfId,
+                }, getDir(criterion.from));
+            }
+        },
         "create_post": createPost,
         "add_neighbor": function(toAdd) {
             //console.log("from:" + toAdd.from)
@@ -273,7 +360,7 @@ io.on('connection', function(gsocket) {
                     dir: flip(toAdd.dir),
                     ip: ip.address()
                 });
-                socket.emit("ho");
+               
             } else {
                 console.log("Couldn't add " + toAdd.name);
             }
@@ -281,20 +368,22 @@ io.on('connection', function(gsocket) {
         }
     }
     Object.keys(serv_handles).forEach(function(key) {
-        console.log(key);
+        //console.log(key);
         gsocket.on(key, serv_handles[key]);
     });
     gsocket.on("*", function(data) {
-        if (!serv_handles[data.data[0]]) {
+	    console.log(io.listenerCount(data.data[0]) +": "+data.data[0]);
+        if ((!serv_handles[data.data[0]]) && io.listenerCount(data.data[0]) < 1) {
             console.log("Passing along " + data.data[0]);
+		console.log( io.listenerCount(data.data[0]) );
             passAlong(data.data[0], data.data[1]);
         } else {
-            socket.emit("hi");
+           
+		console.log( io.listenerCount(data.data[0]) );
             console.log("handler for : " + data.data[0]);
         }
     });
 });
-
 function createClient(to_connect) {
     var client = socketclient(to_connect);
     patch(client);
@@ -312,6 +401,10 @@ function createClient(to_connect) {
         client.on("*", function(data) {
             //console.log("hillo");
             console.log(data.data[0]);
+		if(!client_handles[data.data[0]] && client.hasListeners(data.data[0]) < 1){
+			passAlong(data.data[0], data.data[1]);
+				console.log("emit");
+		}
         });
         var dir;
         if (adjacent.length !== undefined) {
