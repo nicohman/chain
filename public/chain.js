@@ -5,21 +5,39 @@ window.onload = function() {
     var create = document.getElementById("create");
     var login = document.getElementById("login");
     var token = localStorage.getItem("auth_token");
-	var logout = document.getElementById("logout");
+    var logout = document.getElementById("logout");
+    var follow = document.getElementById("follow");
+    var loggedin = {};
+
     function attempt_login(uid, password, cb) {
         client.emit("c_login", {
             uid: uid,
             password: password,
             cid: client.id
         });
-	 
-        client.once("c_logged_in_" + uid, function(token) {
-		console.log("res");
-            if (token) {
-                localStorage.setItem("auth_token", token);
+
+        client.once("c_logged_in_" + uid, function(newtoken) {
+            console.log("res");
+            if (newtoken) {
+                token = newtoken
+                localStorage.setItem("auth_token", newtoken);
             }
-            cb(null, token);
+            cb(null, newtoken);
         });
+    }
+
+    function follow_tag(tag, cb) {
+        if (loggedin.uid && token) {
+            client.emit("c_follow_tag", {
+                cid: client.id,
+                tag: tag,
+		    token:token,
+                uid: loggedin.uid
+            });
+            client.once("c_followed_tag_" + tag, function(res) {
+                cb(res);
+            });
+        }
     }
 
     function attempt_token(token, cb) {
@@ -27,17 +45,18 @@ window.onload = function() {
             token: token,
             cid: client.id
         });
-	    console.log("emitted");
+        console.log("emitted");
         client.once("c_token_logged_in", function(res) {
-		console.log(res);
-            if (res) { 
-                notify("Welcome back, "+res.username);
+            console.log(res);
+            if (res) {
+                notify("Welcome back, " + res.username);
             } else {
 
             }
             cb(res);
         });
     }
+
     function create_post(title, content, tags, cb) {
         client.emit("c_create_post", {
             title: title,
@@ -82,13 +101,25 @@ window.onload = function() {
     }
     client.on('connect', function() {
         console.log("connected");
-	    if(token){
-	    	attempt_token(token, function(){});
-	    }
-	    logout.onsubmit = function(){
-	    	localStorage.removeItem("auth_token");
-		    window.location.reload(true);
-	    }
+        if (token) {
+            attempt_token(token, function(res) {
+                if (res) {
+                    loggedin.username = res.username;
+                    loggedin.uid = res.uid;
+                }
+            });
+        }
+        follow.onsubmit = function() {
+            var followdata = follow.elements.tag.value;
+            follow_tag(followdata, function(res) {
+                notify(res)
+            })
+		return false;
+        }
+        logout.onsubmit = function() {
+            localStorage.removeItem("auth_token");
+            window.location.reload(true);
+        }
         create.onsubmit = function() {
             var createdata = create.elements;
             console.log(create);
@@ -101,6 +132,9 @@ window.onload = function() {
             var logindata = login.elements;
             attempt_login(logindata.uid.value, logindata.password.value, function(err, res) {
                 notify(res);
+                if (res) {
+                    loggedin.uid = logindata.uid.value;
+                }
             });
             return false;
         }

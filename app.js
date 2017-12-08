@@ -33,6 +33,7 @@ reg[selfId] = {
     ip: ip.address(),
     id: selfId
 };
+var logged = {};
 
 function hash(data) {
     return shahash.createHash('sha1').update(data, 'utf-8').digest('hex');
@@ -251,11 +252,48 @@ function createUser(username, password) {
             date: Date.now(),
             pass: hashed,
             username: username,
-            subbed: []
+            subbed: [],
+            tags: {}
         }
         updateUsers();
         alldir("update_users", users[id]);
+        users[id].original = true;
     });
+}
+
+function follow_tag(req, ifself) {
+    console.log(req.uid);
+    if (users[req.uid]) {
+        console.log("have user");
+        if (users[req.uid].original == true) {
+            console.log("verifying");
+            jwt.verify(req.token, secret, function(err, decode) {
+                if (err) {
+		
+			console.log(err);
+		} else {
+                    if (decode.uid == req.uid) {
+                        console.log("updating");
+                        users[req.uid].tags[req.tag] = true;
+                        updateUsers();
+                        alldir("update_users", users[req.uid]);
+                        if (ifself) {
+                            io.sockets.emit("followed_tag_" + req.uid + "_" + req.tag, users[req.uid]);
+                        } else {
+                            onedir("followed_tag_" + req.uid + "_" + req.tag, users[req.uid], flip(getDir(req.from)));
+                        }
+                    } else {
+                        console.log("Fradulent request recieved!");
+                    }
+                }
+            });
+        }
+    } else if (ifself) {
+        alldir("follow_tag", req);
+    } else {
+        passAlong("follow_tag", req);
+
+    }
 }
 var socket = io.sockets;
 console.log(socket);
@@ -423,9 +461,11 @@ var serv_handles = {
                 if (res) {
                     console.log("User " + user.username + " successfully logged in");
                     var token = jwt.sign({
-                        username: user.username
+                        username: user.username,
+                        uid: req.uid
                     }, secret);
                     io.to(req.cid).emit("c_logged_in_" + req.uid, token);
+                    logged[req.cid] = req.uid;
                 } else {
                     console.log("User " + user.username + " did not successfully log in")
                     io.to(req.cid).emit("c_logged_in_" + req.uid, false);
@@ -433,13 +473,34 @@ var serv_handles = {
             });
         });
     },
+    "follow_tag": follow_tag,
+    "c_follow_tag": function(req) {
+        if (logged[req.cid]) {
+            if (logged[req.cid] == req.uid) {
+                follow_tag({
+                    from: selfId,
+                    original: selfId,
+                    uid: req.uid,
+                    tag: req.tag,
+			token:req.token
+
+                }, true);
+                io.once("followed_tag_" + req.uid + "_" + req.tag, function(res) {
+                    io.to(req.cid).emit("c_followed_tag_" + req.tag, true);
+                });
+            }
+        } else {
+            console.log("Not logged in!");
+        }
+    },
     "c_token_login": function(req) {
-	    console.log("recieved request");
+        console.log("recieved request");
         var token = req.token
         jwt.verify(token, secret, function(err, decode) {
             if (decode) {
-		    console.log("worked");
+                console.log("worked");
                 io.to(req.cid).emit("c_token_logged_in", decode);
+                logged[req.cid] = decode.uid
             } else {
                 io.to(req.cid).emit("c_token_logged_in", false);
             }

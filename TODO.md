@@ -16,7 +16,7 @@ Mostly chain-based, server-side features
 + ~~Session Storage~~
 + ~~Logout~~
 + Encryption
-+ Following of tags
++ ~~Following of tags~~
 + Following of curations
 + get\_feed
 + Improving get\_posts
@@ -38,7 +38,7 @@ Mostly client-side js or demenses.js features
 + Account creation
 + Post container
 + View favorites
-+ Following tags
++ ~~Following tags~~
 + Following curations
 
 ## GUI
