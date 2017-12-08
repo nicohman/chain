@@ -5,7 +5,7 @@ window.onload = function() {
     var create = document.getElementById("create");
     var login = document.getElementById("login");
     var token = localStorage.getItem("auth_token");
-
+	var logout = document.getElementById("logout");
     function attempt_login(uid, password, cb) {
         client.emit("c_login", {
             uid: uid,
@@ -84,6 +84,10 @@ window.onload = function() {
         console.log("connected");
 	    if(token){
 	    	attempt_token(token, function(){});
+	    }
+	    logout.onsubmit = function(){
+	    	localStorage.removeItem("auth_token");
+		    window.location.reload(true);
 	    }
         create.onsubmit = function() {
             var createdata = create.elements;

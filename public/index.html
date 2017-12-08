@@ -9,23 +9,34 @@
 		<h1>Demenses</h1>
 		<div id="search">
 			<form id="tag">
+				<p> Search Tags:</p>
 				<input type="text" name="tag">
 			</form>
 		</div>
 			<form id="create">
+				<p> Post title:</p>
 				<input type="text" name="title">
+				<p> Post content:</p>
 				<input type="text" name="content">
+				<p> Post tags: </p>
 				<input type="tags" name="tags">
-				<input type="submit">
+				<input type="submit" value = "Post">
 			</form>
 			<div>
 				<form id="login">
+					<p> User id: </p>
 					<input type="text" name="uid">
+					<p> User password: </p>
 					<input type="text" name="password">
-					<input type="submit">	
+					<input type="submit" value="Log in">	
 				</form>
 			</div>
-		
+		<div id="notlogged"></div>
+		<div id="logged">
+			<form id="logout">
+				<input type="submit" value="Log out">
+			</form>
+		</div>	
 		<div id="posts">
 			<h2>Posts:</h2>
 		

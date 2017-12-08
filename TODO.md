@@ -14,7 +14,7 @@ Mostly chain-based, server-side features
   * Tag proportions
 + Tag editing
 + ~~Session Storage~~
-+ Logout
++ ~~Logout~~
 + Encryption
 + Following of tags
 + Following of curations
@@ -33,6 +33,7 @@ Mostly client-side js or demenses.js features
 + ~~Finish post creation~~
 + Tag editing
 + ~~Login~~
++ ~~Logout~~
 + Feed
 + Account creation
 + Post container
