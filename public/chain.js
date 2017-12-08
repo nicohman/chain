@@ -3,7 +3,17 @@ window.onload = function() {
         var client = io("http://localhost:3000");
         var search = document.getElementById("tag");
         var create = document.getElementById("create");
-
+	var login = document.getElementById("login");
+	function attempt_login(uid, password, cb){
+		client.emit("c_login", {
+			uid:uid,
+			password:password,
+			cid:client.id
+		});
+		client.once("c_logged_in_"+uid, function(res){
+			cb(null, res);
+		});
+	}
         function create_post(title, content,tags, cb) {
             client.emit("c_create_post", {
                 title: title,
@@ -55,6 +65,13 @@ window.onload = function() {
                     });
 			return false;
                 }
+		    login.onsubmit = function(){
+		    	var logindata = login.elements;
+			 attempt_login(logindata.uid.value, logindata.password.value, function(err, res){
+			 	notify(res);
+			 });
+			    return false;
+		    }
                 search.onsubmit = function() {
                     console.log("submitted");
                     var searchdata = search.elements;

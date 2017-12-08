@@ -114,7 +114,7 @@ function onedir(eventname, data, dir) {
 }
 
 function createPost(post) {
-    var id = hash(post.title);
+    var id = hash(post.title + post.auth + Date.now());
     console.log("post");
     posts[id] = {
         id: id,
@@ -242,7 +242,7 @@ function updateUsers() {
 }
 
 function createUser(username, password) {
-    var id = hash(username);
+    var id = hash(username + Date.now());
     bcrypt.hash(password, 10, function(err, hashed) {
         users[id] = {
             id: id,
@@ -259,7 +259,7 @@ var socket = io.sockets;
 console.log(socket);
 if (process.argv[2] == "1") {
     setTimeout(function() {
-        createUser("nicohman", "dude");
+       // createUser("nicohman", "dude");
     }, 10000);
 }
 if (process.argv[2] == "3") {
@@ -409,11 +409,25 @@ var serv_handles = {
         });
 
     },
-	"c_create_post":function(post){
-		createPost(post);
-		io.to(post.cid).emit("c_created_post", true);
+    "c_create_post": function(post) {
+        createPost(post);
+        io.to(post.cid).emit("c_created_post", true);
 
-	},
+    },
+    "c_login": function(req) {
+        get_user(req.uid, function(user) {
+		console.log(user);
+            bcrypt.compare(req.password, user.pass, function(err, res) {
+                if (res) {
+			console.log("User "+user.username+" successfully logged in");
+			io.to(req.cid).emit("c_logged_in_"+req.uid, true);
+                } else {
+			console.log("User "+user.username+" did not successfully log in")
+			io.to(req.cid).emit("c_logged_in_"+req.uid, false);
+                }
+            });
+        });
+    },
     "create_post": createPost,
     "add_neighbor": function(toAdd) {
         //console.log("from:" + toAdd.from)
@@ -447,7 +461,7 @@ io.on('connection', function(gsocket) {
         //console.log(key);
         gsocket.on(key, serv_handles[key]);
     });
-   gsocket.on("*", function(data) {
+    gsocket.on("*", function(data) {
         console.log(io.listenerCount(data.data[0]) + ": " + data.data[0]);
         if ((!serv_handles[data.data[0]]) && io.listenerCount(data.data[0]) < 1) {
             console.log("Passing along " + data.data[0]);
