@@ -409,6 +409,11 @@ var serv_handles = {
         });
 
     },
+	"c_create_post":function(post){
+		createPost(post);
+		io.to(post.cid).emit("c_created_post", true);
+
+	},
     "create_post": createPost,
     "add_neighbor": function(toAdd) {
         //console.log("from:" + toAdd.from)
@@ -442,7 +447,7 @@ io.on('connection', function(gsocket) {
         //console.log(key);
         gsocket.on(key, serv_handles[key]);
     });
-    gsocket.on("*", function(data) {
+   gsocket.on("*", function(data) {
         console.log(io.listenerCount(data.data[0]) + ": " + data.data[0]);
         if ((!serv_handles[data.data[0]]) && io.listenerCount(data.data[0]) < 1) {
             console.log("Passing along " + data.data[0]);
