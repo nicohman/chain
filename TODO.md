@@ -13,7 +13,7 @@ Mostly chain-based, server-side features
   * Boolean rules
   * Tag proportions
 + Tag editing
-+ Session Storage
++ ~~Session Storage~~
 + Logout
 + Encryption
 + Following of tags
@@ -32,7 +32,7 @@ Mostly client-side js or demenses.js features
 
 + ~~Finish post creation~~
 + Tag editing
-+ Login
++ ~~Login~~
 + Feed
 + Account creation
 + Post container

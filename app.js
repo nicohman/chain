@@ -21,10 +21,12 @@ var clients = [];
 var users = require("./users.json");
 var posts = require('./posts.json');
 console.log(selfId)
+var jwt = require("jsonwebtoken");
 var name = names[parseInt(process.argv[2])];
 console.log("I am the " + name);
 var port = ports[parseInt(process.argv[2]) - 1];
 console.log(port);
+var secret = "shut up";
 var reg = {};
 reg[selfId] = {
     name: name,
@@ -259,7 +261,7 @@ var socket = io.sockets;
 console.log(socket);
 if (process.argv[2] == "1") {
     setTimeout(function() {
-       // createUser("nicohman", "dude");
+        // createUser("nicohman", "dude");
     }, 10000);
 }
 if (process.argv[2] == "3") {
@@ -416,17 +418,32 @@ var serv_handles = {
     },
     "c_login": function(req) {
         get_user(req.uid, function(user) {
-		console.log(user);
+            console.log(user);
             bcrypt.compare(req.password, user.pass, function(err, res) {
                 if (res) {
-			console.log("User "+user.username+" successfully logged in");
-			io.to(req.cid).emit("c_logged_in_"+req.uid, true);
+                    console.log("User " + user.username + " successfully logged in");
+                    var token = jwt.sign({
+                        username: user.username
+                    }, secret);
+                    io.to(req.cid).emit("c_logged_in_" + req.uid, token);
                 } else {
-			console.log("User "+user.username+" did not successfully log in")
-			io.to(req.cid).emit("c_logged_in_"+req.uid, false);
+                    console.log("User " + user.username + " did not successfully log in")
+                    io.to(req.cid).emit("c_logged_in_" + req.uid, false);
                 }
             });
         });
+    },
+    "c_token_login": function(req) {
+	    console.log("recieved request");
+        var token = req.token
+        jwt.verify(token, secret, function(err, decode) {
+            if (decode) {
+		    console.log("worked");
+                io.to(req.cid).emit("c_token_logged_in", decode);
+            } else {
+                io.to(req.cid).emit("c_token_logged_in", false);
+            }
+        })
     },
     "create_post": createPost,
     "add_neighbor": function(toAdd) {
