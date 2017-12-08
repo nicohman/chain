@@ -41,6 +41,18 @@ Mostly client-side js or demenses.js features
 + Following tags
 + Following curations
 
+## GUI
+Actually frontend user interface stuff that looks nice and is semi-displayable to other humans.
+
++ Make navigation bar
+  * Logo/Dropdown
+  * Curations/Tags
+  * Search
+  * Feed
+  * Log in/Log out/ Display username
++ Post container css/html
++ Main display case css/html
+
 ## Other
 
 + ~~Make this todo list~~
