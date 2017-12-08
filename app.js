@@ -122,7 +122,8 @@ function createPost(post) {
         auth: post.auth,
         date: Date.now(),
         tags: post.tags,
-        content: post.content
+        content: post.content,
+        comments: []
     }
     updatePosts();
     alldir("update_posts", posts[id]);
@@ -143,6 +144,12 @@ function updatePosts() {
 
 
 };
+
+function addComment(comment) {
+    if (posts[comment.postid]) {
+        posts.comments.push(comment);
+    }
+}
 
 function dirToString(dir) {
     switch (dir) {
@@ -179,6 +186,26 @@ function never(eventname) {
 }
 
 function get_posts(criterion, cb) {
+    Object.keys(posts).forEach(function(key) {
+        var post = posts[key]
+        switch (criterion.filter) {
+            case 'tag':
+                if (criterion.posts.length < criterion.count) {
+                    post.tags.forEach(function(tag) {
+                        criterion.filter_data.forEach(function(filter) {
+                            if (filter.trim() == tag.trim()) {
+                                console.log("Found a post");
+                                criterion.posts[key] = post;
+                            }
+                        });
+                    });
+                }
+                break;
+            default:
+                break;
+        }
+    });
+
     alldir("get_posts", criterion);
     console.log("got_posts_" + criterion.filter + "_" + criterion.filter_data);
     var cbe = function(posts) {
@@ -297,10 +324,18 @@ var serv_handles = {
                         name: users[u.uid].username,
                         result: res
                     }, getDir(u.from));
-               }
+                }
             });
         } else {
             passAlong("check_login");
+        }
+    },
+    "add_comment": function(comment) {
+        if (posts[comment.id]) {
+            posts[comment.id].comments.push(comment);
+            updatePosts();
+        } else {
+            passAlong(comment);
         }
     },
     "add_reg": function(toAdd) {
@@ -330,12 +365,12 @@ var serv_handles = {
             var post = posts[key]
             switch (criterion.filter) {
                 case 'tag':
-                    if (criterion.posts.length < criterion.count) {
+                    if (Object.keys(criterion.posts).length < criterion.count) {
                         post.tags.forEach(function(tag) {
                             criterion.filter_data.forEach(function(filter) {
                                 if (filter.trim() == tag.trim()) {
                                     console.log("Found a post");
-                                    criterion.posts.push(post);
+                                    criterion.posts[key] = post;
                                 }
                             });
                         });
@@ -345,7 +380,7 @@ var serv_handles = {
                     break;
             }
         });
-        if (criterion.posts.length < criterion.count && adjacent[flip(getDir(criterion.from))]) {
+        if (Object.keys(criterion.posts).length < criterion.count && adjacent[flip(getDir(criterion.from))]) {
             console.log("Passing along");
             passAlong("get_posts", criterion);
         } else {
@@ -361,6 +396,19 @@ var serv_handles = {
             }, getDir(criterion.from));
         }
     },
+    "c_get_posts": function(req) {
+        get_posts({
+            filter: req.filter,
+            count: req.count,
+            filter_data: req.data,
+            original: selfId,
+            from: selfId,
+            posts: {}
+        }, function(posts) {
+            io.to(req.id).emit("c_got_posts_" + req.data, posts);
+        });
+
+    },
     "create_post": createPost,
     "add_neighbor": function(toAdd) {
         //console.log("from:" + toAdd.from)
@@ -370,9 +418,6 @@ var serv_handles = {
                 name: toAdd.name,
                 ip: toAdd.ip
             };
-            //console.log("adj:" + adjacent);
-            //createClient("http://127.0.0.1:" + toAdd.port);
-
             console.log("New neighbor, named " + toAdd.name + " from the direction of " + dirToString(getDir(toAdd.from)));
             console.log("neighbor_add_" + toAdd.original);
             io.emit("neighbor_add_" + toAdd.original, {
@@ -457,6 +502,7 @@ function createClient(to_connect) {
             if (adjacent.length < 2 && !isNeighbor(toAdd.id) && toAdd.id != selfId && !adjacent[flip(toAdd.dir)]) {
                 console.log(toAdd.from);
                 adjacent[flip(toAdd.dir)] = {
+
                     id: toAdd.from,
                     name: toAdd.name,
                     ip: toAdd.ip,
