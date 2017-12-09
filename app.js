@@ -170,19 +170,37 @@ function dirToString(dir) {
 
 function when(eventname, cb) {
     clients.forEach(function(client) {
-	    console.log("whenening");
+        console.log("whenening");
         client.on(eventname, function(data) {
             //never(eventname);
-		console.log("whened "+eventname+ getDir(data.from));
+            console.log("whened " + eventname + getDir(data.from));
             cb(data);
         });
     })
     io.on(eventname, function(data) {
-	    console.log("whened"+eventname + getDir(data.from));
-	    console.log(getDir(data.from));
-       // never(eventname);
+        console.log("whened" + eventname + getDir(data.from));
+        console.log(getDir(data.from));
+        // never(eventname);
         cb(data)
     });
+}
+
+function whenonce(eventname, cb) {
+    clients.forEach(function(client) {
+        console.log("whenening");
+        client.on(eventname, function(data) {
+            //never(eventname);
+            console.log("whened " + eventname + getDir(data.from));
+            cb(data);
+        });
+    })
+    io.on(eventname, function(data) {
+        console.log("whened" + eventname + getDir(data.from));
+        console.log(getDir(data.from));
+        // never(eventname);
+        cb(data)
+    });
+
 }
 
 function never(eventname) {
@@ -223,26 +241,43 @@ function get_posts(criterion, cb) {
     when(eventname, cbe);
 }
 
+function get_post_by_id(id, cb) {
+    if (posts[id]) {
+        cb(posts[id]);
+    } else {
+        alldir("get_posts", {
+            filter: "id",
+            filter_data: id,
+            from: selfId,
+            original: selfId,
+            count: 1
+        });
+        whenonce("got_posts_id_" + id, function(post) {
+            cb(post.posts);
+        })
+    }
+}
+
 function get_even(criterion, cb) {
     var gotten = 0;
     var posts = {};
-	console.log(criterion.count+": count : "+criterion.count /2);
+    console.log(criterion.count + ": count : " + criterion.count / 2);
     criterion.count = criterion.count / 2;
     get_posts(criterion, function(gposts) {
-       gotten++;
+        gotten++;
 
         Object.keys(gposts).forEach(function(key) {
-		console.log(gposts);
+            console.log(gposts);
             posts[key] = gposts[key];
         });
         if (gotten >= 1) {
             cb(posts);
             console.log("gotten");
         } else {
-		console.log(gotten);
+            console.log(gotten);
             console.log("not gotten");
         }
-	 
+
     });
 }
 
@@ -279,7 +314,8 @@ function createUser(username, password) {
             pass: hashed,
             username: username,
             subbed: [],
-            tags: {}
+            tags: {},
+            favorites: {}
         }
         updateUsers();
         alldir("update_users", users[id]);
@@ -306,7 +342,7 @@ function get_feed(toget, cb) {
                 } else {
                     pro = 1 / toget.length;
                 }
-			console.log(toget.count+" "+pro);
+                console.log(toget.count + " " + pro);
                 var amount = pro * toget.count;
                 get_even({
                     count: amount,
@@ -318,7 +354,7 @@ function get_feed(toget, cb) {
                 }, function(gposts) {
                     gotten++;
                     Object.keys(gposts.posts).forEach(function(key) {
-			    console.log(key);
+                        console.log(key);
 
                         posts[key] = gposts.posts[key];
                     });
@@ -365,6 +401,40 @@ function follow_tag(req, ifself) {
 
     }
 }
+
+function add_favorite(req, ifself) {
+    if (users[req.uid]) {
+        console.log("have user");
+        if (users[req.uid].original == true) {
+            console.log("verifying");
+            jwt.verify(req.token, secret, function(err, decode) {
+                if (err) {
+
+                    console.log(err);
+                } else {
+                    if (decode.uid == req.uid) {
+                        users[req.uid].favorites[req.pid] = true;
+                        updateUsers();
+                        alldir("update_users", users[req.uid]);
+                        if (ifself) {
+                            io.sockets.emit("added_favorite_" + req.uid + "_" + req.pid, users[req.uid]);
+                        } else {
+                            onedir("added_favorite_" + req.uid + "_" + req.pid, users[req.uid], flip(getDir(req.from)));
+                        }
+
+                    }
+                }
+            })
+        }
+    } else if (ifself) {
+        alldir("add_favorite", req);
+    } else {
+        passAlong("add_favorite", req);
+
+    }
+
+}
+
 var socket = io.sockets;
 console.log(socket);
 if (process.argv[2] == "1") {
@@ -475,32 +545,41 @@ var serv_handles = {
             var post = posts[key]
             switch (criterion.filter) {
                 case 'tag':
-			    console.log("tags");
+                    console.log("tags");
                     if (Object.keys(criterion.posts).length < criterion.count) {
-			    console.log("not enough");
+                        console.log("not enough");
                         post.tags.forEach(function(tag) {
                             criterion.filter_data.forEach(function(filter) {
                                 if (filter.trim() == tag.trim()) {
-				
+
                                     console.log("Found a post");
                                     criterion.posts[key] = post;
                                 }
                             });
                         });
                     } else {
-		    	console.log(Object.keys(criterion.posts).length +" "+ criterion.count);
-		    }
+                        console.log(Object.keys(criterion.posts).length + " " + criterion.count);
+                    }
                     break;
                 default:
                     break;
             }
         });
+        if (criterion.filter == "id") {
+            console.log("id");
+            if (Object.keys(criterion.posts).length < criterion.count) {
+                if (posts[criterion.filter_data]) {
+                    console.log("I d found a post");
+                    criterion.posts[criterion.filter_data] = posts[criterion.filter_data];
+                }
+            }
+        }
         if (Object.keys(criterion.posts).length < criterion.count && adjacent[flip(getDir(criterion.from))]) {
             console.log("Passing along");
             passAlong("get_posts", criterion);
         } else {
             console.log("Finishing requests");
-            console.log("emitting : got_posts_" + criterion.filter + "_" + criterion.filter_data +"   "+getDir(criterion.from));
+            console.log("emitting : got_posts_" + criterion.filter + "_" + criterion.filter_data + "   " + getDir(criterion.from));
             onedir("got_posts_" + criterion.filter + "_" + criterion.filter_data, {
                 to: criterion.original,
                 filter: criterion.filter,
@@ -523,6 +602,24 @@ var serv_handles = {
             io.to(req.id).emit("c_got_posts_" + req.data, posts);
         });
 
+    },
+    "add_favorite": add_favorite,
+    "c_add_favorite": function(req) {
+        if (logged[req.cid]) {
+            if (logged[req.cid] == req.uid) {
+                add_favorite({
+                    from: selfId,
+                    original: selfId,
+                    uid: req.uid,
+                    pid: req.pid,
+                    token: req.token
+
+                }, true);
+                whenonce("added_favorite_" + req.uid + "_" + req.pid, function(res) {
+                    io.to(req.cid).emit("c_added_favorite_" + req.pid, true);
+                });
+            }
+        }
     },
     "c_create_post": function(post) {
         createPost(post);
@@ -556,7 +653,7 @@ var serv_handles = {
                     tag: item
                 }
             });
-		toget.count = 10;
+            toget.count = 10;
             console.log("getting");
             get_feed(toget, function(posts) {
                 console.log(posts);
@@ -577,7 +674,7 @@ var serv_handles = {
                     token: req.token
 
                 }, true);
-                io.once("followed_tag_" + req.uid + "_" + req.tag, function(res) {
+                whenonce("followed_tag_" + req.uid + "_" + req.tag, function(res) {
                     io.to(req.cid).emit("c_followed_tag_" + req.tag, true);
                 });
             }
@@ -729,5 +826,5 @@ function createClient(to_connect) {
         console.log('discoonnect');
     });
     clients.push(client);
-	console.log("connected to "+to_connect);
+    console.log("connected to " + to_connect);
 }

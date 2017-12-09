@@ -8,6 +8,7 @@ window.onload = function() {
     var logout = document.getElementById("logout");
     var follow = document.getElementById("follow");
     var showfeed = document.getElementById("showfeed");
+	var addfavorite = document.getElementById("addfavorite");
     var postel = document.getElementById("posts");
     var loggedin = {};
 
@@ -37,6 +38,20 @@ window.onload = function() {
                 uid: loggedin.uid
             });
             client.once("c_followed_tag_" + tag, function(res) {
+                cb(res);
+            });
+        }
+    }
+
+    function add_favorite(pid, cb) {
+        if (loggedin.uid && token) {
+            client.emit("c_add_favorite", {
+                cid: client.id,
+                pid: pid,
+                token: token,
+                uid: loggedin.uid
+            });
+            client.once("c_added_favorite_" + loggedin.uid + "_" + pid, function(res) {
                 cb(res);
             });
         }
@@ -72,13 +87,13 @@ window.onload = function() {
     }
 
     function show_post(post, toAppend) {
-
         var postt = document.createElement("div");
         postt.className = "post";
         postt.appendChild(document.createTextNode(post.title));
         postt.appendChild(document.createTextNode(post.auth));
         postt.appendChild(document.createTextNode(post.content));
         postt.appendChild(document.createTextNode(post.tags));
+        postt.appendChild(document.createTextNode(post.id));
         toAppend.appendChild(postt);
     }
 
@@ -155,6 +170,13 @@ window.onload = function() {
             })
             return false;
         }
+        addfavorite.onsubmit = function() {
+            var favoritedata = addfavorite.elements.pid.value;
+            add_favorite(favoritedata, function(res) {
+                notify(res);
+            });
+		return false;
+        }
         logout.onsubmit = function() {
             localStorage.removeItem("auth_token");
             window.location.reload(true);
@@ -195,8 +217,7 @@ window.onload = function() {
                 }
                 keys.forEach(function(postkey) {
                     var post = posts[postkey];
-                    console.log(post.title);
-                    postel.appendChild(document.createTextNode(post.title));
+                    show_post(post, postel);
                 });
             });
             return false;

@@ -22,9 +22,10 @@ Mostly chain-based, server-side features
 + Improving get\_posts
   * By date
   * By favorites
+  * By post id
   * By closeness in links
   * Remove default closeness filter
-+ Favoriting
++ ~~Favoriting~~
 + Get favorites
 
 ## Client
@@ -37,6 +38,7 @@ Mostly client-side js or demenses.js features
 + ~~Feed~~
 + Account creation
 + Post container
++ ~~Add to favorites~~
 + View favorites
 + ~~Following tags~~
 + Following curations
