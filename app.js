@@ -603,6 +603,27 @@ var serv_handles = {
         });
 
     },
+    "c_get_favorites": function(req) {
+	    console.log("got request");
+        if (logged[req.cid]) {
+            if (logged[req.cid] == req.uid) {
+                get_user(req.uid, function(user) {
+                   var favs = Object.keys(user.favorites);
+			var got = 0;
+			var full = [];
+			favs.forEach(function(fav){
+				get_post_by_id(fav, function(post){
+					full.push(post);
+					got++;
+					if(got >= favs.length){
+						io.to(req.cid).emit("c_got_favorites", full);
+					}
+				});
+			});
+                })
+            }
+        }
+    },
     "add_favorite": add_favorite,
     "c_add_favorite": function(req) {
         if (logged[req.cid]) {

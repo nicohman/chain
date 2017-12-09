@@ -8,7 +8,8 @@ window.onload = function() {
     var logout = document.getElementById("logout");
     var follow = document.getElementById("follow");
     var showfeed = document.getElementById("showfeed");
-	var addfavorite = document.getElementById("addfavorite");
+    var getfavorite = document.getElementById("getfavorite");
+    var addfavorite = document.getElementById("addfavorite");
     var postel = document.getElementById("posts");
     var loggedin = {};
 
@@ -27,6 +28,22 @@ window.onload = function() {
             }
             cb(null, newtoken);
         });
+    }
+
+    function get_favorites(cb) {
+        if (loggedin.uid && token) {
+            client.emit("c_get_favorites", {
+                cid: client.id,
+                token: token,
+                uid: loggedin.uid
+            });
+            client.once("c_got_favorites", function(favs) {
+                cb(favs)
+
+            });
+        } else {
+            console.log("not logged in");
+        }
     }
 
     function follow_tag(tag, cb) {
@@ -150,6 +167,20 @@ window.onload = function() {
                 }
             });
         }
+        getfavorite.onsubmit = function() {
+            console.log('getting');
+            get_favorites(function(favs) {
+                console.log(favs);
+                while (postel.hasChildNodes()) {
+                    postel.removeChild(postel.lastChild);
+                }
+
+                favs.forEach(function(fav) {
+                    show_post(fav, postel);
+                });
+            });
+            return false;
+        }
         showfeed.onsubmit = function() {
             get_feed(function(posts) {
 
@@ -175,7 +206,7 @@ window.onload = function() {
             add_favorite(favoritedata, function(res) {
                 notify(res);
             });
-		return false;
+            return false;
         }
         logout.onsubmit = function() {
             localStorage.removeItem("auth_token");

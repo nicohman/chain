@@ -26,7 +26,7 @@ Mostly chain-based, server-side features
   * By closeness in links
   * Remove default closeness filter
 + ~~Favoriting~~
-+ Get favorites
++ ~~Get favorites~~
 
 ## Client
 Mostly client-side js or demenses.js features
@@ -39,7 +39,7 @@ Mostly client-side js or demenses.js features
 + Account creation
 + Post container
 + ~~Add to favorites~~
-+ View favorites
++ ~~View favorites~~
 + ~~Following tags~~
 + Following curations
 
