@@ -71,6 +71,17 @@ window.onload = function() {
         });
     }
 
+    function show_post(post, toAppend) {
+
+        var postt = document.createElement("div");
+        postt.className = "post";
+        postt.appendChild(document.createTextNode(post.title));
+        postt.appendChild(document.createTextNode(post.auth));
+        postt.appendChild(document.createTextNode(post.content));
+        postt.appendChild(document.createTextNode(post.tags));
+        toAppend.appendChild(postt);
+    }
+
     function create_post(title, content, tags, cb) {
         client.emit("c_create_post", {
             title: title,
@@ -130,17 +141,9 @@ window.onload = function() {
                 while (postel.hasChildNodes()) {
                     postel.removeChild(postel.lastChild);
                 }
-                var keys = Object.keys(posts);
-                if (keys.length < 1) {
-                    postel.appendChild(document.createTextNode("No posts found!"));
-
-                }
-                keys.forEach(function(postkey) {
-                    var post = posts[postkey];
-                    console.log(post.title);
-                    postel.appendChild(document.createTextNode(post.title));
+                Object.keys(posts).forEach(function(key) {
+                    show_post(posts[key], postel);
                 });
-
 
             });
             return false;
