@@ -7,6 +7,8 @@ window.onload = function() {
     var token = localStorage.getItem("auth_token");
     var logout = document.getElementById("logout");
     var follow = document.getElementById("follow");
+    var showfeed = document.getElementById("showfeed");
+    var postel = document.getElementById("posts");
     var loggedin = {};
 
     function attempt_login(uid, password, cb) {
@@ -31,13 +33,25 @@ window.onload = function() {
             client.emit("c_follow_tag", {
                 cid: client.id,
                 tag: tag,
-		    token:token,
+                token: token,
                 uid: loggedin.uid
             });
             client.once("c_followed_tag_" + tag, function(res) {
                 cb(res);
             });
         }
+    }
+
+    function get_feed(cb) {
+        client.emit("c_get_feed", {
+            cid: client.id
+        });
+        console.log("c_got_feed_" + loggedin.uid);
+        client.once("c_got_feed_" + loggedin.uid, function(posts) {
+
+            console.log(posts);
+            cb(posts);
+        });
     }
 
     function attempt_token(token, cb) {
@@ -67,7 +81,7 @@ window.onload = function() {
         });
         client.once("c_created_post", function(results) {
             cb(results);
-            2
+
         });
     }
 
@@ -90,6 +104,7 @@ window.onload = function() {
             Object.keys(results.posts).forEach(function(key) {
                 posts[key] = results.posts[key];
             });
+            console.log("gotten");
             if (counted >= 2) {
                 client.off("c_got_posts_" + data);
                 cb(posts);
@@ -109,12 +124,33 @@ window.onload = function() {
                 }
             });
         }
+        showfeed.onsubmit = function() {
+            get_feed(function(posts) {
+
+                while (postel.hasChildNodes()) {
+                    postel.removeChild(postel.lastChild);
+                }
+                var keys = Object.keys(posts);
+                if (keys.length < 1) {
+                    postel.appendChild(document.createTextNode("No posts found!"));
+
+                }
+                keys.forEach(function(postkey) {
+                    var post = posts[postkey];
+                    console.log(post.title);
+                    postel.appendChild(document.createTextNode(post.title));
+                });
+
+
+            });
+            return false;
+        }
         follow.onsubmit = function() {
             var followdata = follow.elements.tag.value;
             follow_tag(followdata, function(res) {
                 notify(res)
             })
-		return false;
+            return false;
         }
         logout.onsubmit = function() {
             localStorage.removeItem("auth_token");
@@ -142,7 +178,7 @@ window.onload = function() {
             console.log("submitted");
             var searchdata = search.elements;
             console.log(searchdata);
-            var postel = document.getElementById("posts");
+
             get_posts("tag", [searchdata.tag.value], function(posts) {
                 console.log("called");
                 console.log(posts);
@@ -156,6 +192,7 @@ window.onload = function() {
                 }
                 keys.forEach(function(postkey) {
                     var post = posts[postkey];
+                    console.log(post.title);
                     postel.appendChild(document.createTextNode(post.title));
                 });
             });

@@ -18,7 +18,7 @@ Mostly chain-based, server-side features
 + Encryption
 + ~~Following of tags~~
 + Following of curations
-+ get\_feed
++ ~~get\_feed~~
 + Improving get\_posts
   * By date
   * By favorites
@@ -34,7 +34,7 @@ Mostly client-side js or demenses.js features
 + Tag editing
 + ~~Login~~
 + ~~Logout~~
-+ Feed
++ ~~Feed~~
 + Account creation
 + Post container
 + View favorites

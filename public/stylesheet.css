@@ -1,0 +1,29 @@
+#post-container {
+	height:100%;
+	width:100%;
+	display:flex;
+	justify-content:space-around;
+}
+.post {
+	width:20%;
+	height:200%;
+	border: 20px blue solid;
+	background: cyan;
+	display:flex;
+	flex-direction:column;
+	align-items: flex-stretch;
+}
+.post-title {
+	border-bottom: 1px blue solid;
+}
+.post-content {
+	height: 400%;
+	border-bottom: 1px blue solid;
+}
+.post div {
+	
+}
+.post-botttom {
+	display:flex;
+	justify-content:center;
+}

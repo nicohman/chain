@@ -107,7 +107,7 @@ function alldir(eventname, data) {
 
 function onedir(eventname, data, dir) {
     console.log(dir);
-    //console.log(clients);
+    console.log(clients);
     if (clients[dir]) {
         clients[dir].emit(eventname, data);
     } else {
@@ -170,13 +170,17 @@ function dirToString(dir) {
 
 function when(eventname, cb) {
     clients.forEach(function(client) {
+	    console.log("whenening");
         client.on(eventname, function(data) {
-            never(eventname);
+            //never(eventname);
+		console.log("whened "+eventname+ getDir(data.from));
             cb(data);
         });
     })
     io.on(eventname, function(data) {
-        never(eventname);
+	    console.log("whened"+eventname + getDir(data.from));
+	    console.log(getDir(data.from));
+       // never(eventname);
         cb(data)
     });
 }
@@ -211,13 +215,35 @@ function get_posts(criterion, cb) {
 
     alldir("get_posts", criterion);
     console.log("got_posts_" + criterion.filter + "_" + criterion.filter_data);
-    var cbe = function(posts) {
+    var cbe = function(postse) {
         console.log("posts");
-        cb(posts);
+        cb(postse);
     };
     var eventname = "got_posts_" + criterion.filter + "_" + criterion.filter_data;
     when(eventname, cbe);
-    when(eventname, cbe);
+}
+
+function get_even(criterion, cb) {
+    var gotten = 0;
+    var posts = {};
+	console.log(criterion.count+": count : "+criterion.count /2);
+    criterion.count = criterion.count / 2;
+    get_posts(criterion, function(gposts) {
+       gotten++;
+
+        Object.keys(gposts).forEach(function(key) {
+		console.log(gposts);
+            posts[key] = gposts[key];
+        });
+        if (gotten >= 1) {
+            cb(posts);
+            console.log("gotten");
+        } else {
+		console.log(gotten);
+            console.log("not gotten");
+        }
+	 
+    });
 }
 
 function isNeighbor(id) {
@@ -261,6 +287,50 @@ function createUser(username, password) {
     });
 }
 
+function get_feed(toget, cb) {
+    var gotten = 0;
+    var need = toget.length
+    var posts = {};
+
+    function check() {
+        if (gotten >= need) {
+            cb(posts);
+        }
+    }
+    toget.forEach(function(get) {
+        switch (get.type) {
+            case 'tag':
+                var pro;
+                if (get.pro) {
+                    pro = get.pro;
+                } else {
+                    pro = 1 / toget.length;
+                }
+			console.log(toget.count+" "+pro);
+                var amount = pro * toget.count;
+                get_even({
+                    count: amount,
+                    filter: "tag",
+                    filter_data: [get.tag],
+                    from: selfId,
+                    original: selfId,
+                    posts: {}
+                }, function(gposts) {
+                    gotten++;
+                    Object.keys(gposts.posts).forEach(function(key) {
+			    console.log(key);
+
+                        posts[key] = gposts.posts[key];
+                    });
+                    check();
+                });
+                break
+            default:
+                break;
+        }
+    });
+}
+
 function follow_tag(req, ifself) {
     console.log(req.uid);
     if (users[req.uid]) {
@@ -269,9 +339,9 @@ function follow_tag(req, ifself) {
             console.log("verifying");
             jwt.verify(req.token, secret, function(err, decode) {
                 if (err) {
-		
-			console.log(err);
-		} else {
+
+                    console.log(err);
+                } else {
                     if (decode.uid == req.uid) {
                         console.log("updating");
                         users[req.uid].tags[req.tag] = true;
@@ -405,16 +475,21 @@ var serv_handles = {
             var post = posts[key]
             switch (criterion.filter) {
                 case 'tag':
+			    console.log("tags");
                     if (Object.keys(criterion.posts).length < criterion.count) {
+			    console.log("not enough");
                         post.tags.forEach(function(tag) {
                             criterion.filter_data.forEach(function(filter) {
                                 if (filter.trim() == tag.trim()) {
+				
                                     console.log("Found a post");
                                     criterion.posts[key] = post;
                                 }
                             });
                         });
-                    }
+                    } else {
+		    	console.log(Object.keys(criterion.posts).length +" "+ criterion.count);
+		    }
                     break;
                 default:
                     break;
@@ -425,7 +500,7 @@ var serv_handles = {
             passAlong("get_posts", criterion);
         } else {
             console.log("Finishing requests");
-            console.log("got_posts_" + criterion.filter + "_" + criterion.filter_data);
+            console.log("emitting : got_posts_" + criterion.filter + "_" + criterion.filter_data +"   "+getDir(criterion.from));
             onedir("got_posts_" + criterion.filter + "_" + criterion.filter_data, {
                 to: criterion.original,
                 filter: criterion.filter,
@@ -473,6 +548,23 @@ var serv_handles = {
             });
         });
     },
+    "c_get_feed": function(req) {
+        if (logged[req.cid]) {
+            var toget = Object.keys(users[logged[req.cid]].tags).map(function(item) {
+                return {
+                    type: 'tag',
+                    tag: item
+                }
+            });
+		toget.count = 10;
+            console.log("getting");
+            get_feed(toget, function(posts) {
+                console.log(posts);
+                console.log("c_got_feed_" + logged[req.cid]);
+                io.to(req.cid).emit("c_got_feed_" + logged[req.cid], posts);
+            });
+        }
+    },
     "follow_tag": follow_tag,
     "c_follow_tag": function(req) {
         if (logged[req.cid]) {
@@ -482,7 +574,7 @@ var serv_handles = {
                     original: selfId,
                     uid: req.uid,
                     tag: req.tag,
-			token:req.token
+                    token: req.token
 
                 }, true);
                 io.once("followed_tag_" + req.uid + "_" + req.tag, function(res) {
@@ -637,4 +729,5 @@ function createClient(to_connect) {
         console.log('discoonnect');
     });
     clients.push(client);
+	console.log("connected to "+to_connect);
 }
