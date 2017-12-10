@@ -666,6 +666,12 @@ var serv_handles = {
             });
         });
     },
+"c_create_user":function(req){
+		if(!logged[req.cid]){
+			createUser(req.username, req.password);
+			io.to(req.cid).emit("c_created_user");
+		}
+},
     "c_get_feed": function(req) {
         if (logged[req.cid]) {
             var toget = Object.keys(users[logged[req.cid]].tags).map(function(item) {

@@ -9,6 +9,7 @@ window.onload = function() {
     var follow = document.getElementById("follow");
     var showfeed = document.getElementById("showfeed");
     var getfavorite = document.getElementById("getfavorite");
+    var createuser = document.getElementById("create_user");
     var addfavorite = document.getElementById("addfavorite");
     var postel = document.getElementById("posts");
     var loggedin = {};
@@ -43,6 +44,19 @@ window.onload = function() {
             });
         } else {
             console.log("not logged in");
+        }
+    }
+
+    function createUser(username, password, cb) {
+        if (!loggedin.uid) {
+            client.emit("c_create_user", {
+                cid: client.id,
+                username: username,
+                password: password
+            });
+            client.once("c_created_user", function(res) {
+                cb(res);
+            });
         }
     }
 
@@ -206,6 +220,18 @@ window.onload = function() {
             add_favorite(favoritedata, function(res) {
                 notify(res);
             });
+            return false;
+        }
+        createuser.onsubmit = function() {
+            var createdata = createuser.elements;
+            if (createdata.pass1.value == createdata.pass2.value) {
+                createUser(createdata.username.value, createdata.pass1.value, function(res) {
+                    notify("Created" + res);
+                });
+            } else {
+                notify("Not same password, sorry!");
+            }
+
             return false;
         }
         logout.onsubmit = function() {

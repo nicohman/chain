@@ -36,12 +36,22 @@ Mostly client-side js or demenses.js features
 + ~~Login~~
 + ~~Logout~~
 + ~~Feed~~
-+ Account creation
++ ~~Account creation~~
 + Post container
 + ~~Add to favorites~~
 + ~~View favorites~~
 + ~~Following tags~~
 + Following curations
++ Viewing curations
++ Viewing tags
++ Curations
+  * Creating
+  * Adding/editing tags
+  * Removing posts
+  * Removing users
+  * Adding posts
+  * Boolean rules
+  * Tag proportions
 
 ## GUI
 Actually frontend user interface stuff that looks nice and is semi-displayable to other humans.
