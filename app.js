@@ -1,4 +1,4 @@
-var io = require('socket.io');
+ar io = require('socket.io');
 var socketclient = require('socket.io-client');
 var ip = require('ip');
 var format = require('biguint-format');
@@ -26,6 +26,7 @@ var name = names[parseInt(process.argv[2])];
 console.log("I am the " + name);
 var port = ports[parseInt(process.argv[2]) - 1];
 console.log(port);
+var curations = require("./curations.json");
 var secret = "shut up";
 var reg = {};
 reg[selfId] = {
@@ -539,6 +540,30 @@ var serv_handles = {
         socket.emit("got_reg_" + info.from, reg);
 
     },
+	"create_curation":function(curation){
+		if(!curations[curation.id]){
+			jwt.verify(curation.token, secret, function(err, decode){
+				if(decode.uid == curation.uid){
+					curations[curation.id] = curation;
+				}
+			});
+		}
+	},
+	"c_create_curation":function(req){
+		if(logged[req.cid]){
+			var to_create = {
+				id:hash(req.title+Date.now()),
+				title:req.title,
+				uid:req.uid,
+				from:selfId,
+				original:selfId,
+				rules:req.rules,
+				token:req.token
+			}
+			serv_handles(to_create);
+			alldir("create_curatioon", to_create);
+		}
+	},
     "get_posts": function(criterion) {
         console.log("Request for posts");
         Object.keys(posts).forEach(function(key) {
@@ -604,22 +629,22 @@ var serv_handles = {
 
     },
     "c_get_favorites": function(req) {
-	    console.log("got request");
+        console.log("got request");
         if (logged[req.cid]) {
             if (logged[req.cid] == req.uid) {
                 get_user(req.uid, function(user) {
-                   var favs = Object.keys(user.favorites);
-			var got = 0;
-			var full = [];
-			favs.forEach(function(fav){
-				get_post_by_id(fav, function(post){
-					full.push(post);
-					got++;
-					if(got >= favs.length){
-						io.to(req.cid).emit("c_got_favorites", full);
-					}
-				});
-			});
+                    var favs = Object.keys(user.favorites);
+                    var got = 0;
+                    var full = [];
+                    favs.forEach(function(fav) {
+                        get_post_by_id(fav, function(post) {
+                            full.push(post);
+                            got++;
+                            if (got >= favs.length) {
+                                io.to(req.cid).emit("c_got_favorites", full);
+                            }
+                        });
+                    });
                 })
             }
         }
@@ -666,12 +691,12 @@ var serv_handles = {
             });
         });
     },
-"c_create_user":function(req){
-		if(!logged[req.cid]){
-			createUser(req.username, req.password);
-			io.to(req.cid).emit("c_created_user");
-		}
-},
+    "c_create_user": function(req) {
+        if (!logged[req.cid]) {
+            createUser(req.username, req.password);
+            io.to(req.cid).emit("c_created_user");
+        }
+    },
     "c_get_feed": function(req) {
         if (logged[req.cid]) {
             var toget = Object.keys(users[logged[req.cid]].tags).map(function(item) {
