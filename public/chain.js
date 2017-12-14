@@ -12,6 +12,7 @@ window.onload = function() {
     var createuser = document.getElementById("create_user");
     var addfavorite = document.getElementById("addfavorite");
     var postel = document.getElementById("posts");
+    var getcuration = document.getElementById("getcuration");
     var loggedin = {};
 
     function attempt_login(uid, password, cb) {
@@ -28,6 +29,16 @@ window.onload = function() {
                 localStorage.setItem("auth_token", newtoken);
             }
             cb(null, newtoken);
+        });
+    }
+
+    function get_curation(id, cb) {
+        client.emit("c_get_curation", {
+            cid: client.id,
+            id: id
+        });
+        client.once("c_got_curation_" + id, function(cur) {
+            cb(cur);
         });
     }
 
@@ -205,6 +216,13 @@ window.onload = function() {
                     show_post(posts[key], postel);
                 });
 
+            });
+            return false;
+        }
+        getcuration.onsubmit = function() {
+            var curdata = getcuration.elements.id.value;
+            get_curation(curdata, function(res) {
+                notify(res);
             });
             return false;
         }

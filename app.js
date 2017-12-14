@@ -266,7 +266,6 @@ function get_even(criterion, cb) {
     criterion.count = criterion.count / 2;
     get_posts(criterion, function(gposts) {
         gotten++;
-
         Object.keys(gposts).forEach(function(key) {
             console.log(gposts);
             posts[key] = gposts[key];
@@ -436,6 +435,32 @@ function add_favorite(req, ifself) {
 
 }
 
+function getCurationById(id, cb) {
+    if (curations[id]) {
+        cb(curations[id]);
+    } else {
+        alldir("get_curation", {
+            from: selfId,
+            original: selfId,
+            id: id
+        });
+        when("got_curation_" + id, function(cur) {
+            cb(cur);
+        });
+    }
+}
+
+function getPostsByCur(count, cur, cb) {
+    var n = cur.rules.tags.length;
+    var total = 0;
+    var sort = cur.rules.sort;
+    cur.rules.tags.forEach(function(tag) {
+        get_even({
+            sort:
+
+        }, function(posts) {});
+    });
+}
 var socket = io.sockets;
 console.log(socket);
 if (process.argv[2] == "1") {
@@ -540,30 +565,30 @@ var serv_handles = {
         socket.emit("got_reg_" + info.from, reg);
 
     },
-	"create_curation":function(curation){
-		if(!curations[curation.id]){
-			jwt.verify(curation.token, secret, function(err, decode){
-				if(decode.uid == curation.uid){
-					curations[curation.id] = curation;
-				}
-			});
-		}
-	},
-	"c_create_curation":function(req){
-		if(logged[req.cid]){
-			var to_create = {
-				id:hash(req.title+Date.now()),
-				title:req.title,
-				uid:req.uid,
-				from:selfId,
-				original:selfId,
-				rules:req.rules,
-				token:req.token
-			}
-			serv_handles(to_create);
-			alldir("create_curatioon", to_create);
-		}
-	},
+    "create_curation": function(curation) {
+        if (!curations[curation.id]) {
+            jwt.verify(curation.token, secret, function(err, decode) {
+                if (decode.uid == curation.uid) {
+                    curations[curation.id] = curation;
+                }
+            });
+        }
+    },
+    "c_create_curation": function(req) {
+        if (logged[req.cid]) {
+            var to_create = {
+                id: hash(req.title + Date.now()),
+                title: req.title,
+                uid: req.uid,
+                from: selfId,
+                original: selfId,
+                rules: req.rules,
+                token: req.token
+            }
+            serv_handles(to_create);
+            alldir("create_curatioon", to_create);
+        }
+    },
     "get_posts": function(criterion) {
         console.log("Request for posts");
         Object.keys(posts).forEach(function(key) {
@@ -627,6 +652,24 @@ var serv_handles = {
             io.to(req.id).emit("c_got_posts_" + req.data, posts);
         });
 
+    },
+    "get_curation": function(cur) {
+        if (curations[cur.id]) {
+            onedir("got_curation_" + cur.id, {
+                title: curations[cur.id].title,
+                rules: curations[cur.id].rules,
+                uid: curations[cur.id].uid,
+                from: selfId,
+                original: selfId
+            }, flip(getDir(cur.from)));
+        } else {
+            passAlong(cur);
+        }
+    },
+    "c_get_curation_posts": function(req) {
+        getCurationById(req.id, function(curation) {
+		io.to(req.cid).emit("c_got_curation_"+req.id);
+        });
     },
     "c_get_favorites": function(req) {
         console.log("got request");
