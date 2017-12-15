@@ -187,6 +187,12 @@ window.onload = function() {
         fav.className = "fav-post";
         fav.type = "button";
         fav.innerHTML = "Favorite"
+        fav.addEventListener("click", function(e) {
+            e.preventDefault();
+            chain.add_favorite(e.target.parentNode.parentNode.parentNode.getElementsByClassName("post-id").item(0).innerHTML, function(res) {
+                notify(res);
+            });
+        });
         buttons.appendChild(fav);
         bar.appendChild(buttons);
         var id = document.createElement("div");
