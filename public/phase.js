@@ -280,14 +280,32 @@ window.onload = function() {
                     loggedin.username = res.username;
                     loggedin.uid = res.uid;
                 }
-                if (window.location.href.split("#")[1]) {
-
-                    showblocking(window.location.href.split("#")[1]);
-                } else {
-                    showblocking("home");
-                }
 
             });
+            if (window.location.href.split("#")[1]) {
+
+                showblocking(window.location.href.split("#")[1]);
+            } else {
+                showblocking("home");
+            }
+
+            document.getElementById("createformtags").addEventListener("submit", function(e) {
+                var toAdd = document.createElement("a");
+                toAdd.style['font-size'] = "small";
+                toAdd.className = "create-tags";
+                toAdd.innerHTML = e.target.tag.value + " ";
+                var remove = document.createElement("button");
+                remove.innerHTML = 'X';
+		    remove.type = "button";
+                remove.className = "create-remove";
+		    remove.addEventListener("click", function(e){
+		    	e.target.parentNode.remove();
+		    });
+                toAdd.appendChild(remove);
+                document.getElementById("create-already-tags").appendChild(toAdd);
+                e.preventDefault();
+            });
+
         }
     });
 }
