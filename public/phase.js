@@ -15,6 +15,7 @@ window.onload = function() {
                 if (newtoken) {
                     token = newtoken
                     localStorage.setItem("auth_token", newtoken);
+                    login();
                 }
                 cb(null, newtoken);
             });
@@ -106,7 +107,8 @@ window.onload = function() {
             client.once("c_token_logged_in", function(res) {
                 console.log(res);
                 if (res) {
-			set_username(res.username);
+                    login();
+                    set_username(res.username);
                     //notify("Welcome back, " + res.username);
                 } else {
 
@@ -164,21 +166,48 @@ window.onload = function() {
     function show_post(post, toAppend) {
         var postt = document.createElement("div");
         postt.className = "post";
-        postt.appendChild(document.createTextNode(post.title));
-        postt.appendChild(document.createTextNode(post.auth));
-        postt.appendChild(document.createTextNode(post.content));
-        postt.appendChild(document.createTextNode(post.tags));
-        postt.appendChild(document.createTextNode(post.id));
+        var title = document.createElement("div");
+        title.className = "post-title";
+        title.innerHTML = post.title
+        var auth = document.createElement("div");
+        auth.className = "post-auth";
+        auth.innerHTML = "by " + post.auth;
+        var content = document.createElement("div");
+        content.className = "post-content";
+        content.innerHTML = post.content;
+        var bar = document.createElement("div");
+        bar.className = "post-bar";
+        var tags = document.createElement("div");
+        tags.className = "post-tags";
+        tags.innerHTML = post.tags;
+        bar.appendChild(tags);
+        var buttons = document.createElement("div");
+        buttons.className = "post-buttons";
+        var fav = document.createElement("a");
+        fav.className = "fav-post";
+        fav.href = "#";
+        fav.type = "button";
+        fav.innerHTML = "Favorite"
+        buttons.appendChild(fav);
+        bar.appendChild(buttons);
+        var id = document.createElement("div");
+        id.className = "post-id";
+        id.innerHTML = post.id;
+        postt.appendChild(title);
+        postt.appendChild(auth);
+        postt.appendChild(content);
+        postt.appendChild(bar);
+        postt.appendChild(id);
         toAppend.appendChild(postt);
     }
 
-function set_username(username){
-	var us = document.getElementsByClassName("username");
-	for(var i=0;i < us.length;i++){
-		console.log("set");
-		us.item(i).innerHtml = username;
-	}
-}
+    function set_username(username) {
+        var us = document.getElementsByClassName("username");
+        for (var i = 0; i < us.length; i++) {
+            console.log("set");
+            us.item(i).innerHTML = username;
+        }
+    }
     var mains = {
         "home": function() {},
         "pop": function() {},
@@ -186,7 +215,7 @@ function set_username(username){
         "feed": function(that) {
             chain.get_feed(function(posts) {
                 Object.keys(posts).forEach(function(key) {
-			console.log(that.el);
+                    console.log(that.el);
                     show_post(posts[key], that.el.children.namedItem("posts"));
                 });
             });
@@ -200,6 +229,28 @@ function set_username(username){
         }
     });
 
+    function logout() {
+        var ls = document.getElementsByClassName("loggedout");
+        var li = document.getElementsByClassName("loggedin");
+        for (var i = 0; i < ls.length; i++) {
+            ls.item(i).style.display = 'block';
+        }
+        for (var i = 0; i < li.length; i++) {
+            li.item(i).style.display = 'none';
+        }
+
+    }
+
+    function login() {
+        var ls = document.getElementsByClassName("loggedin");
+        var li = document.getElementsByClassName("loggedout");
+        for (var i = 0; i < ls.length; i++) {
+            ls.item(i).style.display = 'block';
+        }
+        for (var i = 0; i < li.length; i++) {
+            li.item(i).style.display = 'none';
+        }
+    }
     var showblocking = function(toshow) {
         Object.keys(mains).forEach(function(key) {
             var main = mains[key];
@@ -216,10 +267,11 @@ function set_username(username){
         });
     }
     document.getElementById("navbar").addEventListener("click", function(e) {
-        var tar = e.target.attributes.href.value.slice(1);
-        showblocking(tar);
+        if (e.target.tagName.toLowerCase() == "a") {
+            var tar = e.target.attributes.href.value.slice(1);
+            showblocking(tar);
+        }
     });
-
     client.on('connect', function() {
         console.log("connected");
         if (token) {
@@ -228,6 +280,13 @@ function set_username(username){
                     loggedin.username = res.username;
                     loggedin.uid = res.uid;
                 }
+                if (window.location.href.split("#")[1]) {
+
+                    showblocking(window.location.href.split("#")[1]);
+                } else {
+                    showblocking("home");
+                }
+
             });
         }
     });
