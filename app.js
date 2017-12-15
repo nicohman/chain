@@ -468,22 +468,7 @@ if (process.argv[2] == "1") {
         // createUser("nicohman", "dude");
     }, 10000);
 }
-if (process.argv[2] == "3") {
-    console.log("timeout");
-    setTimeout(function() {
-        console.log("activate");
-        var users = require("./users.json");
-        get_user(Object.keys(users)[0], function(user) {
-            console.log("Retrieved user: " + user.username);
-        });
-        createPost({
-            title: "First post, bitches",
-            auth: "nico",
-            tags: ["first", "post"],
-            content: "This is the first post"
-        });
-    }, 1100)
-}
+
 if (process.argv[2] == "3") {
     setTimeout(function() {
         console.log("get post");

@@ -183,9 +183,8 @@ window.onload = function() {
         bar.appendChild(tags);
         var buttons = document.createElement("div");
         buttons.className = "post-buttons";
-        var fav = document.createElement("a");
+        var fav = document.createElement("button");
         fav.className = "fav-post";
-        fav.href = "#";
         fav.type = "button";
         fav.innerHTML = "Favorite"
         buttons.appendChild(fav);
@@ -213,6 +212,7 @@ window.onload = function() {
         "pop": function() {},
         "search": function() {},
         "feed": function(that) {
+            removeFromFeed();
             chain.get_feed(function(posts) {
                 Object.keys(posts).forEach(function(key) {
                     console.log(that.el);
@@ -272,6 +272,13 @@ window.onload = function() {
             showblocking(tar);
         }
     });
+
+    function removeFromFeed() {
+        var feed = document.getElementById("posts");
+        while (feed.hasChildNodes()) {
+            feed.removeChild(feed.lastChild);
+        }
+    }
     client.on('connect', function() {
         console.log("connected");
         if (token) {
@@ -280,15 +287,28 @@ window.onload = function() {
                     loggedin.username = res.username;
                     loggedin.uid = res.uid;
                 }
+                if (window.location.href.split("#")[1]) {
+
+                    showblocking(window.location.href.split("#")[1]);
+                } else {
+                    showblocking("home");
+                }
+            });
+            document.getElementById("create-post").addEventListener("submit", function(e) {
+                e.preventDefault();
+                var title = e.target.title.value;
+                var content = e.target.content.value;
+                var tags = [];
+                var t = document.getElementsByClassName("create-tags")
+                for (var i = 0; i < t.length; i++) {
+                    tags.push(t.item(i).innerHTML.split("<")[0].trim());
+                }
+                chain.create_post(title, content, tags, function(res) {
+                    notify("Posted!");
+                });
+                e.target.reset();
 
             });
-            if (window.location.href.split("#")[1]) {
-
-                showblocking(window.location.href.split("#")[1]);
-            } else {
-                showblocking("home");
-            }
-
             document.getElementById("createformtags").addEventListener("submit", function(e) {
                 var toAdd = document.createElement("a");
                 toAdd.style['font-size'] = "small";
@@ -296,15 +316,18 @@ window.onload = function() {
                 toAdd.innerHTML = e.target.tag.value + " ";
                 var remove = document.createElement("button");
                 remove.innerHTML = 'X';
-		    remove.type = "button";
+                remove.type = "button";
                 remove.className = "create-remove";
-		    remove.addEventListener("click", function(e){
-		    	e.target.parentNode.remove();
-		    });
+                remove.addEventListener("click", function(e) {
+                    e.target.parentNode.remove();
+                });
                 toAdd.appendChild(remove);
                 document.getElementById("create-already-tags").appendChild(toAdd);
                 e.preventDefault();
             });
+
+        } else {
+            window.location = "/login.html";
 
         }
     });
