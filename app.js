@@ -1,4 +1,4 @@
-ar io = require('socket.io');
+var io = require('socket.io');
 var socketclient = require('socket.io-client');
 var ip = require('ip');
 var format = require('biguint-format');
@@ -456,7 +456,7 @@ function getPostsByCur(count, cur, cb) {
     var sort = cur.rules.sort;
     cur.rules.tags.forEach(function(tag) {
         get_even({
-            sort:
+            
 
         }, function(posts) {});
     });

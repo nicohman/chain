@@ -4,14 +4,14 @@
 	display:flex;
 	justify-content:space-around;
 }
-.post {
+#feed #posts .post {
 	width:20%;
 	height:200%;
 	border: 20px blue solid;
 	background: cyan;
 	display:flex;
 	flex-direction:column;
-	align-items: flex-stretch;
+	align-items: center;
 }
 .post-title {
 	border-bottom: 1px blue solid;
@@ -26,4 +26,41 @@
 .post-botttom {
 	display:flex;
 	justify-content:center;
+}
+#main div {
+	display:none;
+}
+#home {
+	display:block;
+}
+#feed #posts {
+	display:block !important;
+}
+#navbar {
+	
+}
+#navbar ul {
+	list-style-type:none;
+	    margin: 0;
+	        top: 0;
+    width: 100%;
+    position:fixed;
+    padding: 0;
+overflow:hidden;
+background-color: #073642;
+	display:flex;
+	justify-content:flex-start;
+}
+#navbar li a {
+padding: 14px 16px;
+text-decoration: none;
+    color: white;
+}
+#navbar .loggedin {
+	margin-left:auto;
+	justify-self:end;
+}
+#navbar .loggedout{
+	justify-self:end;
+	margin-left:auto;	
 }
