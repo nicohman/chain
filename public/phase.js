@@ -211,15 +211,24 @@ window.onload = function() {
         "home": function() {},
         "pop": function() {},
         "search": function() {},
+        "favs": function() {
+            removeFrom(document.getElementById("fav"));
+            chain.get_favorites(function(favs) {
+                favs.forEach(function(fav) {
+                    show_post(fav, document.getElementById("fav"));
+                });
+            });
+
+        },
         "feed": function(that) {
-            removeFromFeed();
+            removeFrom(document.getElementById("posts"));
             chain.get_feed(function(posts) {
                 Object.keys(posts).forEach(function(key) {
                     console.log(that.el);
                     show_post(posts[key], that.el.children.namedItem("posts"));
                 });
             });
-        },
+        }
     }
     Object.keys(mains).forEach(function(key, index) {
         mains[key] = {
@@ -273,8 +282,8 @@ window.onload = function() {
         }
     });
 
-    function removeFromFeed() {
-        var feed = document.getElementById("posts");
+    function removeFrom(feed) {
+
         while (feed.hasChildNodes()) {
             feed.removeChild(feed.lastChild);
         }

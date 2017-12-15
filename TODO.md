@@ -69,6 +69,7 @@ Actually frontend user interface stuff that looks nice and is semi-displayable t
 + Home css
 + Create css
 + Tags css
++ Search css
 ## Other
 
 + ~~Make this todo list~~
