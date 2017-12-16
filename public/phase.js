@@ -179,7 +179,18 @@ window.onload = function() {
         bar.className = "post-bar";
         var tags = document.createElement("div");
         tags.className = "post-tags";
-        tags.innerHTML = post.tags;
+        post.tags.forEach(function(tag) {
+            var button = document.createElement("button");
+            button.className = "tag";
+            button.type = "button";
+            button.innerHTML = tag;
+            button.addEventListener("click", function(e) {
+                chain.follow_tag(tag, function(res) {
+                    notify("#" + tag + " followed!");
+                });
+            });
+            tags.appendChild(button);
+        });
         bar.appendChild(tags);
         var buttons = document.createElement("div");
         buttons.className = "post-buttons";
