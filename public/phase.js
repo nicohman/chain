@@ -85,7 +85,19 @@ window.onload = function() {
                 });
             }
         },
-
+        unfavorite: function(pid, cb) {
+            if (loggedin.uid && token) {
+                client.emit("c_unfavorite", {
+                    cid: client.id,
+                    pid: pid,
+                    token: token,
+                    uid: loggedin.uid
+                });
+                client.once("c_unfavorite_" + loggedin.uid + "_" + pid, function(res) {
+                    cb(res);
+                });
+            }
+        },
         get_feed: function get_feed(cb) {
             client.emit("c_get_feed", {
                 cid: client.id
@@ -197,13 +209,25 @@ window.onload = function() {
         var fav = document.createElement("button");
         fav.className = "fav-post";
         fav.type = "button";
-        fav.innerHTML = "Favorite"
-        fav.addEventListener("click", function(e) {
-            e.preventDefault();
-            chain.add_favorite(e.target.parentNode.parentNode.parentNode.getElementsByClassName("post-id").item(0).innerHTML, function(res) {
-                notify(res);
+
+        if (post.favorited == true) {
+            fav.innerHTML = "Unfavorite"
+            fav.addEventListener("click", function(e) {
+                e.preventDefault();
+                chain.unfavorite(e.target.parentNode.parentNode.parentNode.getElementsByClassName("post-id").item(0).innerHTML, function(res) {
+                    notify(res);
+                });
             });
-        });
+        } else {
+
+            fav.innerHTML = "Favorite"
+            fav.addEventListener("click", function(e) {
+                e.preventDefault();
+                chain.add_favorite(e.target.parentNode.parentNode.parentNode.getElementsByClassName("post-id").item(0).innerHTML, function(res) {
+                    notify(res);
+                });
+            });
+        }
         buttons.appendChild(fav);
         bar.appendChild(buttons);
         var id = document.createElement("div");
@@ -232,6 +256,7 @@ window.onload = function() {
             removeFrom(document.getElementById("fav"));
             chain.get_favorites(function(favs) {
                 favs.forEach(function(fav) {
+                    fav.favorited = true;
                     show_post(fav, document.getElementById("fav"));
                 });
             });

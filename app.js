@@ -702,13 +702,22 @@ var serv_handles = {
                     var got = 0;
                     var full = [];
                     favs.forEach(function(fav) {
-                        get_post_by_id(fav, function(post) {
-                            full.push(post);
+                        if (user.favorites[fav]) {
+                            get_post_by_id(fav, function(post) {
+                                full.push(post);
+                                got++;
+                                if (got >= favs.length) {
+                                    io.to(req.cid).emit("c_got_favorites", full);
+                                }
+                            });
+                        } else {
                             got++;
+                            console.log(user.favorites[fav]);
                             if (got >= favs.length) {
                                 io.to(req.cid).emit("c_got_favorites", full);
                             }
-                        });
+                        }
+
                     });
                 })
             }
