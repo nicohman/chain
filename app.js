@@ -127,7 +127,8 @@ function createPost(post) {
         date: Date.now(),
         tags: post.tags,
         content: post.content,
-        comments: []
+        comments: [],
+        favs: 0
     }
     updatePosts();
     alldir("update_posts", posts[id]);
@@ -211,6 +212,16 @@ function never(eventname) {
     io.removeAllListeners(eventname);
 }
 
+function cmpfavs(post1, post2) {
+    if (post1.favs < post2.favs) {
+        return -1;
+    } else if (post1.favs > post2.favs) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
 function get_posts(criterion, cb) {
 
     console.log("Request for posts");
@@ -288,7 +299,8 @@ function get_post_by_id(id, cb) {
             filter_data: id,
             from: selfId,
             original: selfId,
-            count: 1
+            count: 1,
+            posts: {}
         });
         whenonce("got_posts_id_" + id, function(post) {
             cb(post.posts);
@@ -452,6 +464,7 @@ function add_favorite(req, ifself) {
                     if (decode.uid == req.uid) {
                         users[req.uid].favorites[req.pid] = true;
                         updateUsers();
+                        updateFavs(req.pid, 1);
                         alldir("update_users", users[req.uid]);
                         if (ifself) {
                             io.sockets.emit("added_favorite_" + req.uid + "_" + req.pid, users[req.uid]);
@@ -472,6 +485,38 @@ function add_favorite(req, ifself) {
 
 }
 
+function updateFavs(pid, num) {
+    favsUpdate({
+        from: selfId,
+        original: selfId,
+        pid: pid,
+        num: num
+    }, true);
+    whenonce("updated_favs_" + pid + "_" + selfId, function(res) {
+
+    });
+}
+
+function favsUpdate(req, ifself) {
+    if (posts[req.pid]) {
+        posts[req.pid].favs += req.num;
+        if (ifself) {
+            io.sockets.emit("updated_favs_" + req.pid + "_" + req.original, posts[req.pid]);
+
+        } else {
+            onedir("updated_favs_" + req.pid + "_" + req.original, posts[req.pid], flip(getDir(req.from)));
+
+
+        }
+        updatePosts();
+        alldir("update_posts", posts[req.pid]);
+    } else if (ifself) {
+        alldir("update_favs", req);
+    } else {
+        passAlong("update_favs", req);
+    }
+}
+
 function unfavorite(req, ifself) {
     if (users[req.uid]) {
         console.log("have user");
@@ -484,6 +529,7 @@ function unfavorite(req, ifself) {
                 } else {
                     if (decode.uid == req.uid) {
                         users[req.uid].favorites[req.pid] = false;
+                        updateFavs(req.pid, -1);
                         updateUsers();
                         alldir("update_users", users[req.uid]);
                         if (ifself) {
@@ -595,6 +641,7 @@ var serv_handles = {
             passAlong("check_login");
         }
     },
+    "update_favs": favsUpdate,
     "add_comment": function(comment) {
         if (posts[comment.id]) {
             posts[comment.id].comments.push(comment);
