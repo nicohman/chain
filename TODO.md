@@ -79,8 +79,8 @@ Actually frontend user interface stuff that looks nice and is semi-displayable t
 For phase 1, we'll be ditching curations. They aren't too integral, and can be finished up for phase 2. Phase 1 will need:
 
 + Most GUI features (Client)
-+ Post container (Client)
++ ~~Post container (Client)~~
 + Improving get\_posts (Server)
 + Tag editing(Server and Client)
 + General usablity(Client)
-  * Creation of a temporary phase website
+  * ~~Creation of a temporary phase website~~

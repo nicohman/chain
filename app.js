@@ -435,6 +435,43 @@ function add_favorite(req, ifself) {
 
 }
 
+function unfavorite(req, ifself) {
+    if (users[req.uid]) {
+        console.log("have user");
+        if (users[req.uid].original == true) {
+            console.log("verifying");
+            jwt.verify(req.token, secret, function(err, decode) {
+                if (err) {
+
+                    console.log(err);
+                } else {
+                    if (decode.uid == req.uid) {
+                        users[req.uid].favorites[req.pid] = false;
+                        updateUsers();
+                        alldir("update_users", users[req.uid]);
+                        if (ifself) {
+                            io.sockets.emit("unfavorited_" + req.uid + "_" + req.pid, users[req.uid]);
+                        } else {
+                            onedir("unfavorited_" + req.uid + "_" + req.pid, users[req.uid], flip(getDir(req.from)));
+                        }
+
+                    }
+                }
+            })
+        }
+    } else if (ifself) {
+        alldir("unfavorite", req);
+    } else {
+        passAlong("unffavorite", req);
+
+    }
+
+
+
+
+
+}
+
 function getCurationById(id, cb) {
     if (curations[id]) {
         cb(curations[id]);
@@ -456,7 +493,7 @@ function getPostsByCur(count, cur, cb) {
     var sort = cur.rules.sort;
     cur.rules.tags.forEach(function(tag) {
         get_even({
-            
+
 
         }, function(posts) {});
     });
@@ -653,7 +690,7 @@ var serv_handles = {
     },
     "c_get_curation_posts": function(req) {
         getCurationById(req.id, function(curation) {
-		io.to(req.cid).emit("c_got_curation_"+req.id);
+            io.to(req.cid).emit("c_got_curation_" + req.id);
         });
     },
     "c_get_favorites": function(req) {
@@ -673,6 +710,23 @@ var serv_handles = {
                             }
                         });
                     });
+                })
+            }
+        }
+    },
+    "unfavorite": unfavorite,
+    "c_unfavorite": function(req) {
+        if (logged[req.cid]) {
+            if (logged[req.cid] == req.uid) {
+                unfavorite({
+                    from: selfId,
+                    original: selfId,
+                    uid: req.uid,
+                    pid: req.pid,
+                    token: req.token
+                }, true);
+                whenonce("unfavorited_" + req.uid + "_" + req.pid, function(res) {
+                    io.to(req.cid).emit("c_unfavorited_" + req.pid, true);
                 })
             }
         }

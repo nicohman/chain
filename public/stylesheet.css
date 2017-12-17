@@ -166,4 +166,12 @@ padding:1% 1%;
 	color:inherit;
 }
 
+.tag {
 
+	background: none; 
+    border:1px #2aa198 solid; 
+	color:inherit;
+	padding:none;
+
+
+}
