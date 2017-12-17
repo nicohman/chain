@@ -212,34 +212,71 @@ function never(eventname) {
 }
 
 function get_posts(criterion, cb) {
+
+    console.log("Request for posts");
     Object.keys(posts).forEach(function(key) {
         var post = posts[key]
         switch (criterion.filter) {
             case 'tag':
-                if (criterion.posts.length < criterion.count) {
+                console.log("tags");
+                if (Object.keys(criterion.posts).length < criterion.count) {
+                    console.log("not enough");
                     post.tags.forEach(function(tag) {
                         criterion.filter_data.forEach(function(filter) {
                             if (filter.trim() == tag.trim()) {
+
                                 console.log("Found a post");
                                 criterion.posts[key] = post;
                             }
                         });
                     });
+                } else {
+                    console.log(Object.keys(criterion.posts).length + " " + criterion.count);
                 }
                 break;
             default:
                 break;
         }
     });
+    if (criterion.filter == "id") {
+        console.log("id");
+        if (Object.keys(criterion.posts).length < criterion.count) {
+            if (posts[criterion.filter_data]) {
+                console.log("I d found a post");
+                criterion.posts[criterion.filter_data] = posts[criterion.filter_data];
+            }
+        }
+    }
+    if (criterion.sort == "favs") {
 
-    alldir("get_posts", criterion);
-    console.log("got_posts_" + criterion.filter + "_" + criterion.filter_data);
-    var cbe = function(postse) {
-        console.log("posts");
-        cb(postse);
-    };
-    var eventname = "got_posts_" + criterion.filter + "_" + criterion.filter_data;
-    when(eventname, cbe);
+    }
+    if (cb && Object.keys(criterion.posts).length > criterion.count) {
+        cb(criterion);
+    } else if (cb) {
+        alldir("get_posts", criterion);
+        console.log("got_posts_" + criterion.filter + "_" + criterion.filter_data);
+        var cbe = function(postse) {
+            console.log("posts");
+            cb(postse);
+        };
+        var eventname = "got_posts_" + criterion.filter + "_" + criterion.filter_data;
+        when(eventname, cbe);
+
+    } else if (Object.keys(criterion.posts).length < criterion.count && adjacent[flip(getDir(criterion.from))]) {
+        console.log("Passing along");
+        passAlong("get_posts", criterion);
+    } else {
+        console.log("Finishing requests");
+        console.log("emitting : got_posts_" + criterion.filter + "_" + criterion.filter_data + "   " + getDir(criterion.from));
+        onedir("got_posts_" + criterion.filter + "_" + criterion.filter_data, {
+            to: criterion.original,
+            filter: criterion.filter,
+            posts: criterion.posts,
+            filter_data: criterion.filter_data,
+            from: selfId,
+            original: selfId,
+        }, getDir(criterion.from));
+    }
 }
 
 function get_post_by_id(id, cb) {
@@ -611,57 +648,7 @@ var serv_handles = {
             alldir("create_curatioon", to_create);
         }
     },
-    "get_posts": function(criterion) {
-        console.log("Request for posts");
-        Object.keys(posts).forEach(function(key) {
-            var post = posts[key]
-            switch (criterion.filter) {
-                case 'tag':
-                    console.log("tags");
-                    if (Object.keys(criterion.posts).length < criterion.count) {
-                        console.log("not enough");
-                        post.tags.forEach(function(tag) {
-                            criterion.filter_data.forEach(function(filter) {
-                                if (filter.trim() == tag.trim()) {
-
-                                    console.log("Found a post");
-                                    criterion.posts[key] = post;
-                                }
-                            });
-                        });
-                    } else {
-                        console.log(Object.keys(criterion.posts).length + " " + criterion.count);
-                    }
-                    break;
-                default:
-                    break;
-            }
-        });
-        if (criterion.filter == "id") {
-            console.log("id");
-            if (Object.keys(criterion.posts).length < criterion.count) {
-                if (posts[criterion.filter_data]) {
-                    console.log("I d found a post");
-                    criterion.posts[criterion.filter_data] = posts[criterion.filter_data];
-                }
-            }
-        }
-        if (Object.keys(criterion.posts).length < criterion.count && adjacent[flip(getDir(criterion.from))]) {
-            console.log("Passing along");
-            passAlong("get_posts", criterion);
-        } else {
-            console.log("Finishing requests");
-            console.log("emitting : got_posts_" + criterion.filter + "_" + criterion.filter_data + "   " + getDir(criterion.from));
-            onedir("got_posts_" + criterion.filter + "_" + criterion.filter_data, {
-                to: criterion.original,
-                filter: criterion.filter,
-                posts: criterion.posts,
-                filter_data: criterion.filter_data,
-                from: selfId,
-                original: selfId,
-            }, getDir(criterion.from));
-        }
-    },
+    "get_posts": get_posts,
     "c_get_posts": function(req) {
         get_posts({
             filter: req.filter,
