@@ -156,7 +156,6 @@ window.onload = function() {
 
 
 		get_posts: function get_posts(filter, data, cb) {
-			var counted = 0;
 			var posts = {};
 			client.emit("c_get_posts", {
 				filter: filter,
@@ -165,17 +164,14 @@ window.onload = function() {
 				data: data
 			});
 			client.on("c_got_posts_" + data, function(results) {
-				counted++;
+
 
 				Object.keys(results.posts).forEach(function(key) {
 					posts[key] = results.posts[key];
 				});
-				console.log("gotten");
-				if (counted >= 2) {
-					client.off("c_got_posts_" + data);
-					cb(posts);
+				cb(posts);
 
-				}
+
 
 			});
 
@@ -211,6 +207,7 @@ window.onload = function() {
 			button.type = "button";
 			button.innerHTML = tag;
 			button.addEventListener("click", function(e) {
+				console.log("following");
 				chain.follow_tag(tag, function(res) {
 					notify("#" + tag + " followed!");
 				});
@@ -297,7 +294,7 @@ window.onload = function() {
 
 				}
 			});
-			
+
 		},
 		"favs": function() {
 			removeFrom(document.getElementById("fav"));
@@ -324,6 +321,7 @@ window.onload = function() {
 
 				Object.keys(posts).forEach(function(key) {
 					console.log(that.el);
+					console.log("showing");	
 					show_post(posts[key], that.el.children.namedItem("posts"));
 				});
 				if (Object.keys(posts).length == 0) {
@@ -373,11 +371,16 @@ window.onload = function() {
 			} else {
 				main.el.style.display = "none";
 			}
-			console.log(main.el.id + " " + toshow);
+			console.log(main.el.id + " " +
+				toshow);
 		});
 	}
-	function hideall(){
-		Object.keys(mains).forEach(function(key){});
+
+	function hideall() {
+		Object.keys(mains).forEach(function(key) {
+			console.log(key);
+			document.getElementById(key).style.display = "none";
+		});
 	}
 	document.getElementById("navbar").addEventListener("click", function(e) {
 		if (e.target.tagName.toLowerCase() == "a") {
@@ -387,6 +390,7 @@ window.onload = function() {
 	});
 
 	function removeFrom(feed) {
+
 
 		while (feed.hasChildNodes()) {
 			feed.removeChild(feed.lastChild);
@@ -442,6 +446,20 @@ window.onload = function() {
 				toAdd.appendChild(remove);
 				document.getElementById("create-already-tags").appendChild(toAdd);
 				e.preventDefault();
+			});
+			document.getElementById("find-tag").addEventListener("submit", function(e) {
+				e.preventDefault();
+				var data = e.target.elements.tag.value;
+				chain.get_posts("tag", [data], function(posts) {
+					console.log(posts);
+					document.getElementById("results").style.display = "block";
+					hideall();
+					console.log(posts);
+					Object.keys(posts).forEach(function(key) {
+						var post = posts[key]
+						show_post(post, document.getElementById("results"));
+					});
+				});
 			});
 
 		} else {

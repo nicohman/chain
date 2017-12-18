@@ -263,6 +263,7 @@ function get_posts(criterion, cb) {
 	}
 	if (cb && Object.keys(criterion.posts).length > criterion.count) {
 		cb(criterion);
+
 	} else if (cb) {
 		alldir("get_posts", criterion);
 		console.log("got_posts_" + criterion.filter + "_" + criterion.filter_data);
@@ -366,9 +367,10 @@ function createUser(username, password) {
 			tags: {},
 			favorites: {}
 		}
-		updateUsers();
+
 		alldir("update_users", users[id]);
 		users[id].original = true;
+		updateUsers();
 	});
 }
 
@@ -378,10 +380,12 @@ function get_feed(toget, cb) {
 	var posts = {};
 
 	function check() {
+		console.log(need + " need : " + gotten);
 		if (gotten >= need) {
 			cb(posts);
 		}
 	}
+	console.log(toget);
 	toget.forEach(function(get) {
 		switch (get.type) {
 			case 'tag':
@@ -401,6 +405,7 @@ function get_feed(toget, cb) {
 					original: selfId,
 					posts: {}
 				}, function(gposts) {
+					console.log("HI");
 					gotten++;
 					Object.keys(gposts.posts).forEach(function(key) {
 						console.log(key);
@@ -697,7 +702,7 @@ var serv_handles = {
 	},
 	"get_posts": get_posts,
 	"c_get_posts": function(req) {
-		get_posts({
+		get_even({
 			filter: req.filter,
 			count: req.count,
 			filter_data: req.data,
@@ -841,6 +846,7 @@ var serv_handles = {
 					tag: item
 				}
 			});
+			console.log(users[logged[req.cid]]);
 			toget.count = 10;
 			console.log("getting");
 			get_feed(toget, function(posts) {
