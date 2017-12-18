@@ -153,7 +153,17 @@ window.onload = function() {
 
 			});
 		},
-
+		get_top: function(cb) {
+			var posts = {};
+			client.emit("c_get_top", {
+				filter: "top",
+				count: 10,
+				id: client.id
+			});
+			client.once("c_got_top", function(posts) {
+				cb(posts.posts);
+			});
+		},
 
 		get_posts: function get_posts(filter, data, cb) {
 			var posts = {};
@@ -294,6 +304,41 @@ window.onload = function() {
 
 				}
 			});
+			chain.get_top(function(posts) {
+				removeFrom(document.getElementById("pop-tags"));
+				var tags = {};
+				console.log(posts);
+				Object.keys(posts).forEach(function(key) {
+					var post = posts[key]
+					console.log(post);
+					if (post.tags) {
+						post.tags.forEach(function(tag) {
+							if (tags[tag] == undefined) {
+								tags[tag] = 0;
+
+							}
+							console.log(post);
+							tags[tag] += post.favs
+						});
+					}
+				});
+				console.log(tags);
+				var fin = Object.keys(tags).sort(function(tag1, tag2) {
+					if (tags[tag1] > tags[tag2]) {
+						return -1;
+					} else if (tags[tag1] < tags[tag2]) {
+						return 1;
+					} else {
+						return 0;
+					}
+				});
+				console.log(fin)
+				fin.forEach(function(tag){
+					var li = document.createElement("li");
+					li.innerHTML = tag;
+					document.getElementById("pop-tags").appendChild(li);
+				});
+			});
 
 		},
 		"favs": function() {
@@ -321,7 +366,7 @@ window.onload = function() {
 
 				Object.keys(posts).forEach(function(key) {
 					console.log(that.el);
-					console.log("showing");	
+					console.log("showing");
 					show_post(posts[key], that.el.children.namedItem("posts"));
 				});
 				if (Object.keys(posts).length == 0) {

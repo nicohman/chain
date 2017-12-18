@@ -258,7 +258,14 @@ function get_posts(criterion, cb) {
 			}
 		}
 	}
-	if (criterion.sort == "favs") {
+	if (criterion.filter == "favs") {
+		console.log("favs");
+		if (Object.keys(criterion.posts).length < criterion.count) {
+			criterion.posts = Object.keys(posts).map(function(m) {
+				return posts[m];
+			}).sort(cmpfavs).splice(0, criterion.count).concat(criterion.posts).sort(cmpfavs).splice(0, criterion.count);
+
+		}
 
 	}
 	if (cb && Object.keys(criterion.posts).length > criterion.count) {
@@ -273,7 +280,6 @@ function get_posts(criterion, cb) {
 		};
 		var eventname = "got_posts_" + criterion.filter + "_" + criterion.filter_data;
 		when(eventname, cbe);
-
 	} else if (Object.keys(criterion.posts).length < criterion.count && adjacent[flip(getDir(criterion.from))]) {
 		console.log("Passing along");
 		passAlong("get_posts", criterion);
@@ -713,6 +719,18 @@ var serv_handles = {
 			io.to(req.id).emit("c_got_posts_" + req.data, posts);
 		});
 
+	},
+	"c_get_top": function(req) {
+		get_even({
+			filter: "favs",
+			filter_data: "top",
+			count: req.count,
+			original: selfId,
+			posts: {},
+			from: selfId
+		}, function(posts) {
+			io.to(req.id).emit("c_got_top", posts)
+		});
 	},
 	"get_curation": function(cur) {
 		if (curations[cur.id]) {
