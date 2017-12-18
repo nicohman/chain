@@ -196,11 +196,12 @@ window.onload = function() {
 	}
 
 	function show_post(post, toAppend) {
+		console.log(post);
 		var postt = document.createElement("div");
 		postt.className = "post";
 		var title = document.createElement("div");
 		title.className = "post-title";
-		title.innerHTML = post.title
+		title.innerHTML = post.title + " - " + post.favs;
 		var auth = document.createElement("div");
 		auth.className = "post-auth";
 		auth.innerHTML = "by " + post.auth;
@@ -238,6 +239,7 @@ window.onload = function() {
 				chain.unfavorite(e.target.parentNode.parentNode.parentNode.getElementsByClassName("post-id").item(0).innerHTML, function(res) {
 					notify(res);
 				});
+				showblocking("favs");
 			});
 		} else {
 
@@ -277,8 +279,28 @@ window.onload = function() {
 		return fake;
 	}
 	var mains = {
-		"home": function() {},
-		"pop": function() {},
+		"home": function() {
+			removeFrom(document.getElementById("home"));
+			chain.get_top(function(posts) {
+				Object.keys(posts).sort(function(post1, post2) {
+					if (posts[post1].favs > posts[post2].favs) {
+						return -1;
+					} else if (posts[post1].favs < posts[post2].favs) {
+						return 1;
+					} else {
+						return 0;
+					}
+
+				}).forEach(function(key) {
+					var post = posts[key];
+					console.log(post);
+					if (post.title) {
+						show_post(post, document.getElementById("home"));
+					}
+
+				});
+			});
+		},
 		"search": function() {
 			removeFrom(document.getElementById("your-tags"));
 			removeFrom(document.getElementById("pop-tags"));
@@ -332,8 +354,9 @@ window.onload = function() {
 						return 0;
 					}
 				});
+
 				console.log(fin)
-				fin.forEach(function(tag){
+				fin.forEach(function(tag) {
 					var li = document.createElement("li");
 					li.innerHTML = tag;
 					document.getElementById("pop-tags").appendChild(li);
@@ -353,6 +376,8 @@ window.onload = function() {
 				if (favs.length == 0) {
 					console.log("notifying");
 					notify("No favorited posts!");
+					document.getElementById("fav").appendChild(makeFake("No favorited posts!"));
+
 				}
 			});
 
