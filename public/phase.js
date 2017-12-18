@@ -29,6 +29,17 @@ window.onload = function() {
 				cb(cur);
 			});
 		},
+		get_self: function(cb) {
+			if (loggedin.uid && token) {
+				client.emit("c_get_self", {
+					cid: client.id,
+					token: token
+				});
+				client.once("c_got_self", function(me) {
+					cb(me);
+				});
+			}
+		},
 		get_favorites: function get_favorites(cb) {
 			if (loggedin.uid && token) {
 				client.emit("c_get_favorites", {
@@ -261,7 +272,33 @@ window.onload = function() {
 	var mains = {
 		"home": function() {},
 		"pop": function() {},
-		"search": function() {},
+		"search": function() {
+			removeFrom(document.getElementById("your-tags"));
+			removeFrom(document.getElementById("pop-tags"));
+			var li = document.createElement("li");
+			li.innerHTML = "Couldn't fetch your followed tags";
+			document.getElementById("your-tags").appendChild(li);
+			var li = document.createElement("li");
+			li.innerHTML = "Couldn't fetch popular tags";
+			document.getElementById("pop-tags").appendChild(li);
+			chain.get_self(function(me) {
+				removeFrom(document.getElementById("your-tags"));
+				Object.keys(me.tags).forEach(function(tag) {
+					if (tag) {
+						var li = document.createElement("li");
+						li.innerHTML = tag;
+						document.getElementById("your-tags").appendChild(li);
+					}
+				});
+				if (Object.keys(me.tags).length == 0) {
+					var li = document.createElement("li");
+					li.innerHTML = "You're not following anything!";
+					document.getElementById("your-tags").appendChild(li);
+
+				}
+			});
+			
+		},
 		"favs": function() {
 			removeFrom(document.getElementById("fav"));
 			document.getElementById("fav").appendChild(makeFake("No favorited posts!"));
@@ -338,6 +375,9 @@ window.onload = function() {
 			}
 			console.log(main.el.id + " " + toshow);
 		});
+	}
+	function hideall(){
+		Object.keys(mains).forEach(function(key){});
 	}
 	document.getElementById("navbar").addEventListener("click", function(e) {
 		if (e.target.tagName.toLowerCase() == "a") {
