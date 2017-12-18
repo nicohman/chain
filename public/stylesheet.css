@@ -133,6 +133,62 @@ body {
         width: 30%
 }
 
+#tags-container {
+        font-size: large;
+        border: 5px #2aa198 solid;
+        background: #002b36;
+
+        color: #93a1a1;
+        top: 50%;
+        left: 50%;
+        position: absolute;
+        transform: translate(-50%, -50%);
+        width: 30%;
+
+}
+
+#tags-seperator {
+        margin-right: 20px;
+        margin-left: 20px;
+        display: flex;
+        height: 200px;
+
+        justify-content: space-between;
+}
+
+#tags-seperator ul {
+	margin-left:5px;
+	list-style-position:outside;
+        list-style-type: none;
+
+}
+#tags-self {
+	padding-left:10px;
+}
+#tags-seperator li {
+        display: list-item;
+}
+
+#tags-seperator div {
+        border-bottom: 5px #2aa198 solid;
+        width: 100%;
+}
+
+#tags-self {
+        border-left: 5px #2aa198 solid;
+}
+
+#tags-find {
+        margin: 10px;
+        display: flex;
+        justify-content: center;
+}
+
+#tags-find input {
+        height: 10px;
+        margin-top: 15px;
+}
+
 #create-label {
         border-bottom: 1px #2aa198 solid;
         font-size: large;
@@ -202,6 +258,7 @@ body {
 
 
 }
+
 #login-container {
         font-size: large;
         border: 5px #2aa198 solid;
@@ -231,7 +288,35 @@ body {
         padding: 1% 1%;
 
 }
+
 #login-submit {
         padding: 1% 2%;
-	font-size:large;
+        font-size: large;
+}
+
+#notifications {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+}
+
+.notification {}
+
+.fake-post {
+        width: 20%;
+        height: 200%;
+        border: 5px #2aa198 solid;
+        background: #002b36;
+        display: flex;
+        color: #93a1a1;
+        flex-direction: column;
+        justify-content: center;
+        margin-left: 25px;
+        margin-top: 20px;
+        margin-bottom: 20px;
+        padding-right: 10px;
+        padding-left: 10px;
+        padding-top: 20px;
+        padding-bottom: 20px;
+
 }

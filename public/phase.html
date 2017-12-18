@@ -17,16 +17,16 @@
 			<li><a href="#feed" class="nav">Feed</a></li>
 			<li><a href="#favs" class="nav">Favorites</a></li>
 			<li class="loggedin"><span class="username">Couldn't retrieve username</span></li>
-			<li class="loggedin"><a href="#logout">Log out</a></li>
+			<li class="loggedin"><a href="#logout" id="logout">Log out</a></li>
 			<li class="loggedout"><a href="login.html">Log in</a></li>
 		</ul>
 	</nav>
 	<div id="main">
 		<div id="home">
-			Home
+
 		</div>
 		<div id="pop">
-			Create Post
+
 			<div id="create-container">
 				<form id="createformtags">
 				</form>
@@ -56,16 +56,40 @@
 			</div>
 		</div>
 		<div id="search">
-			Search
+			<div id="tags-container">
+				<form id="find-tag">
+					<div id="tags-seperator">
+						<div id="tags-popular">
+							<p>Popular Tags:</p>
+							<ul id="pop-tags">
+								<li>Couldn't fetch popular tags</li>
+							</ul>
+						</div>
+						<div id="tags-self">
+							<p> Your tags:</p>
+							<ul id="your-tags">
+								<li> Couldn't fetch your followed tags</li>
+							</ul>
+						</div>
+					</div>
+					<div id="tags-find">
+						<p> Search tag:</p>
+						<input type="text" name="tag">
+					</div>
+
+				</form>
+			</div>
+		</div>
+		<div id="results">
 		</div>
 		<div id="feed">
-			Feed
+
 			<div id="posts">
 
 			</div>
 		</div>
 		<div id="favs">
-			Favorites
+
 			<div id="fav">
 			</div>
 		</div>
