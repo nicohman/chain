@@ -12,6 +12,8 @@ var fs = require("fs");
 var names = ["dragon", "defiant", "dragon's teeth", "saint", "weaver"];
 var semaphore = require('semaphore');
 var sem = semaphore(1);
+var events = require('events');
+var selfEmitter = new events.EventEmitter();
 var selfId = format(new FlakeId({
 	datacenter: 1,
 	worker: parseInt(process.argv[2])
@@ -190,16 +192,21 @@ function when(eventname, cb) {
 function whenonce(eventname, cb) {
 	clients.forEach(function(client) {
 		console.log("whenening");
-		client.on(eventname, function(data) {
+		client.once(eventname, function(data) {
 			//never(eventname);
 			console.log("whened " + eventname + getDir(data.from));
 			cb(data);
 		});
 	})
-	io.on(eventname, function(data) {
+	io.once(eventname, function(data) {
 		console.log("whened" + eventname + getDir(data.from));
 		console.log(getDir(data.from));
 		// never(eventname);
+		cb(data)
+	});
+	selfEmitter.once(eventname, function(data) {
+		console.log("whened" + eventname + getDir(data.from));
+
 		cb(data)
 	});
 
@@ -427,7 +434,7 @@ function get_feed(toget, cb) {
 	});
 }
 
-function follow_tag(req, ifself) {
+function follow_tag(req, ifself, cb) {
 	console.log(req.uid);
 	if (users[req.uid]) {
 		console.log("have user");
@@ -444,7 +451,9 @@ function follow_tag(req, ifself) {
 						updateUsers();
 						alldir("update_users", users[req.uid]);
 						if (ifself) {
-							io.sockets.emit("followed_tag_" + req.uid + "_" + req.tag, users[req.uid]);
+							console.log("emitting");
+							cb(true);
+
 						} else {
 							onedir("followed_tag_" + req.uid + "_" + req.tag, users[req.uid], flip(getDir(req.from)));
 						}
@@ -461,7 +470,8 @@ function follow_tag(req, ifself) {
 
 	}
 }
-function unfollow(req, ifself) {
+
+function unfollow(req, ifself, cb) {
 	console.log(req.uid);
 	if (users[req.uid]) {
 		console.log("have user");
@@ -477,7 +487,7 @@ function unfollow(req, ifself) {
 						updateUsers();
 						alldir("update_users", users[req.uid]);
 						if (ifself) {
-							io.sockets.emit("unfollowed_" + req.uid + "_" + req.tag, users[req.uid]);
+							cb(true);
 						} else {
 							onedir("unfollowed_" + req.uid + "_" + req.tag, users[req.uid], flip(getDir(req.from)));
 						}
@@ -908,7 +918,7 @@ var serv_handles = {
 			});
 		}
 	},
-	"unfollow":unfollow,
+	"unfollow": unfollow,
 	"follow_tag": follow_tag,
 	"c_follow_tag": function(req) {
 		if (logged[req.cid]) {
@@ -919,9 +929,9 @@ var serv_handles = {
 					uid: req.uid,
 					tag: req.tag,
 					token: req.token
-
-				}, true);
-				whenonce("followed_tag_" + req.uid + "_" + req.tag, function(res) {
+				}, true, function(res) {
+					console.log("FsaJF");
+					console.log("c_followed_tag_" + req.tag + "\n " + req.cid);
 					io.to(req.cid).emit("c_followed_tag_" + req.tag, true);
 				});
 			}
@@ -939,8 +949,7 @@ var serv_handles = {
 					tag: req.tag,
 					token: req.token
 
-				}, true);
-				whenonce("unfollowed_" + req.uid + "_" + req.tag, function(res) {
+				}, true, function(res) {
 					io.to(req.cid).emit("c_unfollowed_" + req.tag, true);
 				});
 			}

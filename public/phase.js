@@ -78,7 +78,10 @@ window.onload = function() {
 					token: token,
 					uid: loggedin.uid
 				});
+				console.log("c_followed_tag_" + tag);
+				console.log(client.id);
 				client.once("c_followed_tag_" + tag, function(res) {
+					console.log("FJSAFJ");
 					cb(res);
 				});
 			}
@@ -187,15 +190,10 @@ window.onload = function() {
 				data: data
 			});
 			client.once("c_got_posts_" + data, function(results) {
-
-
 				Object.keys(results.posts).forEach(function(key) {
 					posts[key] = results.posts[key];
 				});
 				cb(posts);
-
-
-
 			});
 
 		}
@@ -274,7 +272,7 @@ window.onload = function() {
 		postt.appendChild(content);
 		postt.appendChild(bar);
 		postt.appendChild(id);
-		console.log(toAppend.id+ ' PAPEPPE');
+		console.log(toAppend.id + ' PAPEPPE');
 		toAppend.appendChild(postt);
 	}
 
@@ -510,8 +508,31 @@ window.onload = function() {
 			});
 			resultsTag = tag;
 			document.getElementById("results-span").innerHTML = tag;
+			checkRes();
 		});
 
+	}
+
+	function checkRes() {
+		console.log("checking");
+		chain.get_self(function(me) {
+			var yes = false;
+			Object.keys(me.tags).forEach(function(tag) {
+				if (me.tags[tag] == true && tag == resultsTag) {
+					console.log(tag);
+					console.log(me.tags);
+					console.log("FAFS");
+					document.getElementById("results-follow").style.display = "none";
+					document.getElementById("results-unfollow").style.display = "block";
+					yes = true;
+
+				}
+			});
+			if (!yes) {
+				document.getElementById("results-unfollow").style.display = "none";
+				document.getElementById("results-follow").style.display = "block";
+			}
+		});
 	}
 	client.on('connect', function() {
 		console.log("connected");
@@ -573,6 +594,7 @@ window.onload = function() {
 				if (resultsTag !== false) {
 					chain.follow_tag(resultsTag, function() {
 						notify("Followed " + resultsTag);
+						checkRes()
 
 					});
 				}
@@ -581,6 +603,7 @@ window.onload = function() {
 				if (resultsTag !== false) {
 					chain.unfollow(resultsTag, function() {
 						notify("Unfollowed " + resultsTag);
+						checkRes()
 					});
 				}
 			});
