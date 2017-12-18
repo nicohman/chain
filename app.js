@@ -461,6 +461,40 @@ function follow_tag(req, ifself) {
 
 	}
 }
+function unfollow(req, ifself) {
+	console.log(req.uid);
+	if (users[req.uid]) {
+		console.log("have user");
+		if (users[req.uid].original == true) {
+			console.log("verifying");
+			jwt.verify(req.token, secret, function(err, decode) {
+				if (err) {
+					console.log(err);
+				} else {
+					if (decode.uid == req.uid) {
+						console.log("updating");
+						users[req.uid].tags[req.tag] = false;
+						updateUsers();
+						alldir("update_users", users[req.uid]);
+						if (ifself) {
+							io.sockets.emit("unfollowed_" + req.uid + "_" + req.tag, users[req.uid]);
+						} else {
+							onedir("unfollowed_" + req.uid + "_" + req.tag, users[req.uid], flip(getDir(req.from)));
+						}
+					} else {
+						console.log("Fradulent request recieved!");
+					}
+				}
+			});
+		}
+	} else if (ifself) {
+		alldir("unfollow", req);
+	} else {
+		passAlong("unfollow", req);
+
+	}
+}
+
 
 function add_favorite(req, ifself) {
 	if (users[req.uid]) {
@@ -874,6 +908,7 @@ var serv_handles = {
 			});
 		}
 	},
+	"unfollow":unfollow,
 	"follow_tag": follow_tag,
 	"c_follow_tag": function(req) {
 		if (logged[req.cid]) {
@@ -894,6 +929,26 @@ var serv_handles = {
 			console.log("Not logged in!");
 		}
 	},
+	"c_unfollow": function(req) {
+		if (logged[req.cid]) {
+			if (logged[req.cid] == req.uid) {
+				unfollow({
+					from: selfId,
+					original: selfId,
+					uid: req.uid,
+					tag: req.tag,
+					token: req.token
+
+				}, true);
+				whenonce("unfollowed_" + req.uid + "_" + req.tag, function(res) {
+					io.to(req.cid).emit("c_unfollowed_" + req.tag, true);
+				});
+			}
+		} else {
+			console.log("Not logged in!");
+		}
+	},
+
 	"c_token_login": function(req) {
 		console.log("recieved request");
 		var token = req.token

@@ -1,6 +1,7 @@
 window.onload = function() {
 	var client = io("http://localhost:3000");
 	var loggedin = {};
+	var resultsTag;
 	var token = localStorage.getItem("auth_token");
 	var chain = {
 		attempt_login: function attempt_login(uid, password, cb) {
@@ -82,7 +83,19 @@ window.onload = function() {
 				});
 			}
 		},
-
+		unfollow: function(tag, cb) {
+			if (loggedin.uid && token) {
+				client.emit("c_unfollow", {
+					cid: client.id,
+					tag: tag,
+					token: token,
+					uid: loggedin.uid
+				});
+				client.once("c_unfollowed_" + tag, function(res) {
+					cb(res)
+				});
+			}
+		},
 		add_favorite: function add_favorite(pid, cb) {
 			if (loggedin.uid && token) {
 				client.emit("c_add_favorite", {
@@ -173,7 +186,7 @@ window.onload = function() {
 				id: client.id,
 				data: data
 			});
-			client.on("c_got_posts_" + data, function(results) {
+			client.once("c_got_posts_" + data, function(results) {
 
 
 				Object.keys(results.posts).forEach(function(key) {
@@ -261,6 +274,7 @@ window.onload = function() {
 		postt.appendChild(content);
 		postt.appendChild(bar);
 		postt.appendChild(id);
+		console.log(toAppend.id+ ' PAPEPPE');
 		toAppend.appendChild(postt);
 	}
 
@@ -301,6 +315,7 @@ window.onload = function() {
 				});
 			});
 		},
+		"pop": function() {},
 		"search": function() {
 			removeFrom(document.getElementById("your-tags"));
 			removeFrom(document.getElementById("pop-tags"));
@@ -313,10 +328,12 @@ window.onload = function() {
 			chain.get_self(function(me) {
 				removeFrom(document.getElementById("your-tags"));
 				Object.keys(me.tags).forEach(function(tag) {
-					if (tag) {
+					if (me.tags[tag] == true) {
 						var li = document.createElement("li");
 						li.innerHTML = tag;
 						document.getElementById("your-tags").appendChild(li);
+					} else {
+
 					}
 				});
 				if (Object.keys(me.tags).length == 0) {
@@ -383,16 +400,20 @@ window.onload = function() {
 
 		},
 		"feed": function(that) {
-			removeFrom(document.getElementById("posts"));
-			document.getElementById("posts").appendChild(makeFake("No found posts!"));
+			var postI = document.getElementById("posts");
+
+			removeFrom(postI);
+			console.log(postI);
+			console.log("FHS:");
+			postI.appendChild(makeFake("No found posts!"));
 
 			chain.get_feed(function(posts) {
-				removeFrom(document.getElementById("posts"));
+				removeFrom(postI);
 
 				Object.keys(posts).forEach(function(key) {
 					console.log(that.el);
 					console.log("showing");
-					show_post(posts[key], that.el.children.namedItem("posts"));
+					show_post(posts[key], postI);
 				});
 				if (Object.keys(posts).length == 0) {
 					notify("No posts in your feed!");
@@ -432,7 +453,7 @@ window.onload = function() {
 	var showblocking = function(toshow) {
 		Object.keys(mains).forEach(function(key) {
 			var main = mains[key];
-			if (main.el.id == toshow) {
+			if (key.trim() == toshow.trim()) {
 				if (main.ref) {
 					main.ref(main);
 				}
@@ -444,9 +465,15 @@ window.onload = function() {
 			console.log(main.el.id + " " +
 				toshow);
 		});
+		console.log(document.getElementById("results").style)
+		document.getElementById("results").style.display = "none";
+		removeFrom(document.getElementById("results-posts"));
+		console.log(document.getElementById("results").style)
+
 	}
 
 	function hideall() {
+
 		Object.keys(mains).forEach(function(key) {
 			console.log(key);
 			document.getElementById(key).style.display = "none";
@@ -454,7 +481,9 @@ window.onload = function() {
 	}
 	document.getElementById("navbar").addEventListener("click", function(e) {
 		if (e.target.tagName.toLowerCase() == "a") {
+
 			var tar = e.target.attributes.href.value.slice(1);
+			console.log(tar);
 			showblocking(tar);
 		}
 	});
@@ -465,6 +494,24 @@ window.onload = function() {
 		while (feed.hasChildNodes()) {
 			feed.removeChild(feed.lastChild);
 		}
+	}
+
+	function findByTag(tag) {
+		console.log("trigged tag");
+		chain.get_posts("tag", [tag], function(posts) {
+			removeFrom(document.getElementById("results-posts"));
+			console.log(":TUREND ON RESULTS");
+			document.getElementById("results").style.display = "block";
+			hideall();
+			console.log(posts);
+			Object.keys(posts).forEach(function(key) {
+				var post = posts[key]
+				show_post(post, document.getElementById("results-posts"));
+			});
+			resultsTag = tag;
+			document.getElementById("results-span").innerHTML = tag;
+		});
+
 	}
 	client.on('connect', function() {
 		console.log("connected");
@@ -520,16 +567,22 @@ window.onload = function() {
 			document.getElementById("find-tag").addEventListener("submit", function(e) {
 				e.preventDefault();
 				var data = e.target.elements.tag.value;
-				chain.get_posts("tag", [data], function(posts) {
-					console.log(posts);
-					document.getElementById("results").style.display = "block";
-					hideall();
-					console.log(posts);
-					Object.keys(posts).forEach(function(key) {
-						var post = posts[key]
-						show_post(post, document.getElementById("results"));
+				findByTag(data);
+			});
+			document.getElementById("results-follow").addEventListener("click", function(e) {
+				if (resultsTag !== false) {
+					chain.follow_tag(resultsTag, function() {
+						notify("Followed " + resultsTag);
+
 					});
-				});
+				}
+			});
+			document.getElementById("results-unfollow").addEventListener("click", function(e) {
+				if (resultsTag !== false) {
+					chain.unfollow(resultsTag, function() {
+						notify("Unfollowed " + resultsTag);
+					});
+				}
 			});
 
 		} else {

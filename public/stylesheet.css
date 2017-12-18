@@ -320,3 +320,24 @@ body {
         padding-bottom: 20px;
 
 }
+#results-nav ul {
+        list-style-type: none;
+        margin: 0;
+        top: 3.0%;
+        width: 100%;
+        position: fixed;
+        padding: 0;
+        overflow: hidden;
+        background-color: #839496;
+        display: flex;
+        justify-content: flex-start;
+}
+#results-nav li  {
+        }
+.results-follow {
+	        background: none;
+        border: none;
+        color: #002b36;
+	font: inherit;
+}
+
