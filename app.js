@@ -192,11 +192,11 @@ function updatePosts() {
 		var usersstring = JSON.stringify(posts);
 		fs.writeFile('posts.json', usersstring, function(err) {
 			if (err) {
-				console.log("Error creating user");
+				console.log("Error creating posts");
 			} else {
-				console.log("Created user successfully");
+				console.log("Created post successfully");
 			}
-		//	posts = require("./posts.json");
+			//	posts = require("./posts.json");
 			sem.leave();
 		});
 	})
@@ -297,7 +297,9 @@ function get_posts(criterion, cb) {
 							if (filter.trim() == tag.trim()) {
 
 								console.log("Found a post");
-								criterion.posts[key] = post;
+								if (!criterion.posts[key]) {
+									criterion.posts[key] = post;
+								}
 							}
 						});
 					});
@@ -328,7 +330,7 @@ function get_posts(criterion, cb) {
 		}
 
 	}
-	if (cb && Object.keys(criterion.posts).length > criterion.count) {
+	if (cb && Object.keys(criterion.posts).length >= criterion.count) {
 		cb(criterion);
 
 	} else if (cb) {
@@ -387,15 +389,15 @@ function get_even(criterion, cb) {
 			posts[key] = gposts[key];
 		});
 		if (gotten >= 1) {
-			if(criterion.filter == "favs"){
+			if (criterion.filter == "favs") {
 				var fin = {};
 				console.log(posts);
-				posts.posts.forEach(function(post){
-					
+				posts.posts.forEach(function(post) {
+
 					fin[post.id] = post;
 				});
 				console.log(fin);
-				fin = Object.keys(fin).map(function(p){
+				fin = Object.keys(fin).map(function(p) {
 					return fin[p];
 				}).sort(cmpfavs);
 				posts.posts = fin;
@@ -462,7 +464,8 @@ function get_feed(toget, cb) {
 	var posts = {};
 
 	function check() {
-
+		console.log("MIDAY:");
+		console.log(posts);
 		if (gotten >= need) {
 			cb(posts);
 		}
@@ -624,7 +627,7 @@ function updateFavs(pid, num) {
 function favsUpdate(req, ifself) {
 	if (posts[req.pid]) {
 		posts[req.pid].favs += req.num;
-		console.log(posts[req.pid].favs +" " +req.num);
+		console.log(posts[req.pid].favs + " " + req.num);
 		if (ifself) {
 			io.sockets.emit("updated_favs_" + req.pid + "_" + req.original, posts[req.pid]);
 
@@ -634,7 +637,7 @@ function favsUpdate(req, ifself) {
 
 		}
 		updatePosts();
-		alldir("update_posts", posts[req.pid]);
+		//alldir("update_posts", posts[req.pid]);
 	} else if (ifself) {
 		alldir("update_favs", req);
 	} else {
@@ -678,6 +681,28 @@ function unfavorite(req, ifself) {
 
 
 
+}
+
+function add_comment(comment, cb) {
+	if (posts[comment.id]) {
+		posts[comment.id].comments.push(comment);
+		alldir("update_posts", posts[comment.id]);
+		updatePosts();
+		if (cb) {
+			cb(true);
+		} else {
+			onedir("added_comment_" + comment.id + "_" + comment.auth, true, flip(getDir(comment.from)));
+		}
+	} else {
+		if (cb) {
+			alldir("add_comment", comment);
+			when("added_comment_" + comment.id + "_" + comment.auth, cb);
+		} else {
+			if (adjacent[flip(getDir(commment.from))]) {
+				passAlong(comment);
+			}
+		}
+	}
 }
 
 function getCurationById(id, cb) {
@@ -739,6 +764,9 @@ var serv_handles = {
 	},
 	"update_posts": function(post) {
 		if (!posts[post.id]) {
+			if(post.favorited){
+				post.favorited = undefined;
+			}
 			posts[post.id] = post;
 			updatePosts();
 		}
@@ -767,12 +795,21 @@ var serv_handles = {
 		}
 	},
 	"update_favs": favsUpdate,
-	"add_comment": function(comment) {
-		if (posts[comment.id]) {
-			posts[comment.id].comments.push(comment);
-			updatePosts();
-		} else {
-			passAlong(comment);
+	"add_comment": add_comment,
+
+	"c_add_comment": function(req) {
+		if (logged[req.cid]) {
+			add_comment({
+				from: selfId,
+				original: selfId,
+				uid: req.uid,
+				id: req.id,
+				content: req.content,
+				auth: req.auth,
+				date: Date.now()
+			}, function(res) {
+				io.to(req.cid).emit("c_added_comment", res);
+			});
 		}
 	},
 	"add_reg": function(toAdd) {
@@ -1032,6 +1069,7 @@ var serv_handles = {
 				});
 
 				console.log(posts);
+				console.log(users[logged[req.cid]]);
 				console.log("c_got_feed_" + logged[req.cid]);
 				io.to(req.cid).emit("c_got_feed_" + logged[req.cid], posts);
 			});
@@ -1090,6 +1128,11 @@ var serv_handles = {
 				io.to(req.cid).emit("c_token_logged_in", false);
 			}
 		})
+	},
+	"c_get_post_by_id": function(req) {
+		get_post_by_id(req.pid, function(res) {
+			io.to(req.cid).emit("c_got_post_by_id", res);
+		});
 	},
 	"create_post": createPost,
 	"add_neighbor": function(toAdd) {

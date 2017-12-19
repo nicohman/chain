@@ -3,6 +3,7 @@ window.onload = function() {
 	var loggedin = {};
 	var resultsTag;
 	var cur_show = "home";
+	var cur_com = "";
 	var token = localStorage.getItem("auth_token");
 	var chain = {
 		attempt_login: function attempt_login(uid, password, cb) {
@@ -29,6 +30,18 @@ window.onload = function() {
 			});
 			client.once("c_got_curation_" + id, function(cur) {
 				cb(cur);
+			});
+		},
+		add_comment: function(content, id, cb) {
+			client.emit("c_add_comment", {
+				uid: loggedin.uid,
+				cid: client.id,
+				auth: loggedin.username,
+				content: content,
+				id: id
+			});
+			client.once("c_added_comment", function(res) {
+				cb(res);
 			});
 		},
 		get_self: function(cb) {
@@ -138,7 +151,13 @@ window.onload = function() {
 				cb(posts);
 			});
 		},
-
+		get_by_id: function(id, cb) {
+			client.emit("c_get_post_by_id", {
+				cid: client.id,
+				pid: id
+			});
+			client.once("c_got_post_by_id", cb);
+		},
 		attempt_token: function attempt_token(token, cb) {
 			client.emit("c_token_login", {
 				token: token,
@@ -214,6 +233,8 @@ window.onload = function() {
 		document.getElementById("comment-title").innerHTML = post.title;
 		var commentsCon = document.getElementById("comments-list");
 		removeFrom(commentsCon);
+		cur_com = post.id;
+		console.log(post);
 		post.comments.forEach(function(comment) {
 			var el = document.createElement("li");
 			el.className = "comment";
@@ -234,6 +255,9 @@ window.onload = function() {
 	}
 
 	function show_post(post, toAppend) {
+		if (!post.title) {
+			return;
+		}
 		console.log(post);
 		var postt = document.createElement("div");
 		postt.className = "post";
@@ -272,7 +296,9 @@ window.onload = function() {
 		comments.innerHTML = "Comments";
 		comments.addEventListener("click", function(e) {
 			e.preventDefault();
-			show_comments(post);
+			chain.get_by_id(post.id, function(post) {
+				show_comments(post);
+			});
 		});
 		if (post.favorited == true) {
 			fav.innerHTML = "Unfavorite"
@@ -594,6 +620,17 @@ window.onload = function() {
 					showblocking("home");
 				}
 			});
+			document.getElementById("comment").addEventListener("submit", function(e) {
+				e.preventDefault();
+				var content = e.target.elements.content.value;
+				e.target.reset();
+				chain.add_comment(content, cur_com, function(res) {
+					chain.get_by_id(cur_com, function(post) {
+						console.log(post);
+						show_comments(post);
+					});
+				});
+			});
 			document.getElementById("create-post").addEventListener("submit", function(e) {
 				e.preventDefault();
 				var title = e.target.title.value;
@@ -650,8 +687,8 @@ window.onload = function() {
 					});
 				}
 			});
-			document.getElementById("overlay").addEventListener("click", function(e){
-				if(e.target.id == "overlay"){
+			document.getElementById("overlay").addEventListener("click", function(e) {
+				if (e.target.id == "overlay") {
 					hide_comments();
 				}
 			});
