@@ -14,6 +14,7 @@ var semaphore = require('semaphore');
 var sem = semaphore(1);
 var events = require('events');
 var selfEmitter = new events.EventEmitter();
+var server = new events.EventEmitter();
 var selfId = format(new FlakeId({
 	datacenter: 1,
 	worker: parseInt(process.argv[2])
@@ -81,6 +82,52 @@ function get_user(uid, cb) {
 	}
 }
 
+function get_user_by_email(req, cb) {
+	var found = false;
+	console.log("email trigger");
+	Object.keys(users).forEach(function(key) {
+		if (users[key].email == req.email) {
+			found = users[key];
+		}
+	});
+	if (found && cb) {
+		cb(found);
+	} else if (found) {
+		onedir("found_user_by_email_" + req.email, found, flip(getDir(req.from)));
+	} else if (cb) {
+		console.log("placing");
+		when("found_user_by_email_" + req.email, cb);
+		alldir("find_user_by_email", req);
+	} else {
+		if (adjacent[flip(getDir(req.from))]) {
+			passAlong(req);
+		} else {
+			console.log("NOT FOUND");
+			onedir("found_user_by_email_" + req.email, false, getDir(req.from));
+		}
+	}
+}
+
+function easyEmail(email, cb) {
+	var facount = 0;
+	get_user_by_email({
+		from: selfId,
+		original: selfId,
+		email: email
+	}, function(res){
+		if(res == false){
+			facount++;
+			if(facount >= 2){
+				cb(false);
+			} else {
+				console.log("DiasDIASD");
+			}
+		} else {
+			cb(res);
+		}
+	});
+}
+
 function flip(dir) {
 	switch (dir) {
 		case 0:
@@ -109,8 +156,12 @@ function alldir(eventname, data) {
 }
 
 function onedir(eventname, data, dir) {
-	console.log(dir);
+	if(eventname == "found_user_by_email_nico.hickman@gmail.com"){
+		console.log(dir);
 	console.log(clients);
+	console.log(data);
+	console.log("DSADASRF");	
+	}
 	if (clients[dir]) {
 		clients[dir].emit(eventname, data);
 	} else {
@@ -177,16 +228,17 @@ function when(eventname, cb) {
 		console.log("whenening");
 		client.on(eventname, function(data) {
 			//never(eventname);
-			console.log("whened " + eventname + getDir(data.from));
+			console.log("whened from client" + eventname + getDir(data.from));
 			cb(data);
 		});
 	})
 	io.on(eventname, function(data) {
-		console.log("whened" + eventname + getDir(data.from));
+		console.log("whened from server" + eventname + getDir(data.from));
 		console.log(getDir(data.from));
 		// never(eventname);
 		cb(data)
 	});
+	server.on(eventname,cb);
 }
 
 function whenonce(eventname, cb) {
@@ -368,7 +420,7 @@ function updateUsers() {
 	})
 }
 
-function createUser(username, password) {
+function createUser(username, password, email, cb) {
 	var id = hash(username + Date.now());
 	bcrypt.hash(password, 10, function(err, hashed) {
 		users[id] = {
@@ -377,6 +429,7 @@ function createUser(username, password) {
 			pass: hashed,
 			username: username,
 			subbed: [],
+			email: email,
 			tags: {},
 			favorites: {}
 		}
@@ -384,6 +437,7 @@ function createUser(username, password) {
 		alldir("update_users", users[id]);
 		users[id].original = true;
 		updateUsers();
+		cb(id);
 	});
 }
 
@@ -789,6 +843,14 @@ var serv_handles = {
 			passAlong(cur);
 		}
 	},
+	"find_user_by_email":get_user_by_email,
+	"c_find_user_by_email":function(req){
+		if(!logged[req.cid]){
+			easyEmail(req.email, function(res){
+				io.to(req.cid).emit("c_found_user_by_email_"+req.email, res);
+			});
+		}
+	},
 	"c_get_curation_posts": function(req) {
 		getCurationById(req.id, function(curation) {
 			io.to(req.cid).emit("c_got_curation_" + req.id);
@@ -896,8 +958,9 @@ var serv_handles = {
 	},
 	"c_create_user": function(req) {
 		if (!logged[req.cid]) {
-			createUser(req.username, req.password);
-			io.to(req.cid).emit("c_created_user");
+			createUser(req.username, req.password, req.email, function(id) {
+				io.to(req.cid).emit("c_created_user", id);
+			});
 		}
 	},
 	"c_get_feed": function(req) {
@@ -1010,12 +1073,12 @@ var serv_handles = {
 }
 
 io.on('connection', function(gsocket) {
-
 	Object.keys(serv_handles).forEach(function(key) {
 		//console.log(key);
 		gsocket.on(key, serv_handles[key]);
 	});
 	gsocket.on("*", function(data) {
+		server.emit(data.data[0], data.data[1]);
 		console.log(io.listenerCount(data.data[0]) + ": " + data.data[0]);
 		if ((!serv_handles[data.data[0]]) && io.listenerCount(data.data[0]) < 1) {
 			console.log("Passing along " + data.data[0]);
@@ -1052,6 +1115,9 @@ function createClient(to_connect) {
 			if (!client_handles[data.data[0]] && client.hasListeners(data.data[0]) < 1) {
 				passAlong(data.data[0], data.data[1]);
 				console.log("emit");
+			}
+			if(client.hasListeners(data.data[0]) >= 1){
+				
 			}
 		});
 		var dir;

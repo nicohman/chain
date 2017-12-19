@@ -266,7 +266,8 @@ body {
         font-size: large;
         border: 5px #2aa198 solid;
         background: #002b36;
-
+	display:flex;
+	justify-content:center;
         color: #93a1a1;
         top: 50%;
         left: 50%;
@@ -274,7 +275,9 @@ body {
         transform: translate(-50%, -50%);
         width: 30%
 }
-
+#login-container > div {
+	padding:10px;
+}
 #login-label {
         border-bottom: 1px #2aa198 solid;
         font-size: large;
