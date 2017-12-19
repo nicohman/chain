@@ -196,7 +196,7 @@ function updatePosts() {
 			} else {
 				console.log("Created user successfully");
 			}
-			posts = require("./posts.json");
+		//	posts = require("./posts.json");
 			sem.leave();
 		});
 	})
@@ -832,7 +832,7 @@ var serv_handles = {
 		}, function(posts) {
 			Object.keys(users[logged[req.id]].favorites).forEach(function(fav) {
 				Object.keys(posts.posts).forEach(function(key) {
-					if (posts.posts[key].id == fav && users[logged[req.id]].favorites == true) {
+					if (posts.posts[key].id == fav && users[logged[req.id]].favorites[posts.posts[key].id] == true) {
 						console.log("UDPATEW");
 						posts.posts[key].favorited = true;
 					}
@@ -855,7 +855,7 @@ var serv_handles = {
 			console.log(Object.keys(posts.posts));
 			Object.keys(users[logged[req.id]].favorites).forEach(function(fav) {
 				Object.keys(posts.posts).forEach(function(key) {
-					if (posts.posts[key].id == fav && users[logged[req.id]].favorites == true) {
+					if (posts.posts[key].id == fav && users[logged[req.id]].favorites[posts.posts[key].id] == true) {
 						console.log("UDPATEW");
 						posts.posts[key].favorited = true;
 					}
@@ -1024,7 +1024,7 @@ var serv_handles = {
 			get_feed(toget, function(posts) {
 				Object.keys(users[logged[req.cid]].favorites).forEach(function(fav) {
 					Object.keys(posts).forEach(function(key) {
-						if (posts[key].id == fav && users[logged[req.cid]].favorites == true) {
+						if (posts[key].id == fav && users[logged[req.cid]].favorites[posts[key].id] == true) {
 							console.log("UDPATEW");
 							posts[key].favorited = true;
 						}

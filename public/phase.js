@@ -162,7 +162,7 @@ window.onload = function() {
 			client.emit("c_create_post", {
 				title: title,
 				content: content,
-				auth: "me",
+				auth: loggedin.username,
 				tags: tags,
 				cid: client.id
 			});
@@ -414,6 +414,7 @@ window.onload = function() {
 				Object.keys(posts).forEach(function(key) {
 					console.log(that.el);
 					console.log("showing");
+					console.log(posts[key]);
 					show_post(posts[key], postI);
 				});
 				if (Object.keys(posts).length == 0) {
