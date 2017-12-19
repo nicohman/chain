@@ -157,14 +157,16 @@ body {
 }
 
 #tags-seperator ul {
-	margin-left:5px;
-	list-style-position:outside;
+        margin-left: 5px;
+        list-style-position: outside;
         list-style-type: none;
 
 }
+
 #tags-self {
-	padding-left:10px;
+        padding-left: 10px;
 }
+
 #tags-seperator li {
         display: list-item;
 }
@@ -320,6 +322,7 @@ body {
         padding-bottom: 20px;
 
 }
+
 #results-nav ul {
         list-style-type: none;
         margin: 0;
@@ -328,16 +331,18 @@ body {
         position: fixed;
         padding: 0;
         overflow: hidden;
-        background-color: #839496;
+        background-color: #002b36;
         display: flex;
         justify-content: flex-start;
 }
-#results-nav li  {
-        }
-.results-follow {
-	        background: none;
-        border: none;
-        color: #002b36;
-	font: inherit;
+
+#results-nav li {
+        color: #586e75;
 }
 
+.results-follow {
+        background: none;
+        border: none;
+        color: #657b83 !important;
+        font: inherit;
+}

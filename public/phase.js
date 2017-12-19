@@ -229,10 +229,7 @@ window.onload = function() {
 			button.type = "button";
 			button.innerHTML = tag;
 			button.addEventListener("click", function(e) {
-				console.log("following");
-				chain.follow_tag(tag, function(res) {
-					notify("#" + tag + " followed!");
-				});
+				findByTag(tag);
 			});
 			tags.appendChild(button);
 		});

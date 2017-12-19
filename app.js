@@ -903,11 +903,22 @@ var serv_handles = {
 	"c_get_feed": function(req) {
 		if (logged[req.cid]) {
 			var toget = Object.keys(users[logged[req.cid]].tags).map(function(item) {
-				return {
-					type: 'tag',
-					tag: item
+				if (users[logged[req.cid]].tags[item] == true) {
+					return {
+						type: 'tag',
+						tag: item
+					}
+				} else {
+					return undefined;
+				}
+			}).filter(function(e) {
+				if (e !== undefined) {
+					return true;
+				} else {
+					return false;
 				}
 			});
+			console.log(toget);
 			console.log(users[logged[req.cid]]);
 			toget.count = 10;
 			console.log("getting");
