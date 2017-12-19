@@ -208,6 +208,31 @@ window.onload = function() {
 		document.getElementById("notifications").appendChild(notif);
 	}
 
+	function show_comments(post) {
+		var overlay = document.getElementById("overlay");
+		overlay.style.display = "block";
+		document.getElementById("comment-title").innerHTML = post.title;
+		var commentsCon = document.getElementById("comments-list");
+		removeFrom(commentsCon);
+		post.comments.forEach(function(comment) {
+			var el = document.createElement("li");
+			el.className = "comment";
+			el.innerHTML = comment.content;
+			var au = document.createElement("span");
+			au.className = "comment-author";
+			au.innerHTML = comment.auth;
+			el.appendChild(au);
+			commentsCon.appendChild(el);
+
+		});
+	}
+
+	function hide_comments() {
+		var overlay = document.getElementById("overlay");
+		overlay.style.display = "none";
+
+	}
+
 	function show_post(post, toAppend) {
 		console.log(post);
 		var postt = document.createElement("div");
@@ -241,7 +266,14 @@ window.onload = function() {
 		var fav = document.createElement("button");
 		fav.className = "fav-post";
 		fav.type = "button";
-
+		var comments = document.createElement("button");
+		comments.className = "comment-post";
+		comments.type = "button";
+		comments.innerHTML = "Comments";
+		comments.addEventListener("click", function(e) {
+			e.preventDefault();
+			show_comments(post);
+		});
 		if (post.favorited == true) {
 			fav.innerHTML = "Unfavorite"
 			fav.addEventListener("click", function(e) {
@@ -263,6 +295,7 @@ window.onload = function() {
 				reloadCur();
 			});
 		}
+		buttons.appendChild(comments);
 		buttons.appendChild(fav);
 		bar.appendChild(buttons);
 		var id = document.createElement("div");
@@ -307,7 +340,7 @@ window.onload = function() {
 
 				}).forEach(function(key) {
 					var post = posts[key];
-					
+
 					console.log(post);
 					if (post.title) {
 						show_post(post, document.getElementById("home"));
@@ -430,9 +463,11 @@ window.onload = function() {
 			ref: mains[key]
 		}
 	});
-	function reloadCur(){
+
+	function reloadCur() {
 		showblocking(cur_show);
 	}
+
 	function logout() {
 		var ls = document.getElementsByClassName("loggedout");
 		var li = document.getElementsByClassName("loggedin");
@@ -546,12 +581,12 @@ window.onload = function() {
 			chain.attempt_token(token, function(res) {
 				if (res) {
 					loggedin.username = res.username;
-					loggedin.uid = res.uid;	
+					loggedin.uid = res.uid;
 					loggedin.email = res.email;
 					console.log(res);
-				 } else {
-				 	window.location.href = "./login.html";
-				 }
+				} else {
+					window.location.href = "./login.html";
+				}
 				if (window.location.href.split("#")[1]) {
 
 					showblocking(window.location.href.split("#")[1]);
@@ -574,8 +609,8 @@ window.onload = function() {
 				e.target.reset();
 
 			});
-			document.getElementById("tags-seperator").addEventListener("click", function(e){
-				if(e.target.tagName.toLowerCase() == "li"){
+			document.getElementById("tags-seperator").addEventListener("click", function(e) {
+				if (e.target.tagName.toLowerCase() == "li") {
 					findByTag(e.target.innerHTML);
 				}
 			});
@@ -613,6 +648,11 @@ window.onload = function() {
 						checkRes()
 
 					});
+				}
+			});
+			document.getElementById("overlay").addEventListener("click", function(e){
+				if(e.target.id == "overlay"){
+					hide_comments();
 				}
 			});
 			document.getElementById("results-unfollow").addEventListener("click", function(e) {
