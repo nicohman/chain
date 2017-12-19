@@ -101,6 +101,7 @@ window.onload = function() {
 		},
 		add_favorite: function add_favorite(pid, cb) {
 			if (loggedin.uid && token) {
+				console.log("Emitting");
 				client.emit("c_add_favorite", {
 					cid: client.id,
 					pid: pid,
@@ -254,6 +255,7 @@ window.onload = function() {
 			fav.innerHTML = "Favorite"
 			fav.addEventListener("click", function(e) {
 				e.preventDefault();
+				console.log("Favoriting");
 				chain.add_favorite(e.target.parentNode.parentNode.parentNode.getElementsByClassName("post-id").item(0).innerHTML, function(res) {
 					notify(res);
 				});
@@ -537,8 +539,12 @@ window.onload = function() {
 			chain.attempt_token(token, function(res) {
 				if (res) {
 					loggedin.username = res.username;
-					loggedin.uid = res.uid;
-				}
+					loggedin.uid = res.uid;	
+					loggedin.email = res.email;
+					console.log(res);
+				 } else {
+				 	window.location.href = "./login.html";
+				 }
 				if (window.location.href.split("#")[1]) {
 
 					showblocking(window.location.href.split("#")[1]);

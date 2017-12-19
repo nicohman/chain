@@ -2,14 +2,14 @@ window.onload = function() {
 	var client = io("http://localhost:3000");
 
 	var chain = {
-		attempt_login: function attempt_login(uid, password, cb) {
+		attempt_login: function attempt_login(email, password, cb) {
 			client.emit("c_login", {
-				uid: uid,
+				email:email,
 				password: password,
 				cid: client.id
 			});
 
-			client.once("c_logged_in_" + uid, function(newtoken) {
+			client.once("c_logged_in_" + email, function(newtoken) {
 				console.log("res");
 				if (newtoken) {
 					token = newtoken
@@ -71,7 +71,7 @@ window.onload = function() {
 	loginform.addEventListener("submit", function(e) {
 		e.preventDefault();
 		var form = e.target.elements;
-		chain.attempt_login(form.uid.value, form.pass.value, function(err, newtoken) {
+		chain.attempt_login(form.email.value, form.pass.value, function(err, newtoken) {
 			if (newtoken) {
 				window.location = "http://localhost:3953/phase.html";
 			} else {

@@ -938,20 +938,21 @@ var serv_handles = {
 
 	},
 	"c_login": function(req) {
-		get_user(req.uid, function(user) {
+		easyEmail(req.email, function(user) {
 			console.log(user);
 			bcrypt.compare(req.password, user.pass, function(err, res) {
 				if (res) {
 					console.log("User " + user.username + " successfully logged in");
 					var token = jwt.sign({
 						username: user.username,
-						uid: req.uid
+						uid: user.id,
+						email:req.email
 					}, secret);
-					io.to(req.cid).emit("c_logged_in_" + req.uid, token);
+					io.to(req.cid).emit("c_logged_in_" + req.email, token);
 					logged[req.cid] = req.uid;
 				} else {
 					console.log("User " + user.username + " did not successfully log in")
-					io.to(req.cid).emit("c_logged_in_" + req.uid, false);
+					io.to(req.cid).emit("c_logged_in_" + req.email, false);
 				}
 			});
 		});
@@ -1038,6 +1039,7 @@ var serv_handles = {
 		jwt.verify(token, secret, function(err, decode) {
 			if (decode) {
 				console.log("worked");
+				console.log(decode);
 				io.to(req.cid).emit("c_token_logged_in", decode);
 				logged[req.cid] = decode.uid
 			} else {
