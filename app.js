@@ -196,6 +196,7 @@ function updatePosts() {
 			} else {
 				console.log("Created user successfully");
 			}
+			posts = require("./posts.json");
 			sem.leave();
 		});
 	})
@@ -334,7 +335,7 @@ function get_posts(criterion, cb) {
 		alldir("get_posts", criterion);
 		console.log("got_posts_" + criterion.filter + "_" + criterion.filter_data);
 		var cbe = function(postse) {
-			
+
 			cb(postse);
 		};
 		var eventname = "got_posts_" + criterion.filter + "_" + criterion.filter_data;
@@ -382,10 +383,24 @@ function get_even(criterion, cb) {
 	get_posts(criterion, function(gposts) {
 		gotten++;
 		Object.keys(gposts).forEach(function(key) {
-			
+
 			posts[key] = gposts[key];
 		});
 		if (gotten >= 1) {
+			if(criterion.filter == "favs"){
+				var fin = {};
+				console.log(posts);
+				posts.posts.forEach(function(post){
+					
+					fin[post.id] = post;
+				});
+				console.log(fin);
+				fin = Object.keys(fin).map(function(p){
+					return fin[p];
+				}).sort(cmpfavs);
+				posts.posts = fin;
+			}
+			console.log(posts.posts);
 			cb(posts);
 			console.log("gotten");
 		} else {
@@ -447,7 +462,7 @@ function get_feed(toget, cb) {
 	var posts = {};
 
 	function check() {
-		
+
 		if (gotten >= need) {
 			cb(posts);
 		}
@@ -462,7 +477,7 @@ function get_feed(toget, cb) {
 				} else {
 					pro = 1 / toget.length;
 				}
-				
+
 				var amount = pro * toget.count;
 				get_even({
 					count: amount,
@@ -472,10 +487,10 @@ function get_feed(toget, cb) {
 					original: selfId,
 					posts: {}
 				}, function(gposts) {
-					
+
 					gotten++;
 					Object.keys(gposts.posts).forEach(function(key) {
-						
+
 
 						posts[key] = gposts.posts[key];
 					});
@@ -609,6 +624,7 @@ function updateFavs(pid, num) {
 function favsUpdate(req, ifself) {
 	if (posts[req.pid]) {
 		posts[req.pid].favs += req.num;
+		console.log(posts[req.pid].favs +" " +req.num);
 		if (ifself) {
 			io.sockets.emit("updated_favs_" + req.pid + "_" + req.original, posts[req.pid]);
 
@@ -814,9 +830,9 @@ var serv_handles = {
 			from: selfId,
 			posts: {}
 		}, function(posts) {
-						Object.keys(users[logged[req.id]].favorites).forEach(function(fav) {
+			Object.keys(users[logged[req.id]].favorites).forEach(function(fav) {
 				Object.keys(posts.posts).forEach(function(key) {
-					if (posts.posts[key].id == fav) {
+					if (posts.posts[key].id == fav && users[logged[req.id]].favorites == true) {
 						console.log("UDPATEW");
 						posts.posts[key].favorited = true;
 					}
@@ -836,10 +852,10 @@ var serv_handles = {
 			posts: {},
 			from: selfId
 		}, function(posts) {
-			console.log(	Object.keys(posts.posts));
+			console.log(Object.keys(posts.posts));
 			Object.keys(users[logged[req.id]].favorites).forEach(function(fav) {
 				Object.keys(posts.posts).forEach(function(key) {
-					if (posts.posts[key].id == fav) {
+					if (posts.posts[key].id == fav && users[logged[req.id]].favorites == true) {
 						console.log("UDPATEW");
 						posts.posts[key].favorited = true;
 					}
@@ -1006,14 +1022,14 @@ var serv_handles = {
 			toget.count = 10;
 			console.log("getting");
 			get_feed(toget, function(posts) {
-			Object.keys(users[logged[req.id]].favorites).forEach(function(fav) {
-				Object.keys(posts.posts).forEach(function(key) {
-					if (posts.posts[key].id == fav) {
-						console.log("UDPATEW");
-						posts.posts[key].favorited = true;
-					}
+				Object.keys(users[logged[req.cid]].favorites).forEach(function(fav) {
+					Object.keys(posts).forEach(function(key) {
+						if (posts[key].id == fav && users[logged[req.cid]].favorites == true) {
+							console.log("UDPATEW");
+							posts[key].favorited = true;
+						}
+					});
 				});
-			});
 
 				console.log(posts);
 				console.log("c_got_feed_" + logged[req.cid]);

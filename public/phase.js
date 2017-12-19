@@ -2,6 +2,7 @@ window.onload = function() {
 	var client = io("http://localhost:3000");
 	var loggedin = {};
 	var resultsTag;
+	var cur_show = "home";
 	var token = localStorage.getItem("auth_token");
 	var chain = {
 		attempt_login: function attempt_login(uid, password, cb) {
@@ -248,7 +249,7 @@ window.onload = function() {
 				chain.unfavorite(e.target.parentNode.parentNode.parentNode.getElementsByClassName("post-id").item(0).innerHTML, function(res) {
 					notify(res);
 				});
-				showblocking("favs");
+				reloadCur();
 			});
 		} else {
 			console.log(post);
@@ -259,6 +260,7 @@ window.onload = function() {
 				chain.add_favorite(e.target.parentNode.parentNode.parentNode.getElementsByClassName("post-id").item(0).innerHTML, function(res) {
 					notify(res);
 				});
+				reloadCur();
 			});
 		}
 		buttons.appendChild(fav);
@@ -293,6 +295,7 @@ window.onload = function() {
 		"home": function() {
 			removeFrom(document.getElementById("home"));
 			chain.get_top(function(posts) {
+				console.log(posts);
 				Object.keys(posts).sort(function(post1, post2) {
 					if (posts[post1].favs > posts[post2].favs) {
 						return -1;
@@ -304,6 +307,7 @@ window.onload = function() {
 
 				}).forEach(function(key) {
 					var post = posts[key];
+					
 					console.log(post);
 					if (post.title) {
 						show_post(post, document.getElementById("home"));
@@ -425,7 +429,9 @@ window.onload = function() {
 			ref: mains[key]
 		}
 	});
-
+	function reloadCur(){
+		showblocking(cur_show);
+	}
 	function logout() {
 		var ls = document.getElementsByClassName("loggedout");
 		var li = document.getElementsByClassName("loggedin");
@@ -466,7 +472,7 @@ window.onload = function() {
 		document.getElementById("results").style.display = "none";
 		removeFrom(document.getElementById("results-posts"));
 		console.log(document.getElementById("results").style)
-
+		cur_show = toshow;
 	}
 
 	function hideall() {
