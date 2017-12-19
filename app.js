@@ -114,10 +114,10 @@ function easyEmail(email, cb) {
 		from: selfId,
 		original: selfId,
 		email: email
-	}, function(res){
-		if(res == false){
+	}, function(res) {
+		if (res == false) {
 			facount++;
-			if(facount >= 2){
+			if (facount >= 2) {
 				cb(false);
 			} else {
 				console.log("DiasDIASD");
@@ -156,11 +156,11 @@ function alldir(eventname, data) {
 }
 
 function onedir(eventname, data, dir) {
-	if(eventname == "found_user_by_email_nico.hickman@gmail.com"){
+	if (eventname == "found_user_by_email_nico.hickman@gmail.com") {
 		console.log(dir);
-	console.log(clients);
-	console.log(data);
-	console.log("DSADASRF");	
+		console.log(clients);
+		console.log(data);
+		console.log("DSADASRF");
 	}
 	if (clients[dir]) {
 		clients[dir].emit(eventname, data);
@@ -238,7 +238,7 @@ function when(eventname, cb) {
 		// never(eventname);
 		cb(data)
 	});
-	server.on(eventname,cb);
+	server.on(eventname, cb);
 }
 
 function whenonce(eventname, cb) {
@@ -334,7 +334,7 @@ function get_posts(criterion, cb) {
 		alldir("get_posts", criterion);
 		console.log("got_posts_" + criterion.filter + "_" + criterion.filter_data);
 		var cbe = function(postse) {
-			console.log("posts");
+			
 			cb(postse);
 		};
 		var eventname = "got_posts_" + criterion.filter + "_" + criterion.filter_data;
@@ -382,7 +382,7 @@ function get_even(criterion, cb) {
 	get_posts(criterion, function(gposts) {
 		gotten++;
 		Object.keys(gposts).forEach(function(key) {
-			console.log(gposts);
+			
 			posts[key] = gposts[key];
 		});
 		if (gotten >= 1) {
@@ -447,7 +447,7 @@ function get_feed(toget, cb) {
 	var posts = {};
 
 	function check() {
-		console.log(need + " need : " + gotten);
+		
 		if (gotten >= need) {
 			cb(posts);
 		}
@@ -462,7 +462,7 @@ function get_feed(toget, cb) {
 				} else {
 					pro = 1 / toget.length;
 				}
-				console.log(toget.count + " " + pro);
+				
 				var amount = pro * toget.count;
 				get_even({
 					count: amount,
@@ -472,10 +472,10 @@ function get_feed(toget, cb) {
 					original: selfId,
 					posts: {}
 				}, function(gposts) {
-					console.log("HI");
+					
 					gotten++;
 					Object.keys(gposts.posts).forEach(function(key) {
-						console.log(key);
+						
 
 						posts[key] = gposts.posts[key];
 					});
@@ -814,6 +814,15 @@ var serv_handles = {
 			from: selfId,
 			posts: {}
 		}, function(posts) {
+						Object.keys(users[logged[req.id]].favorites).forEach(function(fav) {
+				Object.keys(posts.posts).forEach(function(key) {
+					if (posts.posts[key].id == fav) {
+						console.log("UDPATEW");
+						posts.posts[key].favorited = true;
+					}
+				});
+			});
+
 			io.to(req.id).emit("c_got_posts_" + req.data, posts);
 		});
 
@@ -827,6 +836,16 @@ var serv_handles = {
 			posts: {},
 			from: selfId
 		}, function(posts) {
+			console.log(	Object.keys(posts.posts));
+			Object.keys(users[logged[req.id]].favorites).forEach(function(fav) {
+				Object.keys(posts.posts).forEach(function(key) {
+					if (posts.posts[key].id == fav) {
+						console.log("UDPATEW");
+						posts.posts[key].favorited = true;
+					}
+				});
+			});
+
 			io.to(req.id).emit("c_got_top", posts)
 		});
 	},
@@ -843,11 +862,11 @@ var serv_handles = {
 			passAlong(cur);
 		}
 	},
-	"find_user_by_email":get_user_by_email,
-	"c_find_user_by_email":function(req){
-		if(!logged[req.cid]){
-			easyEmail(req.email, function(res){
-				io.to(req.cid).emit("c_found_user_by_email_"+req.email, res);
+	"find_user_by_email": get_user_by_email,
+	"c_find_user_by_email": function(req) {
+		if (!logged[req.cid]) {
+			easyEmail(req.email, function(res) {
+				io.to(req.cid).emit("c_found_user_by_email_" + req.email, res);
 			});
 		}
 	},
@@ -946,7 +965,7 @@ var serv_handles = {
 					var token = jwt.sign({
 						username: user.username,
 						uid: user.id,
-						email:req.email
+						email: req.email
 					}, secret);
 					io.to(req.cid).emit("c_logged_in_" + req.email, token);
 					logged[req.cid] = req.uid;
@@ -987,6 +1006,15 @@ var serv_handles = {
 			toget.count = 10;
 			console.log("getting");
 			get_feed(toget, function(posts) {
+			Object.keys(users[logged[req.id]].favorites).forEach(function(fav) {
+				Object.keys(posts.posts).forEach(function(key) {
+					if (posts.posts[key].id == fav) {
+						console.log("UDPATEW");
+						posts.posts[key].favorited = true;
+					}
+				});
+			});
+
 				console.log(posts);
 				console.log("c_got_feed_" + logged[req.cid]);
 				io.to(req.cid).emit("c_got_feed_" + logged[req.cid], posts);
@@ -1118,8 +1146,8 @@ function createClient(to_connect) {
 				passAlong(data.data[0], data.data[1]);
 				console.log("emit");
 			}
-			if(client.hasListeners(data.data[0]) >= 1){
-				
+			if (client.hasListeners(data.data[0]) >= 1) {
+
 			}
 		});
 		var dir;

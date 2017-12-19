@@ -251,7 +251,7 @@ window.onload = function() {
 				showblocking("favs");
 			});
 		} else {
-
+			console.log(post);
 			fav.innerHTML = "Favorite"
 			fav.addEventListener("click", function(e) {
 				e.preventDefault();
