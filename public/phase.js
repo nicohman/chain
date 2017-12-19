@@ -586,6 +586,7 @@ window.onload = function() {
 				toAdd.appendChild(remove);
 				document.getElementById("create-already-tags").appendChild(toAdd);
 				e.preventDefault();
+				e.target.reset();
 			});
 			document.getElementById("find-tag").addEventListener("submit", function(e) {
 				e.preventDefault();
