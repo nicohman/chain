@@ -13,18 +13,18 @@ Mostly chain-based, server-side features
   * Boolean rules
   * Tag proportions
   * ~~Get curation posts~~
-+ Tag editing
++ ~~Tag editing~~
 + ~~Session Storage~~
 + ~~Logout~~
 + Encryption
 + ~~Following of tags~~
 + Following of curations
 + ~~get\_feed~~
-+ Improving get\_posts
++ ~~Improving get\_posts~~
   * By date
-  * By favorites
-  * By post id
-  * By closeness in links
+  * ~~By favorites~~
+  * ~~By post id~~
+  * ~~By closeness in links~~
   * Remove default closeness filter
 + ~~Favoriting~~
 + ~~Get favorites~~
@@ -33,18 +33,18 @@ Mostly chain-based, server-side features
 Mostly client-side js or demenses.js features
 
 + ~~Finish post creation~~
-+ Tag editing
++ ~~Tag editing~~
 + ~~Login~~
 + ~~Logout~~
 + ~~Feed~~
 + ~~Account creation~~
-+ Post container
++ ~~Post container~~
 + ~~Add to favorites~~
 + ~~View favorites~~
 + ~~Following tags~~
 + Following curations
 + Viewing curations
-+ Viewing tags
++ ~~Viewing tags~~
 + Curations
   * Creating
   * Adding/editing tags
@@ -58,13 +58,13 @@ Mostly client-side js or demenses.js features
 Actually frontend user interface stuff that looks nice and is semi-displayable to other humans.
 
 + ~~Make navigation bar~~
-  * Logo/Dropdown
+  * ~~Logo/Dropdown~~
   * Curations/~~Tags~~
   * ~~Search~~
   * ~~Feed~~
   * ~~Log in/Log out/ Display username~~
-+ Post container css/html
-+ Main display case css/html
++ ~~Post container css/html~~
++ ~~Main display case css/html~~
 + ~~Feed css~~
 + ~~Home css~~
 + ~~Create css~`
@@ -81,6 +81,7 @@ For phase 1, we'll be ditching curations. They aren't too integral, and can be f
 + ~~Most GUI features (Client)~~
 + ~~Post container (Client)~~
 + ~~Improving get\_posts (Server)~~
-+ Tag editing(Server and Client)
++ ~~Tag editing(Server and Client)~~
 + ~~General usablity(Client)~~
   * ~~Creation of a temporary phase website~~
++ Account creation
