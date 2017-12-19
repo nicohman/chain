@@ -561,6 +561,11 @@ window.onload = function() {
 				e.target.reset();
 
 			});
+			document.getElementById("tags-seperator").addEventListener("click", function(e){
+				if(e.target.tagName.toLowerCase() == "li"){
+					findByTag(e.target.innerHTML);
+				}
+			});
 			document.getElementById("logout").addEventListener("click", function(e) {
 				logout()
 				localStorage.removeItem("auth_token");

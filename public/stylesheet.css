@@ -169,6 +169,7 @@ body {
 
 #tags-seperator li {
         display: list-item;
+	cursor:pointer;
 }
 
 #tags-seperator div {
