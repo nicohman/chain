@@ -1,5 +1,5 @@
 window.onload = function() {
-	var client = io("http://localhost:3000");
+	var client = io("http://24.113.235.229:3000");
 
 	var chain = {
 		attempt_login: function attempt_login(email, password, cb) {
@@ -56,7 +56,7 @@ window.onload = function() {
 				} else {
 					chain.attempt_login(res, form.pass.value, function(err, newtoken) {
 						if (newtoken) {
-							window.location = "http://localhost:3953/phase.html";
+							window.location.href = "/index.html";
 						}
 					});
 				}
@@ -73,7 +73,7 @@ window.onload = function() {
 		var form = e.target.elements;
 		chain.attempt_login(form.email.value, form.pass.value, function(err, newtoken) {
 			if (newtoken) {
-				window.location = "http://localhost:3953/phase.html";
+				window.location.href = "/index.html";
 			} else {
 				alert("Wrong login!");
 				e.target.reset();

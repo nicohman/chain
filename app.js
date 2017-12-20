@@ -274,9 +274,9 @@ function never(eventname) {
 
 function cmpfavs(post1, post2) {
 	if (post1.favs < post2.favs) {
-		return -1;
-	} else if (post1.favs > post2.favs) {
 		return 1;
+	} else if (post1.favs > post2.favs) {
+		return -1;
 	} else {
 		return 0;
 	}

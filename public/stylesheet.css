@@ -7,7 +7,7 @@
 }
 
 .post {
-        width: 20%;
+      	width:30%; 
         height: 200%;
         border: 5px #2aa198 solid;
         background: #002b36;
@@ -27,13 +27,17 @@
         font-size: large;
 
 }
-
+.post-image {
+	width:100%;
+	height:100%;
+}
 .post-auth {
         border-bottom: 1px #2aa198 solid;
         padding-bottom: 15px;
 }
 
 .post-content {
+
         padding: 20px 0 20px 0;
         height: 400%;
         border-bottom: 1px #2aa198 solid;

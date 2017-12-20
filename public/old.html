@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Demenses</title>
+		<script src="socket.js"></script>
+		<script src="chain.js"></script>
+	</head>
+	<body>
+		<h1>Demenses</h1>
+		<div id="search">
+			<form id="tag">
+				<p> Search Tags:</p>
+				<input type="text" name="tag">
+			</form>
+		</div>
+			<form id="create">
+				<p> Post title:</p>
+				<input type="text" name="title">
+				<p> Post content:</p>
+				<input type="text" name="content">
+				<p> Post tags: </p>
+				<input type="tags" name="tags">
+				<input type="submit" value = "Post">
+			</form>
+			<div>
+				<form id="login">
+					<p> User id: </p>
+					<input type="text" name="uid">
+					<p> User password: </p>
+					<input type="password" name="password">
+					<input type="submit" value="Log in">	
+				</form>
+			</div>
+		<div id="notlogged"></div>
+		<div id="logged">
+			<form id="logout">
+				<input type="submit" value="Log out">
+			</form>
+		</div>
+
+		<div>
+			<form id="follow">
+				<p> Follow tag:</p>
+				<input type="text" id="tag">
+			</form>
+		</div>	
+		<div>
+			<form id="showfeed">
+				<input type="submit" value="Show feed">
+			</form>
+		</div>
+		<div>
+			<form id="addfavorite">
+				<p> Add post as favorite:</p>
+				<input type="text" name="pid">
+			</form>
+		</div>
+		<div>
+			<form id="getfavorite">
+				<input type="submit" value="Get Favorites">
+			</form>
+		</div>
+		<div>
+			<form id="create_user">
+				<p> Create user:</p>
+				<p> Username:</p>
+				<input type="text" name="username">
+				<p> Password:</p>
+				<input type="password" name="pass1">
+				<p> Repeat password:</p>
+				<input type="password" name="pass2">
+				<input type="submit" value="Create User">
+			</form>
+		</div>
+		<div>
+			<form id="getcuration">
+				<p> Curation id:</p>
+				<input type="text" name="id">
+			</form>
+		</div>
+		<div id="posts">
+			<h2>Posts:</h2>
+		
+		</div>
+		<div id="notifications"></div>	
+	
+	</body>
+</html>

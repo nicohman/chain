@@ -1,88 +1,127 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<title>Demenses</title>
-		<script src="socket.js"></script>
-		<script src="chain.js"></script>
-	</head>
-	<body>
-		<h1>Demenses</h1>
-		<div id="search">
-			<form id="tag">
-				<p> Search Tags:</p>
-				<input type="text" name="tag">
-			</form>
+
+<head>
+	<title> Demenses Phase 1[Alpha] </title>
+	<link rel="stylesheet" href="stylesheet.css">
+	<script src="socket.js"></script>
+	<script src="phase.js"></script>
+</head>
+
+<body>
+	<nav id="navbar">
+		<ul>
+			<li><a href="#home" class="nav">Home</a></li>
+			<li><a href="#pop" class="nav">Create Post</a></li>
+			<li><a href="#search" class="nav">Tags</a></li>
+			<li><a href="#feed" class="nav">Feed</a></li>
+			<li><a href="#favs" class="nav">Favorites</a></li>
+			<li class="loggedin"><span class="username">Couldn't retrieve username</span></li>
+			<li class="loggedin"><a href="#logout" id="logout">Log out</a></li>
+			<li class="loggedout"><a href="login.html">Log in</a></li>
+		</ul>
+	</nav>
+	<div id="main">
+		<div id="home">
+
 		</div>
-			<form id="create">
-				<p> Post title:</p>
-				<input type="text" name="title">
-				<p> Post content:</p>
-				<input type="text" name="content">
-				<p> Post tags: </p>
-				<input type="tags" name="tags">
-				<input type="submit" value = "Post">
-			</form>
-			<div>
-				<form id="login">
-					<p> User id: </p>
-					<input type="text" name="uid">
-					<p> User password: </p>
-					<input type="password" name="password">
-					<input type="submit" value="Log in">	
+		<div id="pop">
+
+			<div id="create-container">
+				<form id="createformtags">
+				</form>
+				<form id="create-post">
+					<div id="create-label">
+						Create Post
+					</div>
+					<div id="create-title">
+						title<br>
+						<input type="text" name="title">
+					</div>
+					<div id="create-content">
+						content<br>
+						<textarea rows=10 cols=70 name="content" placeholder="Your content here!"></textarea>
+					</div>
+					<div id="create-tags">
+						<div id="create-already-tags">
+						</div>
+						add tag<br>
+
+						<input type="text" name="tag" form="createformtags">
+
+					</div>
+					<div id="create-bottom">
+						<input type="submit" value="Post">
+					</div>
 				</form>
 			</div>
-		<div id="notlogged"></div>
-		<div id="logged">
-			<form id="logout">
-				<input type="submit" value="Log out">
-			</form>
 		</div>
+		<div id="search">
+			<div id="tags-container">
+				<form id="find-tag">
+					<div id="tags-seperator">
+						<div id="tags-popular">
+							<p>Popular Tags:</p>
+							<ul id="pop-tags">
+								<li>Couldn't fetch popular tags</li>
+							</ul>
+						</div>
+						<div id="tags-self">
+							<p> Your tags:</p>
+							<ul id="your-tags">
+								<li> Couldn't fetch your followed tags</li>
+							</ul>
+						</div>
+					</div>
+					<div id="tags-find">
+						<p> Search tag:</p>
+						<input type="text" name="tag">
+					</div>
 
-		<div>
-			<form id="follow">
-				<p> Follow tag:</p>
-				<input type="text" id="tag">
-			</form>
-		</div>	
-		<div>
-			<form id="showfeed">
-				<input type="submit" value="Show feed">
-			</form>
+				</form>
+			</div>
 		</div>
-		<div>
-			<form id="addfavorite">
-				<p> Add post as favorite:</p>
-				<input type="text" name="pid">
-			</form>
+		<div id="results">
+			<nav id="results-nav">
+				<ul>
+					<li>You are currently viewing the tag <strong><span id="results-span">unknown</span></strong>. </li>
+					<li><button id="results-follow" type="button" class="results-follow"><strong>Follow this tag</strong></button></li>
+					<li><button id="results-unfollow" type="button" class="results-follow"><strong>Unfollow this tag</strong></button></li>
+
+
+				</ul>
+			</nav>
+			<div id="results-posts">
+			</div>
 		</div>
-		<div>
-			<form id="getfavorite">
-				<input type="submit" value="Get Favorites">
-			</form>
+		<div id="feed">
+
+			<div id="posts">
+
+			</div>
 		</div>
-		<div>
-			<form id="create_user">
-				<p> Create user:</p>
-				<p> Username:</p>
-				<input type="text" name="username">
-				<p> Password:</p>
-				<input type="password" name="pass1">
-				<p> Repeat password:</p>
-				<input type="password" name="pass2">
-				<input type="submit" value="Create User">
-			</form>
+		<div id="favs">
+
+			<div id="fav">
+			</div>
 		</div>
-		<div>
-			<form id="getcuration">
-				<p> Curation id:</p>
-				<input type="text" name="id">
-			</form>
-		</div>
-		<div id="posts">
-			<h2>Posts:</h2>
-		
-		</div>
-		<div id="notifications"></div>	
-	
-	</body>
+	</div>
+	<div id="overlay">
+		<div id="comment-container"><div id="com-split">
+			<div id="comment-title">
+			</div>
+			<ul id="comments-list">
+			</ul>
+			</div>
+			<div id="make-div">
+				<form id="comment">
+					<input type="text" placeholder="Post a comment!" name="content">
+					<button type="submit" form="comment">POST</button>
+				</form>
+			</div>
+	</div>
+	<div id="notifications">
+	</div>
+</body>
+
 </html>

@@ -1,5 +1,5 @@
 window.onload = function() {
-	var client = io("http://localhost:3000");
+	var client = io("http://24.113.235.229:3000");
 	var loggedin = {};
 	var resultsTag;
 	var cur_show = "home";
@@ -248,6 +248,18 @@ window.onload = function() {
 		});
 	}
 
+	function checkImage(url) {
+		var re = /https*:\/\/\S+\.\S+\.(jpg|png|gif)/;
+		var res = re.exec(url)
+		if (res) {
+			console.log("IT COULD BE A MEME");
+			console.log(res);
+			return (res.length > 1);
+		} else {
+			return false;
+		}
+	}
+
 	function hide_comments() {
 		var overlay = document.getElementById("overlay");
 		overlay.style.display = "none";
@@ -255,7 +267,7 @@ window.onload = function() {
 	}
 
 	function show_post(post, toAppend) {
-		if (!post.title) {
+		if (!post.title || !post.content || !post.tags) {
 			return;
 		}
 		console.log(post);
@@ -267,9 +279,16 @@ window.onload = function() {
 		var auth = document.createElement("div");
 		auth.className = "post-auth";
 		auth.innerHTML = "by " + post.auth;
+		if (checkImage(post.content.trim())) {
+			var content = document.createElement("img");
+			content.src = post.content.trim()
+			console.log("IT'S A MEME");
+			content.className = "post-image";
+		} else {
 		var content = document.createElement("div");
 		content.className = "post-content";
 		content.innerHTML = post.content;
+		}
 		var bar = document.createElement("div");
 		bar.className = "post-bar";
 		var tags = document.createElement("div");
@@ -293,7 +312,7 @@ window.onload = function() {
 		var comments = document.createElement("button");
 		comments.className = "comment-post";
 		comments.type = "button";
-		comments.innerHTML = "Comments";
+		comments.innerHTML = "Comments:" + post.comments.length;
 		comments.addEventListener("click", function(e) {
 			e.preventDefault();
 			chain.get_by_id(post.id, function(post) {
