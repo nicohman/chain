@@ -380,7 +380,7 @@ function get_post_by_id(id, cb) {
 function get_even(criterion, cb) {
 	var gotten = 0;
 	var posts = {};
-	console.log(criterion.count + ": count : " + criterion.count / 2);
+	//console.log(criterion.count + ": count : " + criterion.count / 2);
 	criterion.count = criterion.count / 2;
 	get_posts(criterion, function(gposts) {
 		gotten++;
@@ -391,18 +391,18 @@ function get_even(criterion, cb) {
 		if (gotten >= 1) {
 			if (criterion.filter == "favs") {
 				var fin = {};
-				console.log(posts);
+				//console.log(posts);
 				posts.posts.forEach(function(post) {
 
 					fin[post.id] = post;
 				});
-				console.log(fin);
+				//console.log(fin);
 				fin = Object.keys(fin).map(function(p) {
 					return fin[p];
 				}).sort(cmpfavs);
 				posts.posts = fin;
 			}
-			console.log(posts.posts);
+			//console.log(posts.posts);
 			cb(posts);
 			console.log("gotten");
 		} else {
@@ -626,6 +626,7 @@ function updateFavs(pid, num) {
 
 function favsUpdate(req, ifself) {
 	if (posts[req.pid]) {
+		console.log("FAV UPDATE");
 		posts[req.pid].favs += req.num;
 		console.log(posts[req.pid].favs + " " + req.num);
 		if (ifself) {
@@ -764,7 +765,7 @@ var serv_handles = {
 	},
 	"update_posts": function(post) {
 		if (!posts[post.id]) {
-			if(post.favorited){
+			if (post.favorited) {
 				post.favorited = undefined;
 			}
 			posts[post.id] = post;
@@ -866,17 +867,17 @@ var serv_handles = {
 			original: selfId,
 			from: selfId,
 			posts: {}
-		}, function(posts) {
+		}, function(postsR) {
 			Object.keys(users[logged[req.id]].favorites).forEach(function(fav) {
-				Object.keys(posts.posts).forEach(function(key) {
-					if (posts.posts[key].id == fav && users[logged[req.id]].favorites[posts.posts[key].id] == true) {
+				Object.keys(postsR.posts).forEach(function(key) {
+					if (postsR.posts[key].id == fav && users[logged[req.id]].favorites[postsR.posts[key].id] == true) {
 						console.log("UDPATEW");
-						posts.posts[key].favorited = true;
+						postsR.posts[key].favorited = true;
 					}
 				});
 			});
 
-			io.to(req.id).emit("c_got_posts_" + req.data, posts);
+			io.to(req.id).emit("c_got_posts_" + req.data, postsR);
 		});
 
 	},
@@ -888,18 +889,18 @@ var serv_handles = {
 			original: selfId,
 			posts: {},
 			from: selfId
-		}, function(posts) {
-			console.log(Object.keys(posts.posts));
+		}, function(postsR) {
+			//console.log(Object.keys(postsR.posts));
 			Object.keys(users[logged[req.id]].favorites).forEach(function(fav) {
-				Object.keys(posts.posts).forEach(function(key) {
-					if (posts.posts[key].id == fav && users[logged[req.id]].favorites[posts.posts[key].id] == true) {
-						console.log("UDPATEW");
-						posts.posts[key].favorited = true;
+				Object.keys(postsR.posts).forEach(function(key) {
+					if (postsR.posts[key].id == fav && users[logged[req.id]].favorites[postsR.posts[key].id] == true) {
+						//console.log("UDPATEW");
+						postsR.posts[key].favorited = true;
 					}
 				});
 			});
 
-			io.to(req.id).emit("c_got_top", posts)
+			io.to(req.id).emit("c_got_top", postsR)
 		});
 	},
 	"get_curation": function(cur) {
@@ -1058,20 +1059,21 @@ var serv_handles = {
 			console.log(users[logged[req.cid]]);
 			toget.count = 10;
 			console.log("getting");
-			get_feed(toget, function(posts) {
+			get_feed(toget, function(postsR) {
 				Object.keys(users[logged[req.cid]].favorites).forEach(function(fav) {
-					Object.keys(posts).forEach(function(key) {
-						if (posts[key].id == fav && users[logged[req.cid]].favorites[posts[key].id] == true) {
+
+					Object.keys(postsR).forEach(function(key) {
+						if (postsR[key].id == fav && users[logged[req.cid]].favorites[postsR[key].cid] == true) {
 							console.log("UDPATEW");
-							posts[key].favorited = true;
+							postsR[key].favorited = true;
 						}
 					});
 				});
 
-				console.log(posts);
+				console.log(postsR);
 				console.log(users[logged[req.cid]]);
 				console.log("c_got_feed_" + logged[req.cid]);
-				io.to(req.cid).emit("c_got_feed_" + logged[req.cid], posts);
+				io.to(req.cid).emit("c_got_feed_" + logged[req.cid], postsR);
 			});
 		}
 	},
