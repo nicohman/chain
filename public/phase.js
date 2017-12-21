@@ -706,10 +706,10 @@ window.onload = function() {
 					});
 				}
 			});
-			document.getElementById("overlay").addEventListener("click", function(e) {
-				if (e.target.id == "overlay") {
+			document.getElementById("overlay-background").addEventListener("click", function(e) {
+				
 					hide_comments();
-				}
+				
 			});
 			document.getElementById("results-unfollow").addEventListener("click", function(e) {
 				if (resultsTag !== false) {

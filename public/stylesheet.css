@@ -378,17 +378,28 @@ body {
 #overlay {
         width: 100%;
         height: 100%;
+
+        z-index: 1;
+        position: fixed;
+        display: none;
+
+
+}
+#overlay-background {
+        width: 100%;
+        height: 100%;
         background: black;
         opacity: 0.5;
         left: 0;
         top: 0;
-        display: none;
-        z-index: 1;
-        position: absolute;
+        z-index: 2;
+        position: fixed;
 }
 
 #comment-container {
-        position: relative;
+	opacity:1;
+	z-index:100;
+        position: fixed;
         width: 30%;
         height: 30%;
         top: 30%;
