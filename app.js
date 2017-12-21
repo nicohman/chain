@@ -12,6 +12,7 @@ var fs = require("fs");
 var names = ["dragon", "defiant", "dragon's teeth", "saint", "weaver"];
 var semaphore = require('semaphore');
 var sem = semaphore(1);
+var san = require("sanitizer");
 var events = require('events');
 var selfEmitter = new events.EventEmitter();
 var server = new events.EventEmitter();
@@ -175,11 +176,11 @@ function createPost(post) {
 	console.log("post");
 	posts[id] = {
 		id: id,
-		title: post.title,
+		title: san.escape(post.title),
 		auth: post.auth,
 		date: Date.now(),
-		tags: post.tags,
-		content: post.content,
+		tags: san.escape(post.tags),
+		content: san.escape(post.content),
 		comments: [],
 		favs: 0
 	}
@@ -449,9 +450,9 @@ function createUser(username, password, email, cb) {
 			id: id,
 			date: Date.now(),
 			pass: hashed,
-			username: username,
+			username: san.escape(username),
 			subbed: [],
-			email: email,
+			email: san.escape(email),
 			tags: {},
 			favorites: {}
 		}
@@ -469,8 +470,7 @@ function get_feed(toget, cb) {
 	var posts = {};
 	var called = false;
 	function check() {
-		console.log("MIDAY:");
-		
+		console.log("MIDAY:");	
 		if (gotten >= need && !called && Object.keys(posts).length > 0) {
 			console.log("CALLING CB:"+need+":"+gotten)
 			cb(posts);

@@ -191,11 +191,14 @@ window.onload = function() {
 
 			});
 		},
-		get_top: function(cb) {
+		get_top: function(cb, count) {
 			var posts = {};
+			if(!count){
+				var count = 10;
+			}
 			client.emit("c_get_top", {
 				filter: "top",
-				count: 10,
+				count: count,
 				id: client.id
 			});
 			client.once("c_got_top", function(posts) {
@@ -263,7 +266,7 @@ window.onload = function() {
 
 	function hide_comments() {
 		var overlay = document.getElementById("overlay");
-		overlay.style.display = "none";
+		overlay.style.display = "none";2
 
 	}
 
@@ -396,7 +399,7 @@ window.onload = function() {
 					}
 
 				});
-			});
+			}, 20);
 		},
 		"pop": function() {},
 		"search": function() {
@@ -453,7 +456,7 @@ window.onload = function() {
 					} else {
 						return 0;
 					}
-				});
+				}).splice(0, 5);
 
 				console.log(fin)
 				fin.forEach(function(tag) {
