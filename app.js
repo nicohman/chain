@@ -469,10 +469,11 @@ function get_feed(toget, cb) {
 	var need = toget.length * 2;
 	var posts = {};
 	var called = false;
+
 	function check() {
-		console.log("MIDAY:");	
+		console.log("MIDAY:");
 		if (gotten >= need && !called && Object.keys(posts).length > 0) {
-			console.log("CALLING CB:"+need+":"+gotten)
+			console.log("CALLING CB:" + need + ":" + gotten)
 			cb(posts);
 			called = true;
 		}
@@ -612,7 +613,7 @@ function add_favorite(req, cb) {
 		}
 	} else if (cb) {
 		alldir("add_favorite", req);
-		whenonce("added_favorite_" + req.uid + "_" + req.pid,cb);
+		whenonce("added_favorite_" + req.uid + "_" + req.pid, cb);
 	} else {
 		passAlong("add_favorite", req);
 
@@ -626,8 +627,10 @@ function updateFavs(pid, num, cb) {
 		original: selfId,
 		pid: pid,
 		num: num
-	}, function(res){
-		if(cb){cb(res)}
+	}, function(res) {
+		if (cb) {
+			cb(res)
+		}
 		console.log(res);
 	});
 }
@@ -646,7 +649,7 @@ function favsUpdate(req, cb) {
 		//alldir("update_posts", posts[req.pid]);
 	} else if (cb) {
 		alldir("update_favs", req);
-		whenonce("updated_favs_"+req.pid+"_"+req.original, cb);
+		whenonce("updated_favs_" + req.pid + "_" + req.original, cb);
 	} else {
 		passAlong("update_favs", req);
 	}
@@ -679,7 +682,7 @@ function unfavorite(req, cb) {
 		}
 	} else if (cb) {
 		alldir("unfavorite", req);
-		whenonce("unfavorited_"+req.uid+"_"+req.pid, cb);
+		whenonce("unfavorited_" + req.uid + "_" + req.pid, cb);
 	} else {
 		passAlong("unfavorite", req);
 
@@ -726,6 +729,15 @@ function getCurationById(id, cb) {
 			cb(cur);
 		});
 	}
+}
+
+function updateRec(id) {
+	Object.keys(logged[id].rec).forEach(function(key) {
+		if (moment(logged[id].rec[key]).isAfter(moment().subtract(1, 'days'))) {
+		} else {
+			delete loggedin[id].rec[key]
+		}
+	});
 }
 
 function getPostsByCur(count, cur, cb) {
@@ -804,7 +816,6 @@ var serv_handles = {
 	},
 	"update_favs": favsUpdate,
 	"add_comment": add_comment,
-
 	"c_add_comment": function(req) {
 		if (logged[req.cid]) {
 			add_comment({
@@ -994,8 +1005,8 @@ var serv_handles = {
 					pid: req.pid,
 					token: req.token
 
-				}, function(res){
-									io.to(req.cid).emit("c_added_favorite_" + req.pid, true);
+				}, function(res) {
+					io.to(req.cid).emit("c_added_favorite_" + req.pid, true);
 				});
 			}
 		}
@@ -1012,8 +1023,19 @@ var serv_handles = {
 		}
 	},
 	"c_create_post": function(post) {
-		createPost(post);
-		io.to(post.cid).emit("c_created_post", true);
+		logged[post.cid].rec[post.id] = Date.now();
+		updateRec(post.cid);
+		if (Object.keys(logged[req.cid].rec).length < 10) {
+
+			createPost(post);
+
+			io.to(post.cid).emit("c_created_post", true);
+		} else {
+
+
+			io.to(post.cid).emit("c_created_post", false);
+
+		}
 
 	},
 	"c_login": function(req) {

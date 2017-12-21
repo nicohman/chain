@@ -670,7 +670,11 @@ window.onload = function() {
 				}
 				removeFrom(document.getElementById("create-already-tags"))
 				chain.create_post(title, content, tags, function(res) {
-					notify("Posted!");
+					if(res){
+						showblocking("home");
+					} else {
+						alert("You've been making too many posts recently. Cut it out for a while!");
+					}
 				});
 				e.target.reset();
 
