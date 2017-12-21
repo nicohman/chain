@@ -189,6 +189,11 @@ function createPost(post) {
 
 function updatePosts() {
 	sem.take(function() {
+		Object.keys(posts).forEach(function(key) {
+			if (posts[key].favorited == true) {
+				posts[key].favorited = undefined;
+			}
+		});
 		var usersstring = JSON.stringify(posts);
 		fs.writeFile('posts.json', usersstring, function(err) {
 			if (err) {
@@ -462,12 +467,14 @@ function get_feed(toget, cb) {
 	var gotten = 0;
 	var need = toget.length
 	var posts = {};
-
+	var called = false;
 	function check() {
 		console.log("MIDAY:");
-		console.log(posts);
-		if (gotten >= need) {
+		
+		if (gotten >= need && !called && Object.keys(posts).length > 0) {
+			console.log("CALLING CB:"+need+":"+gotten)
 			cb(posts);
+			called = true;
 		}
 	}
 	console.log(toget);
@@ -578,7 +585,7 @@ function unfollow(req, ifself, cb) {
 }
 
 
-function add_favorite(req, ifself) {
+function add_favorite(req, cb) {
 	if (users[req.uid]) {
 		console.log("have user");
 		if (users[req.uid].original == true) {
@@ -591,10 +598,10 @@ function add_favorite(req, ifself) {
 					if (decode.uid == req.uid) {
 						users[req.uid].favorites[req.pid] = true;
 						updateUsers();
-						updateFavs(req.pid, 1);
+						updateFavs(req.pid, 1, cb);
 						alldir("update_users", users[req.uid]);
-						if (ifself) {
-							io.sockets.emit("added_favorite_" + req.uid + "_" + req.pid, users[req.uid]);
+						if (cb) {
+							//cb(users[req.uid]);
 						} else {
 							onedir("added_favorite_" + req.uid + "_" + req.pid, users[req.uid], flip(getDir(req.from)));
 						}
@@ -603,8 +610,9 @@ function add_favorite(req, ifself) {
 				}
 			})
 		}
-	} else if (ifself) {
+	} else if (cb) {
 		alldir("add_favorite", req);
+		whenonce("added_favorite_" + req.uid + "_" + req.pid,cb);
 	} else {
 		passAlong("add_favorite", req);
 
@@ -612,41 +620,39 @@ function add_favorite(req, ifself) {
 
 }
 
-function updateFavs(pid, num) {
+function updateFavs(pid, num, cb) {
 	favsUpdate({
 		from: selfId,
 		original: selfId,
 		pid: pid,
 		num: num
-	}, true);
-	whenonce("updated_favs_" + pid + "_" + selfId, function(res) {
-
+	}, function(res){
+		if(cb){cb(res)}
+		console.log(res);
 	});
 }
 
-function favsUpdate(req, ifself) {
+function favsUpdate(req, cb) {
 	if (posts[req.pid]) {
 		console.log("FAV UPDATE");
 		posts[req.pid].favs += req.num;
 		console.log(posts[req.pid].favs + " " + req.num);
-		if (ifself) {
-			io.sockets.emit("updated_favs_" + req.pid + "_" + req.original, posts[req.pid]);
-
+		if (cb) {
+			cb([req.pid]);
 		} else {
 			onedir("updated_favs_" + req.pid + "_" + req.original, posts[req.pid], flip(getDir(req.from)));
-
-
 		}
 		updatePosts();
 		//alldir("update_posts", posts[req.pid]);
-	} else if (ifself) {
+	} else if (cb) {
 		alldir("update_favs", req);
+		whenonce("updated_favs_"+req.pid+"_"+req.original, cb);
 	} else {
 		passAlong("update_favs", req);
 	}
 }
 
-function unfavorite(req, ifself) {
+function unfavorite(req, cb) {
 	if (users[req.uid]) {
 		console.log("have user");
 		if (users[req.uid].original == true) {
@@ -658,11 +664,11 @@ function unfavorite(req, ifself) {
 				} else {
 					if (decode.uid == req.uid) {
 						users[req.uid].favorites[req.pid] = false;
-						updateFavs(req.pid, -1);
+						updateFavs(req.pid, -1, cb);
 						updateUsers();
 						alldir("update_users", users[req.uid]);
-						if (ifself) {
-							io.sockets.emit("unfavorited_" + req.uid + "_" + req.pid, users[req.uid]);
+						if (cb) {
+							//cb(users[req.uid]);
 						} else {
 							onedir("unfavorited_" + req.uid + "_" + req.pid, users[req.uid], flip(getDir(req.from)));
 						}
@@ -671,10 +677,11 @@ function unfavorite(req, ifself) {
 				}
 			})
 		}
-	} else if (ifself) {
+	} else if (cb) {
 		alldir("unfavorite", req);
+		whenonce("unfavorited_"+req.uid+"_"+req.pid, cb);
 	} else {
-		passAlong("unffavorite", req);
+		passAlong("unfavorite", req);
 
 	}
 
@@ -969,8 +976,8 @@ var serv_handles = {
 					uid: req.uid,
 					pid: req.pid,
 					token: req.token
-				}, true);
-				whenonce("unfavorited_" + req.uid + "_" + req.pid, function(res) {
+				}, function(res) {
+					console.log("SENDING EVENT BITCH");
 					io.to(req.cid).emit("c_unfavorited_" + req.pid, true);
 				})
 			}
@@ -987,9 +994,8 @@ var serv_handles = {
 					pid: req.pid,
 					token: req.token
 
-				}, true);
-				whenonce("added_favorite_" + req.uid + "_" + req.pid, function(res) {
-					io.to(req.cid).emit("c_added_favorite_" + req.pid, true);
+				}, function(res){
+									io.to(req.cid).emit("c_added_favorite_" + req.pid, true);
 				});
 			}
 		}
@@ -1063,15 +1069,15 @@ var serv_handles = {
 				Object.keys(users[logged[req.cid]].favorites).forEach(function(fav) {
 
 					Object.keys(postsR).forEach(function(key) {
-						if (postsR[key].id == fav && users[logged[req.cid]].favorites[postsR[key].cid] == true) {
+						if (postsR[key].id == fav && users[logged[req.cid]].favorites[postsR[key].id] == true) {
 							console.log("UDPATEW");
 							postsR[key].favorited = true;
 						}
 					});
 				});
 
-				console.log(postsR);
-				console.log(users[logged[req.cid]]);
+				//console.log(postsR);
+				//console.log(users[logged[req.cid]]);
 				console.log("c_got_feed_" + logged[req.cid]);
 				io.to(req.cid).emit("c_got_feed_" + logged[req.cid], postsR);
 			});

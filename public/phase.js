@@ -122,7 +122,7 @@ window.onload = function() {
 					token: token,
 					uid: loggedin.uid
 				});
-				client.once("c_added_favorite_" + loggedin.uid + "_" + pid, function(res) {
+				client.once("c_added_favorite_" + pid, function(res) {
 					cb(res);
 				});
 			}
@@ -135,8 +135,9 @@ window.onload = function() {
 					token: token,
 					uid: loggedin.uid
 				});
-				client.once("c_unfavorite_" + loggedin.uid + "_" + pid, function(res) {
+				client.once("c_unfavorited_" + pid, function(res) {
 					cb(res);
+					console.log("RECEIEVED");
 				});
 			}
 		},
@@ -285,9 +286,9 @@ window.onload = function() {
 			console.log("IT'S A MEME");
 			content.className = "post-image";
 		} else {
-		var content = document.createElement("div");
-		content.className = "post-content";
-		content.innerHTML = post.content;
+			var content = document.createElement("div");
+			content.className = "post-content";
+			content.innerHTML = post.content;
 		}
 		var bar = document.createElement("div");
 		bar.className = "post-bar";
@@ -325,8 +326,10 @@ window.onload = function() {
 				e.preventDefault();
 				chain.unfavorite(e.target.parentNode.parentNode.parentNode.getElementsByClassName("post-id").item(0).innerHTML, function(res) {
 					notify(res);
+					console.log("DSADSAD");
+					reloadCur();
 				});
-				reloadCur();
+
 			});
 		} else {
 			console.log(post);
@@ -336,8 +339,9 @@ window.onload = function() {
 				console.log("Favoriting");
 				chain.add_favorite(e.target.parentNode.parentNode.parentNode.getElementsByClassName("post-id").item(0).innerHTML, function(res) {
 					notify(res);
+					reloadCur();
 				});
-				reloadCur();
+
 			});
 		}
 		buttons.appendChild(comments);
@@ -485,20 +489,21 @@ window.onload = function() {
 			console.log(postI);
 			console.log("FHS:");
 			postI.appendChild(makeFake("No found posts!"));
+			setTimeout(function() {
+				chain.get_feed(function(posts) {
+					removeFrom(postI);
 
-			chain.get_feed(function(posts) {
-				removeFrom(postI);
-
-				Object.keys(posts).forEach(function(key) {
-					console.log(that.el);
-					console.log("showing");
-					console.log(posts[key]);
-					show_post(posts[key], postI);
+					Object.keys(posts).forEach(function(key) {
+						console.log(that.el);
+						console.log("showing");
+						console.log(posts[key]);
+						show_post(posts[key], postI);
+					});
+					if (Object.keys(posts).length == 0) {
+						notify("No posts in your feed!");
+					}
 				});
-				if (Object.keys(posts).length == 0) {
-					notify("No posts in your feed!");
-				}
-			});
+			}, 0);
 		}
 	}
 	Object.keys(mains).forEach(function(key, index) {
@@ -510,6 +515,7 @@ window.onload = function() {
 	});
 
 	function reloadCur() {
+		console.log("reloading current page");
 		showblocking(cur_show);
 	}
 
@@ -707,9 +713,9 @@ window.onload = function() {
 				}
 			});
 			document.getElementById("overlay-background").addEventListener("click", function(e) {
-				
-					hide_comments();
-				
+
+				hide_comments();
+
 			});
 			document.getElementById("results-unfollow").addEventListener("click", function(e) {
 				if (resultsTag !== false) {
