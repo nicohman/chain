@@ -35,7 +35,15 @@
         border-bottom: 1px #2aa198 solid;
         padding-bottom: 15px;
 }
-
+@font-face {
+	font-family: "Hack";
+	src: url("/fonts/hack.ttf");
+}
+@font-face {
+	font-family:"Hack";
+	font-weight:bold;
+	src:url("/fonts/hack-bold.ttf");
+}
 .post-content {
 
         padding: 20px 0 20px 0;
@@ -119,6 +127,7 @@ a {
 }
 
 body {
+	font-family:Hack;
         background-color: #073642;
 }
 
