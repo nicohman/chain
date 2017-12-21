@@ -465,7 +465,7 @@ function createUser(username, password, email, cb) {
 
 function get_feed(toget, cb) {
 	var gotten = 0;
-	var need = toget.length
+	var need = toget.length * 2;
 	var posts = {};
 	var called = false;
 	function check() {

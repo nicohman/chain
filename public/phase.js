@@ -665,6 +665,7 @@ window.onload = function() {
 				for (var i = 0; i < t.length; i++) {
 					tags.push(t.item(i).innerHTML.split("<")[0].trim());
 				}
+				removeFrom(document.getElementById("create-already-tags"))
 				chain.create_post(title, content, tags, function(res) {
 					notify("Posted!");
 				});
