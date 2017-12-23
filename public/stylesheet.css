@@ -7,7 +7,7 @@
 }
 
 .post {
-      	width:30%; 
+        width: 30%;
         height: 200%;
         border: 5px #2aa198 solid;
         background: #002b36;
@@ -27,26 +27,31 @@
         font-size: large;
 
 }
+
 .post-image {
-	width:100%;
-	height:100%;
+        width: 100%;
+        height: 100%;
 }
+
 .post-auth {
         border-bottom: 1px #2aa198 solid;
         padding-bottom: 15px;
 }
+
 @font-face {
-	font-family: "Hack";
-	src: url("/fonts/hack.ttf");
+        font-family: "Hack";
+        src: url("/fonts/hack.ttf");
 }
+
 @font-face {
-	font-family:"Hack";
-	font-weight:bold;
-	src:url("/fonts/hack-bold.ttf");
+        font-family: "Hack";
+        font-weight: bold;
+        src: url("/fonts/hack-bold.ttf");
 }
+
 .post-content {
-	word-wrap:break-word;
-	
+        word-wrap: break-word;
+
         padding: 20px 0 20px 0;
         height: 400%;
         border-bottom: 1px #2aa198 solid;
@@ -75,9 +80,11 @@
 #main {
         padding-top: 20px;
 }
+
 button {
-	cursor:pointer;
+        cursor: pointer;
 }
+
 #main>div {
         display: none;
 }
@@ -89,7 +96,7 @@ button {
 #navbar {}
 
 #navbar ul {
-	left:0;
+        left: 0;
         list-style-type: none;
         margin: 0;
         top: 0;
@@ -117,8 +124,8 @@ a {
 }
 
 #navbar .loggedin {
-        
-	 margin-left: auto;
+
+        margin-left: auto;
 
         justify-self: end;
 }
@@ -133,7 +140,7 @@ a {
 }
 
 body {
-	font-family:Hack;
+        font-family: Hack;
         background-color: #073642;
 }
 
@@ -290,6 +297,50 @@ body {
 
 }
 
+#reset-con {
+        font-size: large;
+        border: 5px #2aa198 solid;
+        background: #002b36;
+        color: #93a1a1;
+        top: 50%;
+        left: 50%;
+        position: absolute;
+        transform: translate(-50%, -50%);
+        width: 30%
+}
+#changed-con a {
+	text-decoration:underline;
+}
+#reset-label {
+        border-bottom: 1px #2aa198 solid;
+        margin-bottom: 1%;
+        padding: 2%;
+
+}
+
+#reset-form-con {
+        padding: 2%;
+}
+
+#reset-form-con div {
+        margin-top: 1%;
+        margin-bottom: 1%;
+
+}
+
+#changed-con {
+        font-size: large;
+        border: 5px #2aa198 solid;
+        background: #002b36;
+        color: #93a1a1;
+        top: 50%;
+        left: 50%;
+        position: absolute;
+        transform: translate(-50%, -50%);
+        width: 30%;
+	padding:3%;
+}
+
 #login-container {
         font-size: large;
         border: 5px #2aa198 solid;
@@ -314,6 +365,13 @@ body {
         padding: 2% 1%;
 }
 
+#rec-label {
+
+        border-bottom: 1px #2aa198 solid;
+        font-size: large;
+        padding: 2% 1%;
+        margin-bottom: 1%;
+}
 
 #login-pass {
         padding: 1% 1%;
@@ -356,13 +414,14 @@ body {
         padding-bottom: 20px;
 
 }
+
 #results-nav {}
 
 
 #results-nav ul {
         list-style-type: none;
         margin: 0;
-	margin-bottom:20px !important;
+        margin-bottom: 20px !important;
         top: 3.0%;
         width: 100%;
         position: fixed;
@@ -372,9 +431,11 @@ body {
         display: flex;
         justify-content: flex-start;
 }
+
 #results-posts {
-	margin-top:20px;
+        margin-top: 20px;
 }
+
 #results-nav li {
         color: #586e75;
 }
@@ -396,6 +457,7 @@ body {
 
 
 }
+
 #overlay-background {
         width: 100%;
         height: 100%;
@@ -408,42 +470,51 @@ body {
 }
 
 #comment-container {
-	opacity:1;
-	z-index:100;
+        opacity: 1;
+        z-index: 100;
         position: fixed;
         width: 30%;
         height: 30%;
         top: 30%;
         left: 30%;
         background: #002b36;
-	display:flex;
-		flex-direction:column;
-		justify-content:space-between;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
 }
+
 #comment-title {
-	margin-left:2%;
-	padding-top:3%;
-	font-size:large;
-	color:#93a1a1;
+        margin-left: 2%;
+        padding-top: 3%;
+        font-size: large;
+        color: #93a1a1;
 }
+
 #comments-list {
-	        list-style-type: none;
-		color:#93a1a1;
+        list-style-type: none;
+        color: #93a1a1;
 }
+
 .comment {
-	display:flex;
-flex-direction:column;	
-	
+        display: flex;
+        flex-direction: column;
+
 }
+
 .comment-author {
-	border-top: 1px #2aa198 solid;
-	font-size:small;
+        border-top: 1px #2aa198 solid;
+        font-size: small;
 }
+
+#rec-sep {
+        margin-top: 10px;
+}
+
 #make-div {
-	padding-left:2%;
-	padding-top:4%;
-	padding-bottom:3%;
-	position:relative;
-	bottom:0;
-	display:flex;
+        padding-left: 2%;
+        padding-top: 4%;
+        padding-bottom: 3%;
+        position: relative;
+        bottom: 0;
+        display: flex;
 }

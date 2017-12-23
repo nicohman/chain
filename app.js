@@ -14,6 +14,7 @@ var semaphore = require('semaphore');
 var sem = semaphore(1);
 var san = require("sanitizer");
 var events = require('events');
+var nodemailer = require('nodemailer');
 var selfEmitter = new events.EventEmitter();
 var server = new events.EventEmitter();
 var selfId = format(new FlakeId({
@@ -25,13 +26,15 @@ var clients = [];
 var users = require("./users.json");
 var posts = require('./posts.json');
 console.log(selfId)
+var config = require("./config.json");
 var jwt = require("jsonwebtoken");
 var name = names[parseInt(process.argv[2])];
 console.log("I am the " + name);
 var port = ports[parseInt(process.argv[2]) - 1];
 console.log(port);
 var curations = require("./curations.json");
-var secret = "shut up"
+var secret = config.secret;
+var emailSecret = config.emailSecret;
 var moment = require('moment')
 var reg = {};
 var rec = {};
@@ -41,6 +44,62 @@ reg[selfId] = {
 	id: selfId
 };
 var logged = {};
+var smtpConf = {
+	host: 'smtp.gmail.com',
+	port: 465,
+	secure: true,
+	pool: true,
+	auth: {
+		user: 'nico.hickman@gmail.com',
+		pass: config.emailpass
+	}
+}
+var transporter = nodemailer.createTransport(smtpConf);
+transporter.verify(function(err, suc) {
+	if (err) {
+		console.error(err);
+		process.exit(0);
+	}
+});
+
+function genRecLink(email, cb) {
+	easyEmail(email, function(u) {
+		if (u) {
+			var token = jwt.sign({
+				uid: u.id,
+				email:email
+			}, emailSecret, {
+				expiresIn: 2700
+			});
+			var link = "http://24.113.235.229:3953/reset/" + token;
+			cb(link);
+		} else {
+			cb(false);
+		}
+	});
+}
+
+function sendRecEmail(email, cb) {
+	var link = genRecLink(email, function(link) {
+		if (link) {
+			transporter.sendMail({
+				from: 'demenses@demenses.net',
+				to: email,
+				subject: 'Recovery link for your Demenses account',
+				text: 'Please use this link to reset your password: ' + link,
+				html: '<p>Please use this link to reset your password: ' + link + '</p>'
+
+			}, function(err, info) {
+				if (err) {
+					cb(false);
+				} else {
+					cb(true);
+				}
+			});
+
+		}
+	});
+}
 
 function hash(data) {
 	return shahash.createHash('sha1').update(data, 'utf-8').digest('hex');
@@ -89,11 +148,12 @@ function get_user_by_email(req, cb) {
 	var found = false;
 	console.log("email trigger");
 	Object.keys(users).forEach(function(key) {
-		if (users[key].email == req.email) {
+		if (users[key].email.trim() == req.email.trim()) {
 			found = users[key];
 		}
 	});
 	if (found && cb) {
+		console.log("FOUND BY EMAIL");
 		cb(found);
 	} else if (found) {
 		onedir("found_user_by_email_" + req.email, found, flip(getDir(req.from)));
@@ -109,6 +169,69 @@ function get_user_by_email(req, cb) {
 			onedir("found_user_by_email_" + req.email, false, getDir(req.from));
 		}
 	}
+}
+
+function change_pass(req, cb) {
+	jwt.verify(req.token, secret, function(err, un) {
+			if (!err) {
+				var found = false;
+				Object.keys(users).forEach(function(key) {
+					if (users[key].email.trim() == un.email.trim()) {
+						found = key;
+					}
+				});
+				if (found) {
+					bcrypt.hash(un.pass, 10, function(err, hashed) {
+						users[found].pass = hashed;
+						alldir("update_users", users[found]);
+						updateUsers();
+					});
+				}
+				if (found && cb) {
+					cb(true);
+				} else if (found) {
+					onedir("changed_pass_" + un.email, true, flip(getDir(req.from)));
+				} else if (cb) {
+					when("changed_pass_" + un.email, cb);
+					alldir("change_pass", req);
+				} else {
+					if (adjacent[flip(getDir(req.from))]) {
+						passAlong(req);
+					} else {
+						console.log("NOT FOUND");
+						onedir("changed_pass_" + un.email, false, getDir(req.from));
+					}
+
+				}
+			}
+			});
+	}
+
+
+
+function change_pass_e(email, pass, cb) {
+	var f = 0;
+	console.log("changing");
+	var tok = jwt.sign({
+		pass: pass,
+		email: email
+	}, secret);
+	change_pass({
+		token: tok,
+		from: selfId,
+		original: selfId
+	}, function(res) {
+		if (res == false) {
+			f++;
+			if (f >= 2) {
+				cb(false);
+			} else {}
+		} else {
+			cb(res);
+		}
+
+
+	});
 }
 
 function easyEmail(email, cb) {
@@ -181,7 +304,7 @@ function createPost(post) {
 		title: san.escape(post.title),
 		auth: post.auth,
 		date: Date.now(),
-		tags:post.tags.map(san.escape),
+		tags: post.tags.map(san.escape),
 		content: san.escape(post.content),
 		comments: [],
 		favs: 0
@@ -726,7 +849,7 @@ function getCurationById(id, cb) {
 	} else {
 		alldir("get_curation", {
 			from: selfId,
-			original: selfId,
+			original: selfId7,
 			id: id
 		});
 		when("got_curation_" + id, function(cur) {
@@ -877,6 +1000,21 @@ var serv_handles = {
 			}
 			serv_handles(to_create);
 			alldir("create_curatioon", to_create);
+		}
+	},
+	"c_req_rec": function(req) {
+		if (!logged[req.cid]) {
+			easyEmail(req.email, function(u) {
+				console.log(u);
+
+				if (u) {
+					sendRecEmail(u.email, function(res) {
+						io.to(req.cid).emit("c_reqed_reced", true);
+					});
+				} else {
+					io.to(req.cid).emit("c_reqed_reced", false);
+				}
+			});
 		}
 	},
 	"get_posts": get_posts,
@@ -1113,6 +1251,16 @@ var serv_handles = {
 			});
 		}
 	},
+	"d_change_pass": function(req) {
+		jwt.verify(req.token, emailSecret, function(err, un) {
+			if (!err && req.pass1 == req.pass2) {
+				change_pass_e(un.email, req.pass1, function(res) {
+					io.to(req.cid).emit("d_changed_pass_" + un.email, res);
+				});
+			}
+		});
+	},
+	"change_pass": change_pass,
 	"unfollow": unfollow,
 	"follow_tag": follow_tag,
 	"c_follow_tag": function(req) {

@@ -19,6 +19,15 @@ window.onload = function() {
 				cb(null, newtoken);
 			});
 		},
+		req_rec: function(email, cb){
+			client.emit("c_req_rec", {
+				email:email,
+				cid:client.id
+			});
+			client.once("c_reqed_reced", function(res){
+				cb(res);
+			});
+		},
 		createUser: function(username, password, email, cb) {
 
 			client.emit("c_find_user_by_email", {
@@ -44,6 +53,18 @@ window.onload = function() {
 		}
 	}
 	var loginform = document.getElementById("login");
+	var recform = document.getElementById("rec-form");
+	recform.addEventListener("submit", function(e){
+		e.preventDefault();
+		var email = e.target.elements.email.value;
+		chain.req_rec(email, function(res){
+			if(res){
+				alert("Send your email a recovery link.");
+			} else {
+				alert("Not able to send a link. Does this account exist?");
+			}
+		});
+	});
 	var createform = document.getElementById("create");
 	createform.addEventListener("submit", function(e) {
 		e.preventDefault();

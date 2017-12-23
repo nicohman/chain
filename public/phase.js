@@ -267,11 +267,20 @@ window.onload = function() {
 	function hide_comments() {
 		var overlay = document.getElementById("overlay");
 		overlay.style.display = "none";
-		2
+		chain.get_by_id(cur_com, function(post) {
 
+			var posts = document.getElementsByClassName("post");
+			for (var i = 0; i < posts.length; i++) {
+				if (posts.item(i).getElementsByClassName("post-id").item(0).innerHTML.trim() == cur_com.trim()) {
+					console.log("Found!");
+					posts.item(i).getElementsByClassName("comment-post").item(0).innerHTML = "Comments: " + post.comments.length;
+					break;
+				}
+			}
+		});
 	}
 
-	function show_post(post, toAppend) {
+	function makePost(post) {
 		if (!post.title || !post.content || !post.tags) {
 			return;
 		}
@@ -359,8 +368,14 @@ window.onload = function() {
 		postt.appendChild(content);
 		postt.appendChild(bar);
 		postt.appendChild(id);
-		console.log(toAppend.id + ' PAPEPPE');
-		toAppend.appendChild(postt);
+		return postt;
+	}
+
+	function show_post(post, toAppend) {
+		var made = makePost(post);
+		if (made) {
+			toAppend.appendChild(made);
+		}
 	}
 
 	function set_username(username) {
@@ -370,7 +385,16 @@ window.onload = function() {
 			us.item(i).innerHTML = username;
 		}
 	}
-
+	function makeLoad(cb){
+		var load = document.createElement("div");
+		load.className = "load";
+		var button = document.createElement("button");
+		button.className = "load-button";
+		button.innerHTML = "Load More";
+		button.addEventListener("click", cb);
+		load.appendChild(button);
+		toAppend.appendChild(load);
+	}
 	function makeFake(text) {
 		var fake = document.createElement("div");
 		fake.className = "fake-post";
@@ -402,7 +426,6 @@ window.onload = function() {
 				});
 			}, 20);
 		},
-		"pop": function() {},
 		"search": function() {
 			removeFrom(document.getElementById("your-tags"));
 			removeFrom(document.getElementById("pop-tags"));
@@ -498,7 +521,7 @@ window.onload = function() {
 					removeFrom(postI);
 
 					Object.keys(posts).forEach(function(key) {
-						console.log(that.el);
+
 						console.log("showing");
 						console.log(posts[key]);
 						show_post(posts[key], postI);
@@ -604,6 +627,7 @@ window.onload = function() {
 			});
 			resultsTag = tag;
 			document.getElementById("results-span").innerHTML = tag;
+			console.log("TOTAL TAG: ") + tag;
 			checkRes();
 		});
 
@@ -642,6 +666,7 @@ window.onload = function() {
 				} else {
 					window.location.href = "./login.html";
 				}
+				mains["feed"].ref();
 				if (window.location.href.split("#")[1]) {
 
 					showblocking(window.location.href.split("#")[1]);
@@ -725,7 +750,6 @@ window.onload = function() {
 				}
 			});
 			document.getElementById("overlay-background").addEventListener("click", function(e) {
-
 				hide_comments();
 
 			});
