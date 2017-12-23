@@ -193,7 +193,7 @@ window.onload = function() {
 		},
 		get_top: function(cb, count) {
 			var posts = {};
-			if(!count){
+			if (!count) {
 				var count = 10;
 			}
 			client.emit("c_get_top", {
@@ -266,7 +266,8 @@ window.onload = function() {
 
 	function hide_comments() {
 		var overlay = document.getElementById("overlay");
-		overlay.style.display = "none";2
+		overlay.style.display = "none";
+		2
 
 	}
 
@@ -316,7 +317,7 @@ window.onload = function() {
 		var comments = document.createElement("button");
 		comments.className = "comment-post";
 		comments.type = "button";
-		comments.innerHTML = "Comments:" + post.comments.length;
+		comments.innerHTML = "Comments: " + post.comments.length;
 		comments.addEventListener("click", function(e) {
 			e.preventDefault();
 			chain.get_by_id(post.id, function(post) {
@@ -670,8 +671,9 @@ window.onload = function() {
 				}
 				removeFrom(document.getElementById("create-already-tags"))
 				chain.create_post(title, content, tags, function(res) {
-					if(res){
-						showblocking("home");
+					if (res) {
+						window.location.hash = "#home";
+						showblocking('home');
 					} else {
 						alert("You've been making too many posts recently. Cut it out for a while!");
 					}
@@ -690,21 +692,23 @@ window.onload = function() {
 				location.reload();
 			});
 			document.getElementById("createformtags").addEventListener("submit", function(e) {
-				var toAdd = document.createElement("a");
-				toAdd.style['font-size'] = "small";
-				toAdd.className = "create-tags";
-				toAdd.innerHTML = e.target.tag.value + " ";
-				var remove = document.createElement("button");
-				remove.innerHTML = 'X';
-				remove.type = "button";
-				remove.className = "create-remove";
-				remove.addEventListener("click", function(e) {
-					e.target.parentNode.remove();
-				});
-				toAdd.appendChild(remove);
-				document.getElementById("create-already-tags").appendChild(toAdd);
-				e.preventDefault();
-				e.target.reset();
+				if (e.target.tag.value.trim()) {
+					var toAdd = document.createElement("a");
+					toAdd.style['font-size'] = "small";
+					toAdd.className = "create-tags";
+					toAdd.innerHTML = e.target.tag.value + " ";
+					var remove = document.createElement("button");
+					remove.innerHTML = 'X';
+					remove.type = "button";
+					remove.className = "create-remove";
+					remove.addEventListener("click", function(e) {
+						e.target.parentNode.remove();
+					});
+					toAdd.appendChild(remove);
+					document.getElementById("create-already-tags").appendChild(toAdd);
+					e.preventDefault();
+					e.target.reset();
+				}
 			});
 			document.getElementById("find-tag").addEventListener("submit", function(e) {
 				e.preventDefault();

@@ -45,7 +45,8 @@
 	src:url("/fonts/hack-bold.ttf");
 }
 .post-content {
-
+	word-wrap:break-word;
+	
         padding: 20px 0 20px 0;
         height: 400%;
         border-bottom: 1px #2aa198 solid;
@@ -74,7 +75,9 @@
 #main {
         padding-top: 20px;
 }
-
+button {
+	cursor:pointer;
+}
 #main>div {
         display: none;
 }
@@ -86,6 +89,7 @@
 #navbar {}
 
 #navbar ul {
+	left:0;
         list-style-type: none;
         margin: 0;
         top: 0;
@@ -113,7 +117,9 @@ a {
 }
 
 #navbar .loggedin {
-        margin-left: auto;
+        
+	 margin-left: auto;
+
         justify-self: end;
 }
 
@@ -350,10 +356,13 @@ body {
         padding-bottom: 20px;
 
 }
+#results-nav {}
+
 
 #results-nav ul {
         list-style-type: none;
         margin: 0;
+	margin-bottom:20px !important;
         top: 3.0%;
         width: 100%;
         position: fixed;
@@ -363,7 +372,9 @@ body {
         display: flex;
         justify-content: flex-start;
 }
-
+#results-posts {
+	margin-top:20px;
+}
 #results-nav li {
         color: #586e75;
 }

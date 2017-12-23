@@ -31,8 +31,10 @@ console.log("I am the " + name);
 var port = ports[parseInt(process.argv[2]) - 1];
 console.log(port);
 var curations = require("./curations.json");
-var secret = "shut up";
+var secret = "shut up"
+var moment = require('moment')
 var reg = {};
+var rec = {};
 reg[selfId] = {
 	name: name,
 	ip: ip.address(),
@@ -179,7 +181,7 @@ function createPost(post) {
 		title: san.escape(post.title),
 		auth: post.auth,
 		date: Date.now(),
-		tags: san.escape(post.tags),
+		tags:post.tags.map(san.escape),
 		content: san.escape(post.content),
 		comments: [],
 		favs: 0
@@ -298,17 +300,19 @@ function get_posts(criterion, cb) {
 				console.log("tags");
 				if (Object.keys(criterion.posts).length < criterion.count) {
 					console.log("not enough");
-					post.tags.forEach(function(tag) {
-						criterion.filter_data.forEach(function(filter) {
-							if (filter.trim() == tag.trim()) {
+					if (post.tags) {
+						post.tags.forEach(function(tag) {
+							criterion.filter_data.forEach(function(filter) {
+								if (filter.trim() == tag.trim()) {
 
-								console.log("Found a post");
-								if (!criterion.posts[key]) {
-									criterion.posts[key] = post;
+									console.log("Found a post");
+									if (!criterion.posts[key]) {
+										criterion.posts[key] = post;
+									}
 								}
-							}
+							});
 						});
-					});
+					}
 				} else {
 					console.log(Object.keys(criterion.posts).length + " " + criterion.count);
 				}
@@ -732,10 +736,9 @@ function getCurationById(id, cb) {
 }
 
 function updateRec(id) {
-	Object.keys(logged[id].rec).forEach(function(key) {
-		if (moment(logged[id].rec[key]).isAfter(moment().subtract(1, 'days'))) {
-		} else {
-			delete loggedin[id].rec[key]
+	Object.keys(rec[id]).forEach(function(key) {
+		if (moment(rec[id][key]).isAfter(moment().subtract(1, 'days'))) {} else {
+			delete rec[id][key]
 		}
 	});
 }
@@ -1023,18 +1026,23 @@ var serv_handles = {
 		}
 	},
 	"c_create_post": function(post) {
-		logged[post.cid].rec[post.id] = Date.now();
-		updateRec(post.cid);
-		if (Object.keys(logged[req.cid].rec).length < 10) {
+		if (logged[post.cid]) {
+			if (!rec[logged[post.cid]]) {
+				rec[logged[post.cid]] = {};
+			}
+			rec[logged[post.cid]][post.id] = Date.now();
+			updateRec(logged[post.cid]);
+			if (Object.keys(rec[logged[post.cid]]).length < 10) {
 
-			createPost(post);
+				createPost(post);
 
-			io.to(post.cid).emit("c_created_post", true);
-		} else {
+				io.to(post.cid).emit("c_created_post", true);
+			} else {
 
 
-			io.to(post.cid).emit("c_created_post", false);
+				io.to(post.cid).emit("c_created_post", false);
 
+			}
 		}
 
 	},
