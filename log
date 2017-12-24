@@ -1,0 +1,548 @@
+6350520057499623424
+I am the dragon's teeth
+3000
+update_users
+connected to http://localhost:3000
+4000
+Namespace {
+  name: '/',
+  server: 
+   Server {
+     nsps: { '/': [Circular] },
+     _path: '/socket.io',
+     _serveClient: true,
+     parser: 
+      { protocol: 4,
+        types: [Array],
+        CONNECT: 0,
+        DISCONNECT: 1,
+        EVENT: 2,
+        ACK: 3,
+        ERROR: 4,
+        BINARY_EVENT: 5,
+        BINARY_ACK: 6,
+        Encoder: [Function: Encoder],
+        Decoder: [Function: Decoder] },
+     encoder: Encoder {},
+     _adapter: [Function: Adapter],
+     _origins: '*:*',
+     sockets: [Circular],
+     eio: 
+      Server {
+        clients: {},
+        clientsCount: 0,
+        wsEngine: 'uws',
+        pingTimeout: 60000,
+        pingInterval: 25000,
+        upgradeTimeout: 10000,
+        maxHttpBufferSize: 100000000,
+        transports: [Array],
+        allowUpgrades: true,
+        allowRequest: [Function: bound ],
+        cookie: 'io',
+        cookiePath: '/',
+        cookieHttpOnly: true,
+        perMessageDeflate: [Object],
+        httpCompression: [Object],
+        ws: [Server],
+        _events: [Object],
+        _eventsCount: 1 },
+     httpServer: 
+      Server {
+        domain: null,
+        _events: [Object],
+        _eventsCount: 5,
+        _maxListeners: undefined,
+        _connections: 0,
+        _handle: [TCP],
+        _usingWorkers: false,
+        _workers: [],
+        _unref: false,
+        allowHalfOpen: true,
+        pauseOnConnect: false,
+        httpAllowHalfOpen: false,
+        timeout: 120000,
+        keepAliveTimeout: 5000,
+        _pendingResponseData: 0,
+        maxHeadersCount: null,
+        _connectionKey: '6::::4000',
+        [Symbol(asyncId)]: 19 },
+     engine: 
+      Server {
+        clients: {},
+        clientsCount: 0,
+        wsEngine: 'uws',
+        pingTimeout: 60000,
+        pingInterval: 25000,
+        upgradeTimeout: 10000,
+        maxHttpBufferSize: 100000000,
+        transports: [Array],
+        allowUpgrades: true,
+        allowRequest: [Function: bound ],
+        cookie: 'io',
+        cookiePath: '/',
+        cookieHttpOnly: true,
+        perMessageDeflate: [Object],
+        httpCompression: [Object],
+        ws: [Server],
+        _events: [Object],
+        _eventsCount: 1 } },
+  sockets: {},
+  connected: {},
+  fns: [ [Function] ],
+  ids: 0,
+  rooms: [],
+  flags: {},
+  adapter: Adapter { nsp: [Circular], rooms: {}, sids: {}, encoder: Encoder {} } }
+co
+neighbor_add_6350520057499623424
+neighbor_add_6350520057499623424
+6350520056132276224
+New neighbor, named defiant from the direction of left
+got_reg_6350520057499623424
+{ '6350520057499623424': 
+   { name: 'dragon\'s teeth',
+     ip: '10.0.13.5',
+     id: '6350520057499623424' },
+  '6350520056132276224': { name: 'defiant', ip: '10.0.13.5', id: '6350520056132276224' },
+  '6350520054983032832': { name: 'dragon', ip: '10.0.13.5', id: '6350520054983032832' } }
+add_reg
+Added to registry dragon's teeth
+1 1
+no hi
+undefined undefined
+no hi
+emit
+add_reg
+Added to registry dragon's teeth
+1 1
+no hi
+undefined undefined
+no hi
+emit
+get_posts
+Request for posts
+favs
+CHECK: 
+[ { id: '638864fcf14540a9c08e91fc5e557d854f977bc2',
+    title: 'This should be a picture of terry crews',
+    auth: 'nicohman',
+    date: 1514080956438,
+    tags: [ 'tas' ],
+    content: 'No',
+    comments: [ [Object] ],
+    favs: 1 },
+  { id: 'dc140c051466f8d051a443b3288638eb08f12ff4',
+    title: 'Hello, world',
+    auth: 'nicohman',
+    date: 1514081020661,
+    tags: [],
+    content: 'dasd',
+    comments: [],
+    favs: 1 },
+  { id: 'a29ed3994017f3fcbac66c3f2533875356beaf5a',
+    title: 'This is a post',
+    auth: 'nicohman',
+    date: 1514080666743,
+    tags: [ 'this', 'is', 'a', 'tag' ],
+    content: 'This is a post\'s content',
+    comments: [ [Object] ],
+    favs: 0 },
+  { id: 'e5fa37ed4196e5acb1df587adf5ccd185badfd35',
+    title: 'Hello',
+    auth: 'nicohman',
+    date: 1514081016740,
+    tags: [],
+    content: '',
+    comments: [],
+    favs: 0 } ]
+Finishing requests
+emitting : got_posts_favs_top   0
+1 1
+no hi
+emit
+get_posts
+Request for posts
+tags
+not enough
+Found a post
+tags
+not enough
+tags
+not enough
+tags
+not enough
+Finishing requests
+emitting : got_posts_tag_tag   0
+1 1
+no hi
+emit
+update_posts
+undefined undefined
+no hi
+emit
+update_users
+get_posts
+Request for posts
+favs
+CHECK: 
+[ { id: '638864fcf14540a9c08e91fc5e557d854f977bc2',
+    title: 'This should be a picture of terry crews',
+    auth: 'nicohman',
+    date: 1514080956438,
+    tags: [ 'tas' ],
+    content: 'No',
+    comments: [ [Object] ],
+    favs: 1 },
+  { id: 'dc140c051466f8d051a443b3288638eb08f12ff4',
+    title: 'Hello, world',
+    auth: 'nicohman',
+    date: 1514081020661,
+    tags: [],
+    content: 'dasd',
+    comments: [],
+    favs: 1 },
+  { id: 'a29ed3994017f3fcbac66c3f2533875356beaf5a',
+    title: 'This is a post',
+    auth: 'nicohman',
+    date: 1514080666743,
+    tags: [ 'this', 'is', 'a', 'tag' ],
+    content: 'This is a post\'s content',
+    comments: [ [Object] ],
+    favs: 0 },
+  { id: 'e5fa37ed4196e5acb1df587adf5ccd185badfd35',
+    title: 'Hello',
+    auth: 'nicohman',
+    date: 1514081016740,
+    tags: [],
+    content: '',
+    comments: [],
+    favs: 0 } ]
+Finishing requests
+emitting : got_posts_favs_top   0
+1 1
+no hi
+emit
+update_posts
+undefined undefined
+no hi
+emit
+update_users
+get_posts
+Request for posts
+favs
+CHECK: 
+[ { id: '638864fcf14540a9c08e91fc5e557d854f977bc2',
+    title: 'This should be a picture of terry crews',
+    auth: 'nicohman',
+    date: 1514080956438,
+    tags: [ 'tas' ],
+    content: 'No',
+    comments: [ [Object] ],
+    favs: 1 },
+  { id: 'dc140c051466f8d051a443b3288638eb08f12ff4',
+    title: 'Hello, world',
+    auth: 'nicohman',
+    date: 1514081020661,
+    tags: [],
+    content: 'dasd',
+    comments: [],
+    favs: 1 },
+  { id: 'a29ed3994017f3fcbac66c3f2533875356beaf5a',
+    title: 'This is a post',
+    auth: 'nicohman',
+    date: 1514080666743,
+    tags: [ 'this', 'is', 'a', 'tag' ],
+    content: 'This is a post\'s content',
+    comments: [ [Object] ],
+    favs: 0 },
+  { id: 'e5fa37ed4196e5acb1df587adf5ccd185badfd35',
+    title: 'Hello',
+    auth: 'nicohman',
+    date: 1514081016740,
+    tags: [],
+    content: '',
+    comments: [],
+    favs: 0 } ]
+Finishing requests
+emitting : got_posts_favs_top   0
+1 1
+no hi
+emit
+update_posts
+undefined undefined
+no hi
+emit
+update_users
+get_posts
+Request for posts
+favs
+CHECK: 
+[ { id: '638864fcf14540a9c08e91fc5e557d854f977bc2',
+    title: 'This should be a picture of terry crews',
+    auth: 'nicohman',
+    date: 1514080956438,
+    tags: [ 'tas' ],
+    content: 'No',
+    comments: [ [Object] ],
+    favs: 1 },
+  { id: 'dc140c051466f8d051a443b3288638eb08f12ff4',
+    title: 'Hello, world',
+    auth: 'nicohman',
+    date: 1514081020661,
+    tags: [],
+    content: 'dasd',
+    comments: [],
+    favs: 1 },
+  { id: 'a29ed3994017f3fcbac66c3f2533875356beaf5a',
+    title: 'This is a post',
+    auth: 'nicohman',
+    date: 1514080666743,
+    tags: [ 'this', 'is', 'a', 'tag' ],
+    content: 'This is a post\'s content',
+    comments: [ [Object] ],
+    favs: 0 },
+  { id: 'e5fa37ed4196e5acb1df587adf5ccd185badfd35',
+    title: 'Hello',
+    auth: 'nicohman',
+    date: 1514081016740,
+    tags: [],
+    content: '',
+    comments: [],
+    favs: 0 } ]
+Finishing requests
+emitting : got_posts_favs_top   0
+1 1
+no hi
+emit
+update_posts
+undefined undefined
+no hi
+emit
+update_users
+get_posts
+Request for posts
+favs
+CHECK: 
+[ { id: '638864fcf14540a9c08e91fc5e557d854f977bc2',
+    title: 'This should be a picture of terry crews',
+    auth: 'nicohman',
+    date: 1514080956438,
+    tags: [ 'tas' ],
+    content: 'No',
+    comments: [ [Object] ],
+    favs: 1 },
+  { id: 'dc140c051466f8d051a443b3288638eb08f12ff4',
+    title: 'Hello, world',
+    auth: 'nicohman',
+    date: 1514081020661,
+    tags: [],
+    content: 'dasd',
+    comments: [],
+    favs: 1 },
+  { id: 'a29ed3994017f3fcbac66c3f2533875356beaf5a',
+    title: 'This is a post',
+    auth: 'nicohman',
+    date: 1514080666743,
+    tags: [ 'this', 'is', 'a', 'tag' ],
+    content: 'This is a post\'s content',
+    comments: [ [Object] ],
+    favs: 0 },
+  { id: 'e5fa37ed4196e5acb1df587adf5ccd185badfd35',
+    title: 'Hello',
+    auth: 'nicohman',
+    date: 1514081016740,
+    tags: [],
+    content: '',
+    comments: [],
+    favs: 0 } ]
+Finishing requests
+emitting : got_posts_favs_top   0
+1 1
+no hi
+emit
+update_posts
+undefined undefined
+no hi
+emit
+update_users
+get_posts
+Request for posts
+favs
+CHECK: 
+[ { id: '638864fcf14540a9c08e91fc5e557d854f977bc2',
+    title: 'This should be a picture of terry crews',
+    auth: 'nicohman',
+    date: 1514080956438,
+    tags: [ 'tas' ],
+    content: 'No',
+    comments: [ [Object] ],
+    favs: 1 },
+  { id: 'dc140c051466f8d051a443b3288638eb08f12ff4',
+    title: 'Hello, world',
+    auth: 'nicohman',
+    date: 1514081020661,
+    tags: [],
+    content: 'dasd',
+    comments: [],
+    favs: 1 },
+  { id: 'a29ed3994017f3fcbac66c3f2533875356beaf5a',
+    title: 'This is a post',
+    auth: 'nicohman',
+    date: 1514080666743,
+    tags: [ 'this', 'is', 'a', 'tag' ],
+    content: 'This is a post\'s content',
+    comments: [ [Object] ],
+    favs: 0 },
+  { id: 'e5fa37ed4196e5acb1df587adf5ccd185badfd35',
+    title: 'Hello',
+    auth: 'nicohman',
+    date: 1514081016740,
+    tags: [],
+    content: '',
+    comments: [],
+    favs: 0 } ]
+Finishing requests
+emitting : got_posts_favs_top   0
+1 1
+no hi
+emit
+update_posts
+undefined undefined
+no hi
+emit
+update_users
+get_posts
+Request for posts
+favs
+CHECK: 
+[ { id: '638864fcf14540a9c08e91fc5e557d854f977bc2',
+    title: 'This should be a picture of terry crews',
+    auth: 'nicohman',
+    date: 1514080956438,
+    tags: [ 'tas' ],
+    content: 'No',
+    comments: [ [Object] ],
+    favs: 1 },
+  { id: 'dc140c051466f8d051a443b3288638eb08f12ff4',
+    title: 'Hello, world',
+    auth: 'nicohman',
+    date: 1514081020661,
+    tags: [],
+    content: 'dasd',
+    comments: [],
+    favs: 1 },
+  { id: 'a29ed3994017f3fcbac66c3f2533875356beaf5a',
+    title: 'This is a post',
+    auth: 'nicohman',
+    date: 1514080666743,
+    tags: [ 'this', 'is', 'a', 'tag' ],
+    content: 'This is a post\'s content',
+    comments: [ [Object] ],
+    favs: 0 },
+  { id: 'e5fa37ed4196e5acb1df587adf5ccd185badfd35',
+    title: 'Hello',
+    auth: 'nicohman',
+    date: 1514081016740,
+    tags: [],
+    content: '',
+    comments: [],
+    favs: 0 } ]
+Finishing requests
+emitting : got_posts_favs_top   0
+1 1
+no hi
+emit
+update_posts
+undefined undefined
+no hi
+emit
+update_users
+get_posts
+Request for posts
+favs
+CHECK: 
+[ { id: '638864fcf14540a9c08e91fc5e557d854f977bc2',
+    title: 'This should be a picture of terry crews',
+    auth: 'nicohman',
+    date: 1514080956438,
+    tags: [ 'tas' ],
+    content: 'No',
+    comments: [ [Object] ],
+    favs: 1 },
+  { id: 'dc140c051466f8d051a443b3288638eb08f12ff4',
+    title: 'Hello, world',
+    auth: 'nicohman',
+    date: 1514081020661,
+    tags: [],
+    content: 'dasd',
+    comments: [],
+    favs: 1 },
+  { id: 'a29ed3994017f3fcbac66c3f2533875356beaf5a',
+    title: 'This is a post',
+    auth: 'nicohman',
+    date: 1514080666743,
+    tags: [ 'this', 'is', 'a', 'tag' ],
+    content: 'This is a post\'s content',
+    comments: [ [Object] ],
+    favs: 0 },
+  { id: 'e5fa37ed4196e5acb1df587adf5ccd185badfd35',
+    title: 'Hello',
+    auth: 'nicohman',
+    date: 1514081016740,
+    tags: [],
+    content: '',
+    comments: [],
+    favs: 0 } ]
+Finishing requests
+emitting : got_posts_favs_top   0
+1 1
+no hi
+emit
+update_posts
+undefined undefined
+no hi
+emit
+update_users
+get_posts
+Request for posts
+favs
+CHECK: 
+[ { id: '638864fcf14540a9c08e91fc5e557d854f977bc2',
+    title: 'This should be a picture of terry crews',
+    auth: 'nicohman',
+    date: 1514080956438,
+    tags: [ 'tas' ],
+    content: 'No',
+    comments: [ [Object] ],
+    favs: 1 },
+  { id: 'dc140c051466f8d051a443b3288638eb08f12ff4',
+    title: 'Hello, world',
+    auth: 'nicohman',
+    date: 1514081020661,
+    tags: [],
+    content: 'dasd',
+    comments: [],
+    favs: 1 },
+  { id: 'a29ed3994017f3fcbac66c3f2533875356beaf5a',
+    title: 'This is a post',
+    auth: 'nicohman',
+    date: 1514080666743,
+    tags: [ 'this', 'is', 'a', 'tag' ],
+    content: 'This is a post\'s content',
+    comments: [ [Object] ],
+    favs: 0 },
+  { id: 'e5fa37ed4196e5acb1df587adf5ccd185badfd35',
+    title: 'Hello',
+    auth: 'nicohman',
+    date: 1514081016740,
+    tags: [],
+    content: '',
+    comments: [],
+    favs: 0 } ]
+Finishing requests
+emitting : got_posts_favs_top   0
+1 1
+no hi
+emit
+discoonnect

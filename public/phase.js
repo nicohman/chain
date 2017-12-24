@@ -491,6 +491,8 @@ window.onload = function() {
 			});
 
 		},
+		"settings":function(){},
+		"pop":function(){},
 		"favs": function() {
 			removeFrom(document.getElementById("fav"));
 			document.getElementById("fav").appendChild(makeFake("No favorited posts!"));

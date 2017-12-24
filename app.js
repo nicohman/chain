@@ -67,7 +67,7 @@ function genRecLink(email, cb) {
 		if (u) {
 			var token = jwt.sign({
 				uid: u.id,
-				email:email
+				email: email
 			}, emailSecret, {
 				expiresIn: 2700
 			});
@@ -173,39 +173,39 @@ function get_user_by_email(req, cb) {
 
 function change_pass(req, cb) {
 	jwt.verify(req.token, secret, function(err, un) {
-			if (!err) {
-				var found = false;
-				Object.keys(users).forEach(function(key) {
-					if (users[key].email.trim() == un.email.trim()) {
-						found = key;
-					}
-				});
-				if (found) {
-					bcrypt.hash(un.pass, 10, function(err, hashed) {
-						users[found].pass = hashed;
-						alldir("update_users", users[found]);
-						updateUsers();
-					});
+		if (!err) {
+			var found = false;
+			Object.keys(users).forEach(function(key) {
+				if (users[key].email.trim() == un.email.trim()) {
+					found = key;
 				}
-				if (found && cb) {
-					cb(true);
-				} else if (found) {
-					onedir("changed_pass_" + un.email, true, flip(getDir(req.from)));
-				} else if (cb) {
-					when("changed_pass_" + un.email, cb);
-					alldir("change_pass", req);
-				} else {
-					if (adjacent[flip(getDir(req.from))]) {
-						passAlong(req);
-					} else {
-						console.log("NOT FOUND");
-						onedir("changed_pass_" + un.email, false, getDir(req.from));
-					}
-
-				}
-			}
 			});
-	}
+			if (found) {
+				bcrypt.hash(un.pass, 10, function(err, hashed) {
+					users[found].pass = hashed;
+					alldir("update_users", users[found]);
+					updateUsers();
+				});
+			}
+			if (found && cb) {
+				cb(true);
+			} else if (found) {
+				onedir("changed_pass_" + un.email, true, flip(getDir(req.from)));
+			} else if (cb) {
+				when("changed_pass_" + un.email, cb);
+				alldir("change_pass", req);
+			} else {
+				if (adjacent[flip(getDir(req.from))]) {
+					passAlong(req);
+				} else {
+					console.log("NOT FOUND");
+					onedir("changed_pass_" + un.email, false, getDir(req.from));
+				}
+
+			}
+		}
+	});
+}
 
 
 
@@ -327,7 +327,7 @@ function updatePosts() {
 			} else {
 				console.log("Created post successfully");
 			}
-			//	posts = require("./posts.json");
+			posts = require("./posts.json");
 			sem.leave();
 		});
 	})
@@ -456,9 +456,23 @@ function get_posts(criterion, cb) {
 	if (criterion.filter == "favs") {
 		console.log("favs");
 		if (Object.keys(criterion.posts).length < criterion.count) {
-			criterion.posts = Object.keys(posts).map(function(m) {
+			var check = Object.keys(posts).map(function(m) {
 				return posts[m];
-			}).sort(cmpfavs).splice(0, criterion.count).concat(criterion.posts).sort(cmpfavs).splice(0, criterion.count);
+			}).sort(cmpfavs).splice(0, criterion.count);
+			check.forEach(function(check2, index) {
+				if (criterion.posts[check2.id]) {
+					check = check.splice(index, 1);
+				}
+			});
+			console.log("CHECK: ");
+			console.log(check);
+
+			check = check.map(function(m) {
+				m.favs = posts[m.id].favs;
+				return m;
+			});
+
+			criterion.posts = check.concat(criterion.posts).sort(cmpfavs).splice(0, criterion.count);
 
 		}
 
@@ -535,6 +549,7 @@ function get_even(criterion, cb) {
 				}).sort(cmpfavs);
 				posts.posts = fin;
 			}
+
 			//console.log(posts.posts);
 			cb(posts);
 			console.log("gotten");
@@ -649,7 +664,6 @@ function follow_tag(req, ifself, cb) {
 			console.log("verifying");
 			jwt.verify(req.token, secret, function(err, decode) {
 				if (err) {
-
 					console.log(err);
 				} else {
 					if (decode.uid == req.uid) {
@@ -768,16 +782,21 @@ function favsUpdate(req, cb) {
 		posts[req.pid].favs += req.num;
 		console.log(posts[req.pid].favs + " " + req.num);
 		if (cb) {
+			alldir("update_favs", req);
+
 			cb([req.pid]);
 		} else {
 			onedir("updated_favs_" + req.pid + "_" + req.original, posts[req.pid], flip(getDir(req.from)));
 		}
 		updatePosts();
+
 		//alldir("update_posts", posts[req.pid]);
 	} else if (cb) {
+		console.log("MED FAV UPDATE");
 		alldir("update_favs", req);
 		whenonce("updated_favs_" + req.pid + "_" + req.original, cb);
 	} else {
+		console.log("NO FAV UPDATE");
 		passAlong("update_favs", req);
 	}
 }
