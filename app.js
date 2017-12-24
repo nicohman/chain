@@ -23,14 +23,13 @@ var selfId = format(new FlakeId({
 }).next(), "dec");
 var shahash = require('crypto');
 var clients = [];
-var users = require("./users.json");
 console.log(selfId)
 var config = require("./config.json");
 var jwt = require("jsonwebtoken");
 var name = names[parseInt(process.argv[2])];
 console.log("I am the " + name);
 var posts = require('./posts_'+name+'.json');
-
+var users = require("./users_"+name+".json");
 var port = ports[parseInt(process.argv[2]) - 1];
 console.log(port);
 var curations = require("./curations.json");
@@ -575,7 +574,7 @@ function isNeighbor(id) {
 function updateUsers() {
 	sem.take(function() {
 		var usersstring = JSON.stringify(users);
-		fs.writeFile('users.json', usersstring, function(err) {
+		fs.writeFile('users_'+name+'.json', usersstring, function(err) {
 			if (err) {
 				console.log("Error creating user");
 			} else {
