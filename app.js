@@ -163,7 +163,7 @@ function get_user_by_email(req, cb) {
 		alldir("find_user_by_email", req);
 	} else {
 		if (adjacent[flip(getDir(req.from))]) {
-			passAlong(req);
+			passAlong("find_user_by_email", req);
 		} else {
 			console.log("NOT FOUND");
 			onedir("found_user_by_email_" + req.email, false, getDir(req.from));
@@ -196,7 +196,7 @@ function change_pass(req, cb) {
 				alldir("change_pass", req);
 			} else {
 				if (adjacent[flip(getDir(req.from))]) {
-					passAlong(req);
+					passAlong("change_pass", req);
 				} else {
 					console.log("NOT FOUND");
 					onedir("changed_pass_" + un.email, false, getDir(req.from));
@@ -801,6 +801,49 @@ function favsUpdate(req, cb) {
 	}
 }
 
+function change_username_e(uid, name, token, cb) {
+	change_username({
+		from: selfId,
+		original: selfId,
+		uid: uid,
+		token: token,
+		new_u: name
+	}, cb);
+}
+
+function change_username(req, cb) {
+	console.log("func");
+	if (users[req.uid]) {
+		if (users[req.uid].original == true) {
+			jwt.verify(req.token, secret, function(err, decode) {
+				if (!err) {
+					if (decode.uid == req.uid) {
+						users[req.uid].username = req.new_u;
+						updateUsers();
+						alldir("update_users", users[req.uid]);
+						if (cb) {
+							console.log("callback");
+							cb(true);
+						} else {
+							onedir("changed_username_" + req.uid, true, flip(getDir(req.from)));
+						}
+					}
+				}
+			});
+		}
+	} else if (cb) {
+		alldir("change_username", req);
+		whenonce("changed_username_" + req.uid, cb);
+	} else {
+		if (adjacent[getDir(flip(req.from))]) {
+			passAlong("change_username", req);
+		} else {
+			onedir("changed_username_"+req.uid, false, flip(getDir(req.from)));
+
+		}
+	}
+}
+
 function unfavorite(req, cb) {
 	if (users[req.uid]) {
 		console.log("have user");
@@ -817,7 +860,7 @@ function unfavorite(req, cb) {
 						updateUsers();
 						alldir("update_users", users[req.uid]);
 						if (cb) {
-							//cb(users[req.uid]);
+							cb(users[req.uid]);
 						} else {
 							onedir("unfavorited_" + req.uid + "_" + req.pid, users[req.uid], flip(getDir(req.from)));
 						}
@@ -1021,6 +1064,20 @@ var serv_handles = {
 			alldir("create_curatioon", to_create);
 		}
 	},
+	"c_change_username": function(req) {
+		if (logged[req.cid]) {
+			jwt.verify(req.token, secret, function(err, dec) {
+				if (!err) {
+					change_username_e(dec.uid, req.new_u, req.token, function(res) {
+						io.to(req.cid).emit("c_changed_username", res);
+					});
+				} else {
+					io.to(req.cid).emit("c_changed_username", false);
+				}
+			});
+		}
+	},
+	"change_username": change_username,
 	"c_req_rec": function(req) {
 		if (!logged[req.cid]) {
 			easyEmail(req.email, function(u) {

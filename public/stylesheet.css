@@ -172,7 +172,34 @@ body {
         width: 30%;
 
 }
+#settings-container {
+	        font-size: large;
+        border: 5px #2aa198 solid;
+        background: #002b36;
 
+        color: #93a1a1;
+        top: 50%;
+        left: 50%;
+        position: absolute;
+        transform: translate(-50%, -50%);
+        width: 30%;
+
+}
+#settings-label {
+	padding: 2%;
+	margin-bottom:2%;
+        border-bottom: 5px #2aa198 solid;
+}
+#settings-change-name {
+	margin-bottom:2%;
+	padding:1%;
+
+}
+#settings-name input {
+	margin-top:1%;
+	margin-bottom:1%;
+
+}
 #tags-seperator {
         margin-right: 20px;
         margin-left: 20px;

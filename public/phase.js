@@ -205,7 +205,10 @@ window.onload = function() {
 				cb(posts.posts);
 			});
 		},
-
+		change_username:function(username, cb){
+			client.emit("c_change_username", {cid:client.id, token:token, new_u:username});
+			client.once("c_changed_username", cb);
+		},
 		get_posts: function get_posts(filter, data, cb) {
 			var posts = {};
 			client.emit("c_get_posts", {
@@ -491,7 +494,10 @@ window.onload = function() {
 			});
 
 		},
-		"settings":function(){},
+		"settings":function(){
+			document.getElementById('username-form').value= loggedin.username;
+		
+		},
 		"pop":function(){},
 		"favs": function() {
 			removeFrom(document.getElementById("fav"));
@@ -750,6 +756,19 @@ window.onload = function() {
 
 					});
 				}
+			});
+			document.getElementById("settings-name").addEventListener("submit", function(e){
+				e.preventDefault();
+				chain.change_username(e.target.elements.username.value, function(res){
+					if(res){
+localStorage.removeItem("auth_token");
+
+					alert("For security reasons, you must log back in after changing your username.");
+						window.location.href = "/login.html";
+					} else {
+						alert("Couldn't change username");
+					}
+				});
 			});
 			document.getElementById("overlay-background").addEventListener("click", function(e) {
 				hide_comments();

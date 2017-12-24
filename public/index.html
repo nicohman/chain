@@ -9,7 +9,7 @@
 </head>
 
 <body>
-	
+
 	<nav id="navbar">
 		<ul>
 			<li><a href="#home" class="nav" id="home-link">Home</a></li>
@@ -26,10 +26,17 @@
 		<div id="home">
 
 		</div>
-		<div id="settings"`>
-			settings
-		
-		
+		<div id="settings" `>
+			<div id="settings-container">
+				<div id="settings-label">User settings for <span class="username"></span></div>
+				<div id="settings-change-name">Change your username:<br>
+					<form id="settings-name"><input type="text" name="username" id="username-form">
+						<br>	<input type="submit" value="Change!"></form>
+				</div>
+
+			</div>
+
+
 		</div>
 		<div id="pop">
 
@@ -115,11 +122,12 @@
 	<div id="overlay">
 		<div id="overlay-background">
 		</div>
-		<div id="comment-container"><div id="com-split">
-			<div id="comment-title">
-			</div>
-			<ul id="comments-list">
-			</ul>
+		<div id="comment-container">
+			<div id="com-split">
+				<div id="comment-title">
+				</div>
+				<ul id="comments-list">
+				</ul>
 			</div>
 			<div id="make-div">
 				<form id="comment">
@@ -127,9 +135,9 @@
 					<button type="submit" form="comment">POST</button>
 				</form>
 			</div>
-	</div>
-	<div id="notifications">
-	</div>
+		</div>
+		<div id="notifications">
+		</div>
 </body>
 
 </html>
