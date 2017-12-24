@@ -75,7 +75,8 @@ window.onload = function() {
 					createform.reset();
 					alert("Email already used!");
 				} else {
-					chain.attempt_login(res, form.pass.value, function(err, newtoken) {
+					console.log(res);
+					chain.attempt_login(form.email.value, form.pass.value, function(err, newtoken) {
 						if (newtoken) {
 							window.location.href = "/index.html";
 						}

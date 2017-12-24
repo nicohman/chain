@@ -289,7 +289,7 @@ window.onload = function() {
 	}
 
 	function makePost(post) {
-		if (!post.title || !post.content || !post.tags) {
+		if (!post.title) {
 			return;
 		}
 		console.log(post);
@@ -301,15 +301,17 @@ window.onload = function() {
 		var auth = document.createElement("div");
 		auth.className = "post-auth";
 		auth.innerHTML = "by " + post.auth;
-		if (checkImage(post.content.trim())) {
-			var content = document.createElement("img");
-			content.src = post.content.trim()
-			console.log("IT'S A MEME");
-			content.className = "post-image";
-		} else {
-			var content = document.createElement("div");
-			content.className = "post-content";
-			content.innerHTML = post.content;
+		if (post.content) {
+			if (checkImage(post.content.trim())) {
+				var content = document.createElement("img");
+				content.src = post.content.trim()
+				console.log("IT'S A MEME");
+				content.className = "post-image";
+			} else {
+				var content = document.createElement("div");
+				content.className = "post-content";
+				content.innerHTML = post.content;
+			}
 		}
 		var bar = document.createElement("div");
 		bar.className = "post-bar";
@@ -373,7 +375,9 @@ window.onload = function() {
 		id.innerHTML = post.id;
 		postt.appendChild(title);
 		postt.appendChild(auth);
-		postt.appendChild(content);
+		if (post.content) {
+			postt.appendChild(content);
+		}
 		postt.appendChild(bar);
 		postt.appendChild(id);
 		return postt;
@@ -751,7 +755,7 @@ window.onload = function() {
 				for (var i = 0; i < t.length; i++) {
 					tags.push(t.item(i).innerHTML.split("<")[0].trim());
 				}
-				removeFrom(document.getElementById("create-already-tags"))
+				removeFrom(document.getElementById("create-already-tags"));
 				chain.create_post(title, content, tags, function(res) {
 					if (res) {
 						window.location.hash = "#home";
@@ -761,6 +765,7 @@ window.onload = function() {
 					}
 				});
 				e.target.reset();
+
 
 			});
 			document.getElementById("tags-seperator").addEventListener("click", function(e) {
