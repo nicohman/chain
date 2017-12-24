@@ -28,8 +28,8 @@ var config = require("./config.json");
 var jwt = require("jsonwebtoken");
 var name = names[parseInt(process.argv[2])];
 console.log("I am the " + name);
-var posts = require('./posts_'+name+'.json');
-var users = require("./users_"+name+".json");
+var posts = require('./posts_' + name + '.json');
+var users = require("./users_" + name + ".json");
 var port = ports[parseInt(process.argv[2]) - 1];
 console.log(port);
 var curations = require("./curations.json");
@@ -303,6 +303,7 @@ function createPost(post) {
 		id: id,
 		title: san.escape(post.title),
 		auth: post.auth,
+		uid: post.uid,
 		date: Date.now(),
 		tags: post.tags.map(san.escape),
 		content: san.escape(post.content),
@@ -321,13 +322,13 @@ function updatePosts() {
 			}
 		});
 		var usersstring = JSON.stringify(posts);
-		fs.writeFile('posts_'+name+'.json', usersstring, function(err) {
+		fs.writeFile('posts_' + name + '.json', usersstring, function(err) {
 			if (err) {
 				console.log("Error creating posts");
 			} else {
 				console.log("Created post successfully");
 			}
-			posts = require("./posts_"+name+".json");
+			posts = require("./posts_" + name + ".json");
 			sem.leave();
 		});
 	})
@@ -574,7 +575,7 @@ function isNeighbor(id) {
 function updateUsers() {
 	sem.take(function() {
 		var usersstring = JSON.stringify(users);
-		fs.writeFile('users_'+name+'.json', usersstring, function(err) {
+		fs.writeFile('users_' + name + '.json', usersstring, function(err) {
 			if (err) {
 				console.log("Error creating user");
 			} else {
@@ -608,17 +609,21 @@ function createUser(username, password, email, cb) {
 
 function get_feed(toget, cb) {
 	var gotten = 0;
-	var need = toget.length * 2;
+	var need = toget.length;
 	var posts = {};
 	var called = false;
 
 	function check() {
-		console.log("MIDAY:");
-		if (gotten >= need && !called && Object.keys(posts).length > 0) {
-			console.log("CALLING CB:" + need + ":" + gotten)
+		console.log("MIDAY:" + gotten + ":" + need);
+		if (gotten >= need && !called) {
+
 			cb(posts);
+			console.log(posts);
 			called = true;
 		}
+		console.log(toget);
+		console.log("CALLING CB:" + need + ":" + gotten)
+
 	}
 	console.log(toget);
 	toget.forEach(function(get) {
@@ -632,6 +637,7 @@ function get_feed(toget, cb) {
 				}
 
 				var amount = pro * toget.count;
+				console.log(amount + ":amount");
 				get_even({
 					count: amount,
 					filter: "tag",
@@ -640,10 +646,10 @@ function get_feed(toget, cb) {
 					original: selfId,
 					posts: {}
 				}, function(gposts) {
-
+					console.log("respost");
 					gotten++;
 					Object.keys(gposts.posts).forEach(function(key) {
-
+						console.log("I GOT ONE" + key)
 
 						posts[key] = gposts.posts[key];
 					});
@@ -838,7 +844,7 @@ function change_username(req, cb) {
 		if (adjacent[getDir(flip(req.from))]) {
 			passAlong("change_username", req);
 		} else {
-			onedir("changed_username_"+req.uid, false, flip(getDir(req.from)));
+			onedir("changed_username_" + req.uid, false, flip(getDir(req.from)));
 
 		}
 	}
@@ -1038,7 +1044,6 @@ var serv_handles = {
 	},
 	"get_reg": function(info) {
 		socket.emit("got_reg_" + info.from, reg);
-
 	},
 	"create_curation": function(curation) {
 		if (!curations[curation.id]) {
@@ -1061,7 +1066,7 @@ var serv_handles = {
 				token: req.token
 			}
 			serv_handles(to_create);
-			alldir("create_curatioon", to_create);
+			alldir("create_curation", to_create);
 		}
 	},
 	"c_change_username": function(req) {
@@ -1134,7 +1139,7 @@ var serv_handles = {
 					}
 				});
 			});
-			console.log("GOT OTP< COUNT:"+Object.keys(postsR.posts).length);
+			console.log("GOT OTP< COUNT:" + Object.keys(postsR.posts).length);
 			io.to(req.id).emit("c_got_top", postsR)
 		});
 	},
@@ -1307,7 +1312,7 @@ var serv_handles = {
 			});
 			console.log(toget);
 			console.log(users[logged[req.cid]]);
-			toget.count = 10;
+			toget.count = req.count;
 			console.log("getting");
 			get_feed(toget, function(postsR) {
 				Object.keys(users[logged[req.cid]].favorites).forEach(function(fav) {
@@ -1320,8 +1325,7 @@ var serv_handles = {
 					});
 				});
 
-				//console.log(postsR);
-				//console.log(users[logged[req.cid]]);
+
 				console.log("c_got_feed_" + logged[req.cid]);
 				io.to(req.cid).emit("c_got_feed_" + logged[req.cid], postsR);
 			});
@@ -1488,11 +1492,9 @@ function createClient(to_connect) {
 		});
 		console.log("neighbor_add_" + selfId);
 		client.once("neighbor_add_" + selfId, function(toAdd) {
-			//console.log("req");
 			if (adjacent.length < 2 && !isNeighbor(toAdd.id) && toAdd.id != selfId && !adjacent[flip(toAdd.dir)]) {
 				console.log(toAdd.from);
 				adjacent[flip(toAdd.dir)] = {
-
 					id: toAdd.from,
 					name: toAdd.name,
 					ip: toAdd.ip,

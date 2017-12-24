@@ -386,7 +386,11 @@ body {
         padding: 2%;
 
 }
+#stay {
+	position:fixed;
+}
 #about {
+	display:none;
 	position:fixed;
 	right:0;
 	bottom:0;

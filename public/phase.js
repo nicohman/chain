@@ -142,9 +142,14 @@ window.onload = function() {
 				});
 			}
 		},
-		get_feed: function get_feed(cb) {
+		get_feed: function get_feed(cb, count) {
+			if (!count) {
+				console.log("DEFAULTS");
+				count = 10;
+			}
 			client.emit("c_get_feed", {
-				cid: client.id
+				cid: client.id,
+				count: count
 			});
 			console.log("c_got_feed_" + loggedin.uid);
 			client.once("c_got_feed_" + loggedin.uid, function(posts) {
@@ -172,9 +177,7 @@ window.onload = function() {
 					login();
 					set_username(res.username);
 					//notify("Welcome back, " + res.username);
-				} else {
-
-				}
+				} else {}
 				cb(res);
 			});
 		},
@@ -185,6 +188,7 @@ window.onload = function() {
 				content: content,
 				auth: loggedin.username,
 				tags: tags,
+				uid: loggedin.uid,
 				cid: client.id
 			});
 			client.once("c_created_post", function(results) {
@@ -237,6 +241,19 @@ window.onload = function() {
 		notif.className = "notification";
 		notify.innerHTML = text;
 		document.getElementById("notifications").appendChild(notif);
+		if (!("Notification" in window)) {} else if (Notification.permission === "granted") {
+			var notification = new Notification(text);
+			setTimeout(notification.close.bind(notification), 5000);
+
+
+		} else if (Notification.permission !== "denied") {
+			Notification.requestPermission(function(permission) {
+				if (permission === "granted") {
+					var notification = new Notification(text);
+					setTimeout(notification.close.bind(notification), 5000);
+				}
+			});
+		}
 	}
 
 	function show_comments(post) {
@@ -264,8 +281,6 @@ window.onload = function() {
 		var re = /https*:\/\/\S+\.\S+\.(jpg|png|gif)/;
 		var res = re.exec(url)
 		if (res) {
-			console.log("IT COULD BE A MEME");
-			console.log(res);
 			return (res.length > 1);
 		} else {
 			return false;
@@ -348,8 +363,6 @@ window.onload = function() {
 			fav.addEventListener("click", function(e) {
 				e.preventDefault();
 				chain.unfavorite(e.target.parentNode.parentNode.parentNode.getElementsByClassName("post-id").item(0).innerHTML, function(res) {
-					notify(res);
-					console.log("DSADSAD");
 					reloadCur();
 				});
 
@@ -361,7 +374,6 @@ window.onload = function() {
 				e.preventDefault();
 				console.log("Favoriting");
 				chain.add_favorite(e.target.parentNode.parentNode.parentNode.getElementsByClassName("post-id").item(0).innerHTML, function(res) {
-					notify(res);
 					reloadCur();
 				});
 
@@ -480,7 +492,7 @@ window.onload = function() {
 						}, home_num + 20);
 					});
 				}
-			}, 20);
+			}, 40);
 		},
 		"search": function() {
 			removeFrom(document.getElementById("your-tags"));
@@ -562,8 +574,6 @@ window.onload = function() {
 					show_post(fav, document.getElementById("fav"));
 				});
 				if (favs.length == 0) {
-					console.log("notifying");
-					notify("No favorited posts!");
 					document.getElementById("fav").appendChild(makeFake("No favorited posts!"));
 
 				}
@@ -571,27 +581,49 @@ window.onload = function() {
 
 		},
 		"feed": function(that) {
+			var max_feed = 20;
 			var postI = document.getElementById("posts");
-
 			removeFrom(postI);
-			console.log(postI);
-			console.log("FHS:");
+			var coll = {};
+			var max = 0;
 			postI.appendChild(makeFake("No found posts!"));
-			setTimeout(function() {
-				chain.get_feed(function(posts) {
-					removeFrom(postI);
-
-					Object.keys(posts).forEach(function(key) {
-
-						console.log("showing");
-						console.log(posts[key]);
-						show_post(posts[key], postI);
-					});
-					if (Object.keys(posts).length == 0) {
-						notify("No posts in your feed!");
-					}
+			//	setTimeout(function() {
+			chain.get_feed(function(posts) {
+				removeFrom(postI);
+				Object.keys(posts).forEach(function(key) {
+					coll[key] = true;
+					show_post(posts[key], postI);
 				});
-			}, 0);
+				max += Object.keys(posts).length;
+
+				if (Object.keys(posts).length == 0) {
+					postI.appendChild(makeFake("No found posts!"));
+				}
+				if (Object.keys(posts).length >= 10) {
+					makeLoad(postI, function(load) {
+						console.log("getting");
+						chain.get_feed(function(posts2) {
+							var arr = Object.keys(posts2);
+							console.log(posts2);
+							console.log("_");
+							console.log(posts);
+							arr.forEach(function(key) {
+								if (coll[key]) {
+									console.log(key);
+								} else 
+								{
+									max++;
+									console.log("DISPLAYING");
+									coll[key] = true;
+									postI.insertBefore(makePost(posts2[key]), load);
+								}
+							});
+							max_feed += 20;
+						}, max_feed + 20);
+					});
+				}
+			}, 20);
+			//}, 20);
 		}
 	}
 	Object.keys(mains).forEach(function(key, index) {
@@ -667,8 +699,6 @@ window.onload = function() {
 	});
 
 	function removeFrom(feed) {
-
-
 		while (feed.hasChildNodes()) {
 			feed.removeChild(feed.lastChild);
 		}
