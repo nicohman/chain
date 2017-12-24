@@ -24,12 +24,13 @@ var selfId = format(new FlakeId({
 var shahash = require('crypto');
 var clients = [];
 var users = require("./users.json");
-var posts = require('./posts.json');
 console.log(selfId)
 var config = require("./config.json");
 var jwt = require("jsonwebtoken");
 var name = names[parseInt(process.argv[2])];
 console.log("I am the " + name);
+var posts = require('./posts_'+name+'.json');
+
 var port = ports[parseInt(process.argv[2]) - 1];
 console.log(port);
 var curations = require("./curations.json");
@@ -321,13 +322,13 @@ function updatePosts() {
 			}
 		});
 		var usersstring = JSON.stringify(posts);
-		fs.writeFile('posts.json', usersstring, function(err) {
+		fs.writeFile('posts_'+name+'.json', usersstring, function(err) {
 			if (err) {
 				console.log("Error creating posts");
 			} else {
 				console.log("Created post successfully");
 			}
-			posts = require("./posts.json");
+			posts = require("./posts_"+name+".json");
 			sem.leave();
 		});
 	})
@@ -1134,7 +1135,7 @@ var serv_handles = {
 					}
 				});
 			});
-
+			console.log("GOT OTP< COUNT:"+Object.keys(postsR.posts).length);
 			io.to(req.id).emit("c_got_top", postsR)
 		});
 	},

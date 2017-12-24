@@ -2,6 +2,7 @@ window.onload = function() {
 	var client = io("http://24.113.235.229:3000");
 	var loggedin = {};
 	var resultsTag;
+	var home_num = 10;
 	var cur_show = "home";
 	var cur_com = "";
 	var token = localStorage.getItem("auth_token");
@@ -205,8 +206,12 @@ window.onload = function() {
 				cb(posts.posts);
 			});
 		},
-		change_username:function(username, cb){
-			client.emit("c_change_username", {cid:client.id, token:token, new_u:username});
+		change_username: function(username, cb) {
+			client.emit("c_change_username", {
+				cid: client.id,
+				token: token,
+				new_u: username
+			});
 			client.once("c_changed_username", cb);
 		},
 		get_posts: function get_posts(filter, data, cb) {
@@ -388,16 +393,20 @@ window.onload = function() {
 			us.item(i).innerHTML = username;
 		}
 	}
-	function makeLoad(cb){
+
+	function makeLoad(toAppend, cb) {
 		var load = document.createElement("div");
 		load.className = "load";
 		var button = document.createElement("button");
 		button.className = "load-button";
 		button.innerHTML = "Load More";
-		button.addEventListener("click", cb);
+		button.addEventListener("click", function(e) {
+			cb(load, e);
+		});
 		load.appendChild(button);
 		toAppend.appendChild(load);
 	}
+
 	function makeFake(text) {
 		var fake = document.createElement("div");
 		fake.className = "fake-post";
@@ -406,10 +415,12 @@ window.onload = function() {
 	}
 	var mains = {
 		"home": function() {
+			home_num = 20;
+			var max = 0;
 			removeFrom(document.getElementById("home"));
 			chain.get_top(function(posts) {
 				console.log(posts);
-				Object.keys(posts).sort(function(post1, post2) {
+				var sorted = Object.keys(posts).sort(function(post1, post2) {
 					if (posts[post1].favs > posts[post2].favs) {
 						return -1;
 					} else if (posts[post1].favs < posts[post2].favs) {
@@ -418,7 +429,8 @@ window.onload = function() {
 						return 0;
 					}
 
-				}).forEach(function(key) {
+				})
+				sorted.forEach(function(key) {
 					var post = posts[key];
 
 					console.log(post);
@@ -427,6 +439,43 @@ window.onload = function() {
 					}
 
 				});
+				max = sorted.length
+				if (sorted.length >= 10) {
+					makeLoad(document.getElementById("home"), function(load) {
+						console.log("LOADING MORE OF " + home_num)
+						chain.get_top(function(posts) {
+							console.log(posts);
+							var sorted = Object.keys(posts).sort(function(post1, post2) {
+								if (posts[post1].favs > posts[post2].favs) {
+									return -1;
+								} else if (posts[post1].favs < posts[post2].favs) {
+									return 1;
+								} else {
+									return 0;
+								}
+
+							});
+							console.log(sorted);
+							sorted.splice(0, max)
+							console.log("SPLICED:");
+							console.log(sorted);
+
+							sorted.forEach(function(key) {
+								var post = posts[key];
+								console.log(key);
+								console.log(post);
+								if (post.title) {
+									document.getElementById("home").insertBefore(makePost(post), load);
+								}
+
+							});
+							max += sorted.length;
+							home_num += 20;
+
+
+						}, home_num + 20);
+					});
+				}
 			}, 20);
 		},
 		"search": function() {
@@ -494,11 +543,11 @@ window.onload = function() {
 			});
 
 		},
-		"settings":function(){
-			document.getElementById('username-form').value= loggedin.username;
-		
+		"settings": function() {
+			document.getElementById('username-form').value = loggedin.username;
+
 		},
-		"pop":function(){},
+		"pop": function() {},
 		"favs": function() {
 			removeFrom(document.getElementById("fav"));
 			document.getElementById("fav").appendChild(makeFake("No favorited posts!"));
@@ -757,13 +806,13 @@ window.onload = function() {
 					});
 				}
 			});
-			document.getElementById("settings-name").addEventListener("submit", function(e){
+			document.getElementById("settings-name").addEventListener("submit", function(e) {
 				e.preventDefault();
-				chain.change_username(e.target.elements.username.value, function(res){
-					if(res){
-localStorage.removeItem("auth_token");
+				chain.change_username(e.target.elements.username.value, function(res) {
+					if (res) {
+						localStorage.removeItem("auth_token");
 
-					alert("For security reasons, you must log back in after changing your username.");
+						alert("For security reasons, you must log back in after changing your username.");
 						window.location.href = "/login.html";
 					} else {
 						alert("Couldn't change username");
