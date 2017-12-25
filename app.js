@@ -355,7 +355,6 @@ function dirToString(dir) {
 			break;
 	}
 }
-
 function when(eventname, cb) {
 	clients.forEach(function(client) {
 		console.log("whenening");

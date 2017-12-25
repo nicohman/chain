@@ -610,7 +610,7 @@ window.onload = function() {
 							arr.forEach(function(key) {
 								if (coll[key]) {
 									console.log(key);
-								} else 
+								} else
 								{
 									max++;
 									console.log("DISPLAYING");
@@ -705,6 +705,9 @@ window.onload = function() {
 	}
 
 	function findByTag(tag) {
+		var max_res = 20;
+		var coll = {};
+		var max = 0
 		console.log("trigged tag");
 		chain.get_posts("tag", [tag], function(posts) {
 			removeFrom(document.getElementById("results-posts"));
@@ -713,14 +716,36 @@ window.onload = function() {
 			hideall();
 			console.log(posts);
 			Object.keys(posts).forEach(function(key) {
-				var post = posts[key]
+				var post = posts[key];
+				coll[key] = true;
+				max++;
 				show_post(post, document.getElementById("results-posts"));
 			});
+			if(Object.keys(posts).length >= 10){
+				makeLoad(document.getElementById("results-posts"), function(load){	
+					chain.get_posts(function(posts2){
+						var arr = Object.keys(posts2);
+						arr.forEach(function(key) {
+							if (coll[key]) {
+								console.log(key);
+							} else
+							{
+								max++;
+								console.log("DISPLAYING");
+								coll[key] = true;
+								postI.insertBefore(makePost(posts2[key]), load);
+							}
+						});
+						max_res += 20;
+
+					}, max_res+20);
+				});
+			}
 			resultsTag = tag;
 			document.getElementById("results-span").innerHTML = tag;
 			console.log("TOTAL TAG: ") + tag;
 			checkRes();
-		});
+		}, 20);
 
 	}
 
