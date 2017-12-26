@@ -218,11 +218,14 @@ window.onload = function() {
 			});
 			client.once("c_changed_username", cb);
 		},
-		get_posts: function get_posts(filter, data, cb) {
+		get_posts: function get_posts(filter, data, cb, count) {
+			if(!count){
+				count = 10;
+			}
 			var posts = {};
 			client.emit("c_get_posts", {
 				filter: filter,
-				count: 10,
+				count: count,
 				id: client.id,
 				data: data
 			});
@@ -723,7 +726,7 @@ window.onload = function() {
 			});
 			if(Object.keys(posts).length >= 10){
 				makeLoad(document.getElementById("results-posts"), function(load){	
-					chain.get_posts(function(posts2){
+					chain.get_posts("tag", [tag],function(posts2){
 						var arr = Object.keys(posts2);
 						arr.forEach(function(key) {
 							if (coll[key]) {
@@ -733,7 +736,7 @@ window.onload = function() {
 								max++;
 								console.log("DISPLAYING");
 								coll[key] = true;
-								postI.insertBefore(makePost(posts2[key]), load);
+								document.getElementById("results-posts").insertBefore(makePost(posts2[key]), load);
 							}
 						});
 						max_res += 20;
