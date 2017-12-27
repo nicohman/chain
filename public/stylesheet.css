@@ -29,7 +29,9 @@
         font-size: large;
 
 }
-
+.main-con {
+	font-size:large;
+}
 .post-image {
         width: 100%;
         height: 100%;
@@ -171,11 +173,6 @@ body {
 
 #pop {}
 
-#create-container {
-        font-size: large;
-
-}
-
 .centered {
         border: 5px #2aa198 solid;
         background: #002b36;
@@ -200,18 +197,6 @@ body {
 #info-container {
 	    top: 60%;
 }
-#tags-container {
-        font-size: large;
-}
-#cur-container {
-	font-size:large;
-}
-#settings-container {
-        font-size: large;
-
-
-}
-
 #settings-label {
         padding: 2%;
         margin-bottom: 2%;
@@ -329,11 +314,36 @@ body {
         font-size: large;
         padding: 2% 1%;
 }
+.main-label {
+        border-bottom: 3px #2aa198 solid;
+        font-size: large;
+        padding: 2% 1%;
 
+}
+.horsplit {
+	padding:2%;
+	font-size:medium;
+	display:flex;
+	justify-content:center;
+}
 #create-title {
         padding: 1% 1%;
 }
-
+.tosplit:nth-child(2) {
+	margin-left:2%;
+	padding-left:2%;
+	border-left: 5px #2aa198 solid;
+}
+.tosplit {
+	font-size:medium;
+}
+.small {
+	font-size:small;
+}
+.tosplit form input {
+	margin-top:1%;
+	margin-bottom:1%;
+}
 #create-content {
         padding: 1% 1%;
 

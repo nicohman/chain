@@ -17,6 +17,7 @@
 			<li><a href="#feed" class="nav">Feed</a></li>
 			<li><a href="#favs" class="nav">Favorites</a></li>
 			<li><a href="#curations" class="nav">Curations</a></li>
+			<li><a href="#manage" class="nav">Manage Curations</a></li>
 			<li class="loggedin"><a href="#settings" class="nav username">Couldn't retrieve username</a></li>
 			<li class="loggedin"><a href="#logout" id="logout">Log out</a></li>
 			<li class="loggedout"><a href="login.html">Log in</a></li>
@@ -27,7 +28,7 @@
 		<div id="home">
 		</div>
 		<div id="settings" `>
-			<div id="settings-container" class="centered">
+			<div class="centered main-con">
 				<div id="settings-label">User settings for <span class="username"></span></div>
 				<div id="settings-change-name">Change your username:<br>
 					<form id="settings-name"><input type="text" name="username" id="username-form">
@@ -37,7 +38,7 @@
 		</div>
 		<div id="pop">
 
-			<div id="create-container" class="centered">
+			<div  class="centered main-con">
 				<form id="createformtags">
 				</form>
 				<form id="create-post">
@@ -67,7 +68,7 @@
 			</div>
 		</div>
 		<div id="search">
-			<div id="tags-container" class="centered">
+			<div class="centered main-con">
 				<form id="find-tag">
 					<div id="tags-seperator">
 						<div id="tags-popular">
@@ -113,7 +114,7 @@
 			</div>
 		</div>
 		<div id="curations">
-			<div id="cur-container" class="centered">
+			<div class="centered main-con">
 				<form id="find-curation">
 					<div id="cur-seperator">
 						<div id="cur-pop">
@@ -136,6 +137,39 @@
 				</form>
 			</div>
 		</div>
+		<div id="manage">
+			<div class="centered main-con">
+				<div class="main-label">
+					Manage your Curations
+				</div>
+				<div class="horsplit">
+					<div class="tosplit">
+						<p>Create a Curation</p>
+						<form id="create-cur">
+							<p>Curation name:</p>
+							<input type="text" autocomplete="off" name='curname'>
+							<p>Curation tags:</p>
+							<form id="cur-tags-form">
+								<input type="text" name='tag'>
+							<input type="submit" value="Add Tag">
+
+							</form>
+							<ul id="toaddcur">
+							</ul>
+							<br>	
+							<input type="submit" value="Create">
+							<p class="small">You'll be able to perform more advanced operations upon you curation once it's created.</p>
+
+						</form>
+					</div>
+					<div class="tosplit">
+						<p>Manage your curations</p>
+						<ul id="owned-curs">
+							<li>You don't own any curations!</li>
+						</ul>
+					</div>
+				</div>
+			</div>
 	</div>
 	<div id="overlay">
 		<div id="overlay-background">
