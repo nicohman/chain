@@ -202,10 +202,10 @@ body {
 }
 #tags-container {
         font-size: large;
-
-
 }
-
+#cur-container {
+	font-size:large;
+}
 #settings-container {
         font-size: large;
 
@@ -229,6 +229,14 @@ body {
         margin-bottom: 1%;
 
 }
+#cur-seperator {
+        margin-right: 20px;
+        margin-left: 20px;
+        display: flex;
+        height: 200px;
+
+        justify-content: space-between;
+}
 
 #tags-seperator {
         margin-right: 20px;
@@ -248,12 +256,43 @@ body {
 
 
 }
+#cur-seperator ul {
+        margin-left: 5px;
+        list-style-position: outside;
+        list-style-type: none;
+
+}
 
 #tags-seperator ul {
         margin-left: 5px;
         list-style-position: outside;
         list-style-type: none;
 
+}
+#curs-self{
+        padding-left: 10px;
+
+        border-left: 5px #2aa198 solid;
+}
+
+#cur-seperator li {
+        display: list-item;
+        cursor: pointer;
+}
+
+#cur-seperator div {
+        border-bottom: 5px #2aa198 solid;
+        width: 100%;
+}
+#curs-find {
+        margin: 10px;
+        display: flex;
+        justify-content: center;
+}
+
+#curs-find input {
+        height: 10px;
+        margin-top: 15px;
 }
 
 #tags-self {

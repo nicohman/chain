@@ -497,6 +497,7 @@ window.onload = function() {
 				}
 			}, 40);
 		},
+		"curations":function(){},
 		"search": function() {
 			removeFrom(document.getElementById("your-tags"));
 			removeFrom(document.getElementById("pop-tags"));

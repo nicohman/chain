@@ -16,6 +16,7 @@
 			<li><a href="#search" class="nav">Tags</a></li>
 			<li><a href="#feed" class="nav">Feed</a></li>
 			<li><a href="#favs" class="nav">Favorites</a></li>
+			<li><a href="#curations" class="nav">Curations</a></li>
 			<li class="loggedin"><a href="#settings" class="nav username">Couldn't retrieve username</a></li>
 			<li class="loggedin"><a href="#logout" id="logout">Log out</a></li>
 			<li class="loggedout"><a href="login.html">Log in</a></li>
@@ -109,6 +110,30 @@
 		</div>
 		<div id="favs">
 			<div id="fav">
+			</div>
+		</div>
+		<div id="curations">
+			<div id="cur-container" class="centered">
+				<form id="find-curation">
+					<div id="cur-seperator">
+						<div id="cur-pop">
+							<p>Popular Curations:</p>
+							<ul id="pop-curs">
+								<li>Couldn't fetch popular curations</li>
+							</ul>
+						</div>
+						<div id="curs-self">
+							<p> Your followed curations:</p>
+							<ul id="fol-curs">
+								<li>Couldn't fetch your followed curations</li>
+							</ul>
+						</div>
+					</div>
+					<div id="curs-find">
+						<p>Search for a curations:</p>
+						<input type="text" name="cur">
+					</div>
+				</form>
 			</div>
 		</div>
 	</div>
