@@ -138,6 +138,9 @@
 			</div>
 		</div>
 		<div id="manage">
+							<form id="cur-tags-form">
+							</form>
+
 			<div class="centered main-con">
 				<div class="main-label">
 					Manage your Curations
@@ -149,11 +152,9 @@
 							<p>Curation name:</p>
 							<input type="text" autocomplete="off" name='curname'>
 							<p>Curation tags:</p>
-							<form id="cur-tags-form">
-								<input type="text" name='tag'>
-							<input type="submit" value="Add Tag">
+								<input type="text" name='tag' form="cur-tags-form">
+							<input type="submit" value="Add Tag" form="cur-tags-form">
 
-							</form>
 							<ul id="toaddcur">
 							</ul>
 							<br>	
@@ -170,6 +171,9 @@
 					</div>
 				</div>
 			</div>
+		</div>
+		<div id="mng-cur">
+		</div>
 	</div>
 	<div id="overlay">
 		<div id="overlay-background">

@@ -380,7 +380,13 @@ body {
         border-radius: 10%;
         margin-right: 1%;
 }
+.curtag {
+        border: 1px #2aa198 solid;
+        padding: 0.25%;
+        border-radius: 10%;
+        margin-right: 1%;
 
+}
 #create-already-tags {
         padding-bottom: 1%;
 }

@@ -32,7 +32,7 @@ var posts = require('./posts_' + name + '.json');
 var users = require("./users_" + name + ".json");
 var port = ports[parseInt(process.argv[2]) - 1];
 console.log(port);
-var curations = require("./curations.json");
+var curations = require("./curations_"+name+".json");
 var secret = config.secret;
 var emailSecret = config.emailSecret;
 var moment = require('moment')
@@ -313,7 +313,18 @@ function createPost(post) {
 	updatePosts();
 	alldir("update_posts", posts[id]);
 }
-
+function updateCurs(){
+	sem.take(function(){
+		var curstring = JSON.stringify(curations);
+		fs.writeFile("curations_"+name+".json", curstring, function(err){
+			if(err){
+				console.log("Error updating curations");
+			}
+			curations = require("./curations_"+name+".json");
+			sem.leave();
+		});
+	});
+}
 function updatePosts() {
 	sem.take(function() {
 		Object.keys(posts).forEach(function(key) {
@@ -355,6 +366,7 @@ function dirToString(dir) {
 			break;
 	}
 }
+
 function when(eventname, cb) {
 	clients.forEach(function(client) {
 		console.log("whenening");
@@ -605,7 +617,6 @@ function createUser(username, password, email, cb) {
 		cb(id);
 	});
 }
-
 function get_feed(toget, cb) {
 	var gotten = 0;
 	var need = toget.length;
@@ -925,6 +936,67 @@ function getCurationById(id, cb) {
 	}
 }
 
+function get_curation_by_name(name, cb) {
+	get_curation({
+		from: selfId,
+		filter: "name",
+		filter_data: name,
+		original: selfId
+	}, function(res) {
+		cb(res);
+	});
+}
+
+function get_curation(req, cb) {
+	var found = false;
+	if (req.filter == "name") {
+		if (curations[req.filter_data]) {
+			found = true;
+			if (cb) {
+				cb(curations[req.filter_data]);
+			} else {
+				onedir("got_curation_name_" + req.filter_data, curations[req.filter_data], flip(getDir(req.from)));
+			}
+		}
+	}
+	if (found) {
+
+	} else if (!found && cb) {
+		var got = 0;
+		alldir("get_curation", req);
+		when("got_curation_" + req.filter + "_" + req.filter_data, function(res) {
+			got++;
+			if (res) {
+				cb(res);
+				console.lgo("GOT CURATION");
+				never("got_curation_" + req.filter + "_" + req.filter_data);
+			} else if (got >= 2) {
+				console.log("CAANT FIND");
+				cb(false);
+			}
+		});
+	} else if (adjacent[flip(getDir(req.from))]) {
+		passAlong("get_curation", req)
+	} else {
+		onedir("got_curation_" + req.filter + "_" + req.filter_data, false, getDir(req.from));
+	}
+}
+function create_curation(req, cb){
+	jwt.verify(req.token, secret, function(err, decode){
+		if(decode.uid == req.uid){
+			curations[req.title] = {
+				tags:req.tags,
+				rules:{},
+				own:req.uid,
+				name:req.title
+			}
+			alldir("update_curations", curations[req.title]);
+			updateCurs();
+			cb(true);
+		}
+
+	});
+}
 function updateRec(id) {
 	Object.keys(rec[id]).forEach(function(key) {
 		if (moment(rec[id][key]).isAfter(moment().subtract(1, 'days'))) {} else {
@@ -974,6 +1046,10 @@ var serv_handles = {
 			users[u.id] = u;
 			updateUsers();
 		}
+	},
+	"update_curations":function(cur){
+		curations[cur.name] = cur;
+		updateCurs();
 	},
 	"update_posts": function(post) {
 		if (!posts[post.id]) {
@@ -1044,28 +1120,27 @@ var serv_handles = {
 	"get_reg": function(info) {
 		socket.emit("got_reg_" + info.from, reg);
 	},
-	"create_curation": function(curation) {
-		if (!curations[curation.id]) {
-			jwt.verify(curation.token, secret, function(err, decode) {
-				if (decode.uid == curation.uid) {
-					curations[curation.id] = curation;
-				}
-			});
-		}
-	},
+	"create_curation": create_curation,
 	"c_create_curation": function(req) {
 		if (logged[req.cid]) {
 			var to_create = {
-				id: hash(req.title + Date.now()),
-				title: req.title,
-				uid: req.uid,
+				id: hash(req.name + Date.now()),
+				title: req.name,
+				uid: logged[req.cid],
 				from: selfId,
 				original: selfId,
-				rules: req.rules,
+				tags: req.tags,
 				token: req.token
 			}
-			serv_handles(to_create);
-			alldir("create_curation", to_create);
+			get_curation_by_name(req.name, function(res) {
+				if (res) {
+					io.to(req.cid).emit("already");
+				} else {
+					create_curation(to_create, function(res) {
+						io.to(req.cid).emit("c_created_curation", res);
+					});
+				}
+			});
 		}
 	},
 	"c_change_username": function(req) {
@@ -1142,19 +1217,7 @@ var serv_handles = {
 			io.to(req.id).emit("c_got_top", postsR)
 		});
 	},
-	"get_curation": function(cur) {
-		if (curations[cur.id]) {
-			onedir("got_curation_" + cur.id, {
-				title: curations[cur.id].title,
-				rules: curations[cur.id].rules,
-				uid: curations[cur.id].uid,
-				from: selfId,
-				original: selfId
-			}, flip(getDir(cur.from)));
-		} else {
-			passAlong(cur);
-		}
-	},
+	"get_curation": get_curation,
 	"find_user_by_email": get_user_by_email,
 	"c_find_user_by_email": function(req) {
 		if (!logged[req.cid]) {

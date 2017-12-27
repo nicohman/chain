@@ -33,6 +33,15 @@ window.onload = function() {
 				cb(cur);
 			});
 		},
+		create_curation: function(name, tags, cb){
+			client.emit("c_create_curation", {
+				cid:client.id,
+				token:token,
+				tags:tags,
+				name:name
+			});
+			client.once("c_created_curation", cb);
+		},
 		add_comment: function(content, id, cb) {
 			client.emit("c_add_comment", {
 				uid: loggedin.uid,
@@ -219,7 +228,7 @@ window.onload = function() {
 			client.once("c_changed_username", cb);
 		},
 		get_posts: function get_posts(filter, data, cb, count) {
-			if(!count){
+			if (!count) {
 				count = 10;
 			}
 			var posts = {};
@@ -497,7 +506,7 @@ window.onload = function() {
 				}
 			}, 40);
 		},
-		"curations":function(){},
+		"curations": function() {},
 		"search": function() {
 			removeFrom(document.getElementById("your-tags"));
 			removeFrom(document.getElementById("pop-tags"));
@@ -568,7 +577,7 @@ window.onload = function() {
 
 		},
 		"pop": function() {},
-		"manage":function(){},
+		"manage": function() {},
 		"favs": function() {
 			removeFrom(document.getElementById("fav"));
 			document.getElementById("fav").appendChild(makeFake("No favorited posts!"));
@@ -615,8 +624,7 @@ window.onload = function() {
 							arr.forEach(function(key) {
 								if (coll[key]) {
 									console.log(key);
-								} else
-								{
+								} else {
 									max++;
 									console.log("DISPLAYING");
 									coll[key] = true;
@@ -726,15 +734,14 @@ window.onload = function() {
 				max++;
 				show_post(post, document.getElementById("results-posts"));
 			});
-			if(Object.keys(posts).length >= 10){
-				makeLoad(document.getElementById("results-posts"), function(load){	
-					chain.get_posts("tag", [tag],function(posts2){
+			if (Object.keys(posts).length >= 10) {
+				makeLoad(document.getElementById("results-posts"), function(load) {
+					chain.get_posts("tag", [tag], function(posts2) {
 						var arr = Object.keys(posts2);
 						arr.forEach(function(key) {
 							if (coll[key]) {
 								console.log(key);
-							} else
-							{
+							} else {
 								max++;
 								console.log("DISPLAYING");
 								coll[key] = true;
@@ -743,7 +750,7 @@ window.onload = function() {
 						});
 						max_res += 20;
 
-					}, max_res+20);
+					}, max_res + 20);
 				});
 			}
 			resultsTag = tag;
@@ -856,6 +863,51 @@ window.onload = function() {
 					e.preventDefault();
 					e.target.reset();
 				}
+			});
+			document.getElementById("cur-tags-form").addEventListener("submit", function(e) {
+				if (e.target.tag.value.trim()) {
+					var toAdd = document.createElement("a");
+					toAdd.style['font-size'] = "small";
+					toAdd.className = "curtag";
+					toAdd.innerHTML = e.target.tag.value + " ";
+					var remove = document.createElement("button");
+					remove.innerHTML = 'X';
+					remove.type = "button";
+					remove.className = "create-remove";
+					remove.addEventListener("click", function(e) {
+						e.target.parentNode.remove();
+					});
+					toAdd.appendChild(remove);
+					document.getElementById("toaddcur").appendChild(toAdd);
+					e.preventDefault();
+					e.target.reset();
+				}
+			});
+			document.getElementById("create-cur").addEventListener("submit", function(e){
+				e.preventDefault();
+				var name = e.target.elements.curname.value.trim();
+								var tags = [];
+				var t = document.getElementsByClassName("curtag")
+				for (var i = 0; i < t.length; i++) {
+					tags.push(t.item(i).innerHTML.split("<")[0].trim());
+				}
+				removeFrom(document.getElementById("toaddcur"));
+				if(name && tags.length){
+				
+				chain.create_curation(name, tags, function(res){
+					if(res === true){
+						notify("Curation created!");
+						showblocking("manage");
+					} else {
+						if(res === "already"){
+							alert("There's already a curation named that!");
+						}
+					}
+				});
+				} else {
+					alert("Your curation needs to start with a name and at least one tag");
+				}
+
 			});
 			document.getElementById("find-tag").addEventListener("submit", function(e) {
 				e.preventDefault();
