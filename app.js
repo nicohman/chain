@@ -946,7 +946,38 @@ function get_curation_by_name(name, cb) {
 		cb(res);
 	});
 }
+function easy_add_own(uid, cid, cb){
+	add_cur_own({from:selfId, original:selfId, uid:uid, cid:cid}, cb);
+}
+function add_cur_own(req, cb){
+	if(users[req.uid]){
+		users[req.uid].curations_owned[req.cid] = true;
+		if(cb){
+			cb(true);
+		} else {
+			onedir("added_own_"+req.cid, true, flip(getDir(req.from)));
+		}
 
+	} else if (cb){
+		alldir("add_cur_own", req);
+		var got = 0;
+		when("added_cur_own_"+req.cid, function(res){
+			got++;
+			if(res){
+				cb(res);
+				never("added_cur_own_"+req.cid);
+			} else if(got>=2){
+				cb(false);
+				never("added_cur_own_"+req.cid);
+
+			}
+		});
+	} else if(adjacent[flip(getDir(req.from))]){
+		passAlong("add_cur_own", req);
+	} else {
+		onedir("added_cur_own_"+req.cid, false, getDir(req.from));
+	}
+}
 function get_curation(req, cb) {
 	var found = false;
 	if (req.filter == "name") {
@@ -973,6 +1004,8 @@ function get_curation(req, cb) {
 			} else if (got >= 2) {
 				console.log("CAANT FIND");
 				cb(false);
+
+				never("got_curation_" + req.filter + "_" + req.filter_data);
 			}
 		});
 	} else if (adjacent[flip(getDir(req.from))]) {
@@ -1136,8 +1169,12 @@ var serv_handles = {
 				if (res) {
 					io.to(req.cid).emit("already");
 				} else {
-					create_curation(to_create, function(res) {
-						io.to(req.cid).emit("c_created_curation", res);
+					easy_add_own(logged[req.cid], to_create.title, function(res){
+
+
+						create_curation(to_create, function(res) {
+							io.to(req.cid).emit("c_created_curation", res);
+						});
 					});
 				}
 			});
