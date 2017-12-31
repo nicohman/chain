@@ -186,7 +186,10 @@ window.onload = function() {
 					login();
 					set_username(res.username);
 					//notify("Welcome back, " + res.username);
-				} else {}
+				} else {
+					localStorage.removeItem("auth_token");
+					window.location.href = "/login.html";
+				}
 				cb(res);
 			});
 		},

@@ -1095,10 +1095,14 @@ var serv_handles = {
 	},
 	"get_user": function(id) {
 		if (users[id.uid]) {
-			onedir('got_user_' + uid, id, flip(getDir(id.id)));
+			onedir('got_user_' + uid, users[id], flip(getDir(id.from)));
 		} else {
-			id.from = selfId;
+			if(adjacent[getDir(flip(id.from))]){
 			passAlong('get_user', id);
+			} else {
+			onedir('got_user_' + uid, false, getDir(id.from));
+		
+			}
 		}
 	},
 	"check_login": function(u) {
@@ -1485,10 +1489,16 @@ var serv_handles = {
 		var token = req.token
 		jwt.verify(token, secret, function(err, decode) {
 			if (decode) {
+				get_user(decode.uid, function(res){
+				if(res){
+				
 				console.log("worked");
 				console.log(decode);
 				io.to(req.cid).emit("c_token_logged_in", decode);
 				logged[req.cid] = decode.uid
+				} else {
+					io.to(req.cid).emit("c_token_logged_in", false);
+				}});
 			} else {
 				io.to(req.cid).emit("c_token_logged_in", false);
 			}
