@@ -581,8 +581,19 @@ window.onload = function() {
 		},
 		"pop": function() {},
 		"manage": function() {
+			var def = document.createElement("li");
+			def.innerHTML = "You don't own any curations!";
+			document.getElementById("owned-curs").appendChild(def);
 			chain.get_self(function(me){
-				
+				removeFrom(document.getElementById("owned-curs"));
+				Object.keys(me.curations_owned).forEach(function(key){
+					var li = document.createElement("li");
+					li.innerHTML = key;
+					key.addEventListener("click", function(){
+						showCuration(key);
+					});
+					document.getElementById("owned-curs").appendChild(li);
+				});	
 			});
 		
 		},
