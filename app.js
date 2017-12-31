@@ -87,7 +87,7 @@ function sendRecEmail(email, cb) {
 				to: email,
 				subject: 'Recovery link for your Demenses account',
 				text: 'Please use this link to reset your password: ' + link,
-				html: '<p>Please use this link to reset your password: ' + link + '</p>'
+				html: '<p>Please use <a href="' + link + '">this</a> link to reset your password.</p>'
 
 			}, function(err, info) {
 				if (err) {
@@ -608,6 +608,7 @@ function createUser(username, password, email, cb) {
 			subbed: [],
 			email: san.escape(email),
 			tags: {},
+			curations_owned:{},
 			favorites: {}
 		}
 

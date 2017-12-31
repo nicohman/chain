@@ -580,7 +580,12 @@ window.onload = function() {
 
 		},
 		"pop": function() {},
-		"manage": function() {},
+		"manage": function() {
+			chain.get_self(function(me){
+				
+			});
+		
+		},
 		"favs": function() {
 			removeFrom(document.getElementById("fav"));
 			document.getElementById("fav").appendChild(makeFake("No favorited posts!"));
