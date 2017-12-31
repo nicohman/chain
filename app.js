@@ -1096,12 +1096,12 @@ var serv_handles = {
 	},
 	"get_user": function(id) {
 		if (users[id.uid]) {
-			onedir('got_user_' + uid, users[id], flip(getDir(id.from)));
+			onedir('got_user_' + id.uid, users[id.uid], flip(getDir(id.from)));
 		} else {
 			if(adjacent[getDir(flip(id.from))]){
 			passAlong('get_user', id);
 			} else {
-			onedir('got_user_' + uid, false, getDir(id.from));
+			onedir('got_user_' + id.uid, false, getDir(id.from));
 		
 			}
 		}
