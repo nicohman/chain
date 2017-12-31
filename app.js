@@ -12,6 +12,7 @@ var fs = require("fs");
 var names = ["dragon", "defiant", "dragon's teeth", "saint", "weaver"];
 var semaphore = require('semaphore');
 var sem = semaphore(1);
+var DEMPATH = "/home/nicohman/.demenses/"
 var san = require("sanitizer");
 var events = require('events');
 var nodemailer = require('nodemailer');
@@ -24,15 +25,15 @@ var selfId = format(new FlakeId({
 var shahash = require('crypto');
 var clients = [];
 console.log(selfId)
-var config = require("./config.json");
+var config = require(DEMPATH+"config.json");
 var jwt = require("jsonwebtoken");
 var name = names[parseInt(process.argv[2])];
 console.log("I am the " + name);
-var posts = require('./posts_' + name + '.json');
-var users = require("./users_" + name + ".json");
+var posts = require(DEMPATH+'posts_' + name + '.json');
+var users = require(DEMPATH+"users_" + name + ".json");
 var port = ports[parseInt(process.argv[2]) - 1];
 console.log(port);
-var curations = require("./curations_"+name+".json");
+var curations = require(DEMPATH+"curations_"+name+".json");
 var secret = config.secret;
 var emailSecret = config.emailSecret;
 var moment = require('moment')
@@ -316,11 +317,11 @@ function createPost(post) {
 function updateCurs(){
 	sem.take(function(){
 		var curstring = JSON.stringify(curations);
-		fs.writeFile("curations_"+name+".json", curstring, function(err){
+		fs.writeFile(DEMPATH+"curations_"+name+".json", curstring, function(err){
 			if(err){
 				console.log("Error updating curations");
 			}
-			curations = require("./curations_"+name+".json");
+			curations = require(DEMPATH+"curations_"+name+".json");
 			sem.leave();
 		});
 	});
@@ -333,13 +334,13 @@ function updatePosts() {
 			}
 		});
 		var usersstring = JSON.stringify(posts);
-		fs.writeFile('posts_' + name + '.json', usersstring, function(err) {
+		fs.writeFile(DEMPATH+'posts_' + name + '.json', usersstring, function(err) {
 			if (err) {
 				console.log("Error creating posts");
 			} else {
 				console.log("Created post successfully");
 			}
-			posts = require("./posts_" + name + ".json");
+			posts = require(DEMPATH+"posts_" + name + ".json");
 			sem.leave();
 		});
 	})
