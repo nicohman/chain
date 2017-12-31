@@ -138,7 +138,7 @@ function get_user(uid, cb) {
 			uid: uid,
 			condition: 'fulfill'
 		});
-		io.once('got_user_' + uid, function(got) {
+		whenonce('got_user_' + uid, function(got) {
 			cb(got);
 		});
 	}

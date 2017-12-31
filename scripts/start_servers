@@ -4,5 +4,5 @@ cd $DEMENESE_DIR
 node $DEMENSES_DIR/app.js 0 &
 node $DEMENSES_DIR/app.js 1 &
 node $DEMENSES_DIR/app.js 2 &
-node $DEMENSES_DIR/demenses.js &
+#node demenses.js &
 
