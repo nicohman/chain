@@ -608,6 +608,7 @@ function createUser(username, password, email, cb) {
 			subbed: [],
 			email: san.escape(email),
 			tags: {},
+			curations_owned:{},
 			favorites: {}
 		}
 
