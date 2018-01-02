@@ -1045,16 +1045,39 @@ function updateRec(id) {
 	});
 }
 
-function getPostsByCur(count, cur, cb) {
-	var n = cur.rules.tags.length;
-	var total = 0;
-	var sort = cur.rules.sort;
-	cur.rules.tags.forEach(function(tag) {
-		get_even({
-
-
-		}, function(posts) {});
+function get_curation_posts(cur, cb, count){
+	if(!count){
+	
+		count = 10;
+	}
+	var need = cur.tags.length;
+	var got = 0;
+	var posts = {};
+	get_curation_by_name(cur, function(cur){
+		if(cur){
+			cur.tags.forEach(function(tag){
+				get_even({
+					count: count,
+					filter: "tag",
+					filter_data: [tag],
+					from: selfId,
+					original: selfId,
+					posts: {}
+				}, function(gotposts){
+					got++;
+					Object.keys(gotposts).forEach(function(key){
+					posts[key] = gotposts;
+					});
+					if(got >= need){
+						cb(posts);
+					}
+				});
+			});
+		}else {
+			cb(false);
+		}
 	});
+
 }
 var socket = io.sockets;
 console.log(socket);
@@ -1082,9 +1105,9 @@ if (process.argv[2] == "3") {
 console.log("co");
 var serv_handles = {
 	"update_users": function(u) {
-			users[u.id] = u;
-			updateUsers();
-		
+		users[u.id] = u;
+		updateUsers();
+
 	},
 	"update_curations":function(cur){
 		curations[cur.name] = cur;
@@ -1104,10 +1127,10 @@ var serv_handles = {
 			onedir('got_user_' + id.uid, users[id.uid], flip(getDir(id.from)));
 		} else {
 			if(adjacent[getDir(flip(id.from))]){
-			passAlong('get_user', id);
+				passAlong('get_user', id);
 			} else {
-			onedir('got_user_' + id.uid, false, getDir(id.from));
-		
+				onedir('got_user_' + id.uid, false, getDir(id.from));
+
 			}
 		}
 	},
@@ -1499,15 +1522,15 @@ var serv_handles = {
 		jwt.verify(token, secret, function(err, decode) {
 			if (decode) {
 				get_user(decode.uid, function(res){
-				if(res){
-				
-				console.log("worked");
-				console.log(decode);
-				io.to(req.cid).emit("c_token_logged_in", decode);
-				logged[req.cid] = decode.uid
-				} else {
-					io.to(req.cid).emit("c_token_logged_in", false);
-				}});
+					if(res){
+
+						console.log("worked");
+						console.log(decode);
+						io.to(req.cid).emit("c_token_logged_in", decode);
+						logged[req.cid] = decode.uid
+					} else {
+						io.to(req.cid).emit("c_token_logged_in", false);
+					}});
 			} else {
 				io.to(req.cid).emit("c_token_logged_in", false);
 			}

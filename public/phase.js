@@ -882,6 +882,7 @@ window.onload = function() {
 					e.preventDefault();
 					e.target.reset();
 				}
+				
 			});
 			document.getElementById("cur-tags-form").addEventListener("submit", function(e) {
 				if (e.target.tag.value.trim()) {
