@@ -587,12 +587,13 @@ function isNeighbor(id) {
 function updateUsers() {
 	sem.take(function() {
 		var usersstring = JSON.stringify(users);
-		fs.writeFile('users_' + name + '.json', usersstring, function(err) {
+		fs.writeFile(DEMPATH+'users_' + name + '.json', usersstring, function(err) {
 			if (err) {
 				console.log("Error creating user");
 			} else {
 				console.log("Created user successfully");
 			}
+			console.log("leaving! from "+name);
 			sem.leave();
 		});
 	})
@@ -954,6 +955,10 @@ function easy_add_own(uid, cid, cb){
 function add_cur_own(req, cb){
 	if(users[req.uid]){
 		users[req.uid].curations_owned[req.cid] = true;
+		console.log("writing for curation");
+		console.log(users[req.uid]);
+		updateUsers();
+		alldir("update_users", users[req.uid]);
 		if(cb){
 			cb(true);
 		} else {
@@ -1077,10 +1082,9 @@ if (process.argv[2] == "3") {
 console.log("co");
 var serv_handles = {
 	"update_users": function(u) {
-		if (!users[u.id]) {
 			users[u.id] = u;
 			updateUsers();
-		}
+		
 	},
 	"update_curations":function(cur){
 		curations[cur.name] = cur;
@@ -1162,6 +1166,7 @@ var serv_handles = {
 	"create_curation": create_curation,
 	"c_create_curation": function(req) {
 		if (logged[req.cid]) {
+			console.log("creating");
 			var to_create = {
 				id: hash(req.name + Date.now()),
 				title: req.name,
@@ -1172,6 +1177,8 @@ var serv_handles = {
 				token: req.token
 			}
 			get_curation_by_name(req.name, function(res) {
+				console.log(res);
+				console.log("RES");
 				if (res) {
 					io.to(req.cid).emit("already");
 				} else {
