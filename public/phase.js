@@ -589,7 +589,7 @@ window.onload = function() {
 				Object.keys(me.curations_owned).forEach(function(key){
 					var li = document.createElement("li");
 					li.innerHTML = key;
-					key.addEventListener("click", function(){
+					li.addEventListener("click", function(){
 						showCuration(key);
 					});
 					document.getElementById("owned-curs").appendChild(li);
