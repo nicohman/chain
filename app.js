@@ -1050,11 +1050,11 @@ function get_curation_posts(cur, cb, count){
 	
 		count = 10;
 	}
-	var need = cur.tags.length;
 	var got = 0;
 	var posts = {};
 	get_curation_by_name(cur, function(cur){
 		if(cur){
+			var need = cur.tags.length;
 			cur.tags.forEach(function(tag){
 				get_even({
 					count: count,
@@ -1228,6 +1228,12 @@ var serv_handles = {
 				}
 			});
 		}
+	},
+	"c_get_cur_posts":function(req){
+		get_curation_posts(req.cur, function(posts){
+			
+			io.to(req.cid).emit("c_got_cur_posts", posts);
+		}, req.count);
 	},
 	"change_username": change_username,
 	"c_req_rec": function(req) {

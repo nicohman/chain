@@ -152,9 +152,23 @@ window.onload = function() {
 				});
 			}
 		},
+		get_cur_posts: function(cur, cb, count){
+			if (!count) {
+				count = 10;
+			}
+			client.emit("c_get_cur_posts", {
+				cid:client.id,
+				count:count,
+				cur:cur
+			});
+			client.once("c_got_cur_posts",function(posts){
+				cb(posts)
+			});
+		},
 		get_feed: function get_feed(cb, count) {
 			if (!count) {
 				console.log("DEFAULTS");
+	var need = cur.tags.length;
 				count = 10;
 			}
 			client.emit("c_get_feed", {
@@ -771,7 +785,6 @@ window.onload = function() {
 			resCur = true;
 			resultsTag = cur;
 
-			document.getElementById("results-span").innerHTML = tag;
 			checkRes();
 		}, 20);
 	}
@@ -813,7 +826,6 @@ window.onload = function() {
 			}
 			resultsTag = tag;
 			resCur = false;
-			document.getElementById("results-span").innerHTML = tag;
 			console.log("TOTAL TAG: ") + tag;
 			checkRes();
 		}, 20);
@@ -825,8 +837,11 @@ window.onload = function() {
 		var follow = document.getElementById("results-follow");
 		var unfollow = document.getElementById("results-unfollow");
 		if(resCur){
+			document.getElementById('cur-span').innerHTML = resultsTag;
 			follow = document.getElementById("results-cur-follow");
 			unfollow = document.getElementById("results-cur-unfollow");
+		} else {
+			document.getElementById("results-span").innerHTML = resultsTag;
 		}
 		chain.get_self(function(me) {
 			var yes = false;
