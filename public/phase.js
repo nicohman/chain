@@ -5,6 +5,13 @@ window.onload = function() {
 	var home_num = 10;
 	var cur_show = "home";
 	var resCur = false;
+	function prevent(e){
+		if(e.preventDefault){
+			e.preventDefault();
+		} else {
+			e.returnValue = false;
+		}
+	}
 	var cur_com = "";
 	var token = localStorage.getItem("auth_token");
 	var chain = {
@@ -397,7 +404,7 @@ window.onload = function() {
 		comments.type = "button";
 		comments.innerHTML = "Comments: " + post.comments.length;
 		comments.addEventListener("click", function(e) {
-			e.preventDefault();
+			prevent(e)
 			chain.get_by_id(post.id, function(post) {
 				show_comments(post);
 			});
@@ -405,7 +412,7 @@ window.onload = function() {
 		if (post.favorited == true) {
 			fav.innerHTML = "Unfavorite"
 			fav.addEventListener("click", function(e) {
-				e.preventDefault();
+				prevent(e);
 				chain.unfavorite(e.target.parentNode.parentNode.parentNode.getElementsByClassName("post-id").item(0).innerHTML, function(res) {
 					reloadCur();
 				});
@@ -415,7 +422,7 @@ window.onload = function() {
 			console.log(post);
 			fav.innerHTML = "Favorite"
 			fav.addEventListener("click", function(e) {
-				e.preventDefault();
+				prevent(e);
 				console.log("Favoriting");
 				chain.add_favorite(e.target.parentNode.parentNode.parentNode.getElementsByClassName("post-id").item(0).innerHTML, function(res) {
 					reloadCur();
@@ -899,7 +906,7 @@ window.onload = function() {
 				}
 			});
 			document.getElementById("comment").addEventListener("submit", function(e) {
-				e.preventDefault();
+				prevent(e);
 				var content = e.target.elements.content.value;
 				e.target.reset();
 				chain.add_comment(content, cur_com, function(res) {
@@ -910,7 +917,7 @@ window.onload = function() {
 				});
 			});
 			document.getElementById("create-post").addEventListener("submit", function(e) {
-				e.preventDefault();
+				prevent(e);
 				var title = e.target.title.value;
 				var content = e.target.content.value;
 				var tags = [];
@@ -956,8 +963,8 @@ window.onload = function() {
 					});
 					toAdd.appendChild(remove);
 					document.getElementById("create-already-tags").appendChild(toAdd);
-					e.preventDefault();
 					e.target.reset();
+					prevent(e);
 				}
 				
 			});
@@ -976,12 +983,12 @@ window.onload = function() {
 					});
 					toAdd.appendChild(remove);
 					document.getElementById("toaddcur").appendChild(toAdd);
-					e.preventDefault();
+					prevent(e);
 					e.target.reset();
 				}
 			});
 			document.getElementById("create-cur").addEventListener("submit", function(e){
-				e.preventDefault();
+				prevent(e);
 				var name = e.target.elements.curname.value.trim();
 								var tags = [];
 				var t = document.getElementsByClassName("curtag")
@@ -1007,7 +1014,7 @@ window.onload = function() {
 
 			});
 			document.getElementById("find-tag").addEventListener("submit", function(e) {
-				e.preventDefault();
+				prevent(e);
 				var data = e.target.elements.tag.value;
 				findByTag(data);
 			});
@@ -1021,7 +1028,7 @@ window.onload = function() {
 				}
 			});
 			document.getElementById("settings-name").addEventListener("submit", function(e) {
-				e.preventDefault();
+				prevent(e);
 				chain.change_username(e.target.elements.username.value, function(res) {
 					if (res) {
 						localStorage.removeItem("auth_token");
