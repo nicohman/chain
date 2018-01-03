@@ -860,10 +860,14 @@ window.onload = function() {
 		var follow = document.getElementById("results-follow");
 		var unfollow = document.getElementById("results-unfollow");
 		if(resCur){
+			document.getElementById("results-cur").style.display = "block";
+			document.getElementById("results-tag").style.display = "none";
 			document.getElementById('cur-span').innerHTML = resultsTag;
 			follow = document.getElementById("results-cur-follow");
 			unfollow = document.getElementById("results-cur-unfollow");
 		} else {
+			document.getElementById("results-cur").style.display = "none";
+			document.getElementById("results-tag").style.display = "block";
 			document.getElementById("results-span").innerHTML = resultsTag;
 		}
 		chain.get_self(function(me) {
