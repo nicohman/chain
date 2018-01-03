@@ -4,6 +4,7 @@ window.onload = function() {
 	var resultsTag;
 	var home_num = 10;
 	var cur_show = "home";
+	var resCur = false;
 	var cur_com = "";
 	var token = localStorage.getItem("auth_token");
 	var chain = {
@@ -590,7 +591,7 @@ window.onload = function() {
 					var li = document.createElement("li");
 					li.innerHTML = key;
 					li.addEventListener("click", function(){
-						showCuration(key);
+						findByCuration(key);
 					});
 					document.getElementById("owned-curs").appendChild(li);
 				});	
@@ -735,7 +736,45 @@ window.onload = function() {
 			feed.removeChild(feed.lastChild);
 		}
 	}
+	function findByCuration(cur){
+		var max_res = 20;
+		var coll = {};
+		var max = 0;
+		chain.get_cur_posts(cur, function(posts){
+			removeFrom(document.getElementById("results-cur"));
+			document.getElementById("results").style.display = "block";
+			hideall();
+			Object.keys(posts).forEach(function(key){
+				var post = posts[key];
+				coll[key] = true;
+				max++;
+				show_post(post, document.getElementById("results-posts"));
+			});
+			if(Object.keys(posts).length >= 10){
+				makeLoad(document.getElementById("results-posts"), function(load){
+					chain.get_cur_posts(cur, function(posts2){
+						var arr = Object.keys(posts2);
+						arr.forEach(function(key){
+							if(coll[key]){
+							
+							} else {
+								max++;
+								coll[key] = true;
+								document.getElementById("results-posts").insertBefore(makePost(posts2[key]), load);
+							}
+						});
+						max_res+=20;
+					},max_res+20);
+				});
 
+			}
+			resCur = true;
+			resultsTag = cur;
+
+			document.getElementById("results-span").innerHTML = tag;
+			checkRes();
+		}, 20);
+	}
 	function findByTag(tag) {
 		var max_res = 20;
 		var coll = {};
@@ -773,6 +812,7 @@ window.onload = function() {
 				});
 			}
 			resultsTag = tag;
+			resCur = false;
 			document.getElementById("results-span").innerHTML = tag;
 			console.log("TOTAL TAG: ") + tag;
 			checkRes();
@@ -782,6 +822,12 @@ window.onload = function() {
 
 	function checkRes() {
 		console.log("checking");
+		var follow = document.getElementById("results-follow");
+		var unfollow = document.getElementById("results-unfollow");
+		if(resCur){
+			follow = document.getElementById("results-cur-follow");
+			unfollow = document.getElementById("results-cur-unfollow");
+		}
 		chain.get_self(function(me) {
 			var yes = false;
 			Object.keys(me.tags).forEach(function(tag) {
@@ -789,15 +835,15 @@ window.onload = function() {
 					console.log(tag);
 					console.log(me.tags);
 					console.log("FAFS");
-					document.getElementById("results-follow").style.display = "none";
-					document.getElementById("results-unfollow").style.display = "block";
+					follow.style.display = "none";
+					unfollow.style.display = "block";
 					yes = true;
 
 				}
 			});
 			if (!yes) {
-				document.getElementById("results-unfollow").style.display = "none";
-				document.getElementById("results-follow").style.display = "block";
+				unfollow.style.display = "none";
+				follow.style.display = "block";
 			}
 		});
 	}
