@@ -608,6 +608,7 @@ function createUser(username, password, email, cb) {
 			pass: hashed,
 			username: san.escape(username),
 			subbed: [],
+			curs:{},
 			email: san.escape(email),
 			tags: {},
 			curations_owned:{},
@@ -709,6 +710,32 @@ function follow_tag(req, ifself, cb) {
 		passAlong("follow_tag", req);
 
 	}
+}
+function follow_cur(req, cb){
+	if(users[req.uid]){
+		if(users[req.uid].original == true){
+			jwt.verify(req.token, secret, function(err, decode){
+				users[req.uid].curs[req.cur] = true;
+				updateUsers();
+				alldir("update_users", users[req.uid]);
+				if(ifself){
+					cb(true);
+				} else {
+					onedir("followed_cur_"+req.uid+"_"+req.cur, true, flip(getDir(req.from)));
+				}
+			});
+		}
+	} else if (cb){
+		alldir("follow_cur", req);
+		whenonce("followed_cur_"+req.uid+"_"+req.cur, cb);
+	} else {
+		if(adjacent[flip(getDir(req.from))]){
+			passAlong("follow_cur", req);
+		} else {
+			onedir("followed_cur_"+req.uid+"_"+req.cur, false, getDir(req.from));
+		}
+	}
+
 }
 
 function unfollow(req, ifself, cb) {
@@ -1485,6 +1512,17 @@ var serv_handles = {
 	"change_pass": change_pass,
 	"unfollow": unfollow,
 	"follow_tag": follow_tag,
+	"follow_cur":follow_cur,
+	"c_follow_cur":function(req){
+		if(logged[req.cid]){
+			if(logged[req.cid] == req.uid) {
+				follow_cur({from:selfId, original:selfId, uid:req.uid, cur:req.cur, token:req.token}, function(res){
+					io.to(req.cid).emit("c_follow_cur_"+req.cur, res);
+				})
+			}
+		}
+	
+	},
 	"c_follow_tag": function(req) {
 		if (logged[req.cid]) {
 			if (logged[req.cid] == req.uid) {

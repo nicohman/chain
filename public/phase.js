@@ -25,6 +25,7 @@ window.onload = function() {
 				cb(null, newtoken);
 			});
 		},
+	
 		get_curation: function get_curation(id, cb) {
 			client.emit("c_get_curation", {
 				cid: client.id,
@@ -111,6 +112,19 @@ window.onload = function() {
 				});
 			}
 		},
+		follow_cur: function(cur, cb)
+		
+		{
+			client.emit("c_follow_cur", {
+				cid:client.id,
+				cur:cur,
+				token:token,
+				uid:loggedin.uid
+			});
+			client.once("c_follow_cur_"+cur, cb);
+		
+		},
+
 		unfollow: function(tag, cb) {
 			if (loggedin.uid && token) {
 				client.emit("c_unfollow", {
