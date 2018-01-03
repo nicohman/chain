@@ -1064,9 +1064,10 @@ function get_curation_posts(cur, cb, count){
 					original: selfId,
 					posts: {}
 				}, function(gotposts){
+					gotposts = gotposts.posts;
 					got++;
 					Object.keys(gotposts).forEach(function(key){
-					posts[key] = gotposts;
+					posts[key] = gotposts[key];
 					});
 					if(got >= need){
 						cb(posts);

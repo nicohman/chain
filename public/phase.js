@@ -755,13 +755,15 @@ window.onload = function() {
 		var coll = {};
 		var max = 0;
 		chain.get_cur_posts(cur, function(posts){
-			removeFrom(document.getElementById("results-cur"));
+			removeFrom(document.getElementById("results-posts"));
 			document.getElementById("results").style.display = "block";
 			hideall();
 			Object.keys(posts).forEach(function(key){
 				var post = posts[key];
 				coll[key] = true;
 				max++;
+				console.log("CUR:");
+				console.log(posts);
 				show_post(post, document.getElementById("results-posts"));
 			});
 			if(Object.keys(posts).length >= 10){
