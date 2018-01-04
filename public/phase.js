@@ -131,7 +131,15 @@ window.onload = function() {
 			client.once("c_follow_cur_"+cur, cb);
 		
 		},
-
+		unfollow_cur:function(cur, cb){
+			client.emit("c_unfollow_cur", {
+				cid:client.id,
+				cur:cur,
+				token:token,
+				uid:loggedin.uid
+			});
+			client.once("c_unfollow_cur_"+cur, cb);
+		},
 		unfollow: function(tag, cb) {
 			if (loggedin.uid && token) {
 				client.emit("c_unfollow", {
