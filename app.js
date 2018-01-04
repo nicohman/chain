@@ -737,7 +737,33 @@ function follow_cur(req, cb){
 	}
 
 }
+function unfollow_cur(req, cb){
+	if(users[req.uid]){
+		if(users[req.uid].original == true){
+			jwt.verify(req.token, secret, function(err, decode){
+				users[req.uid].curs[req.cur] = false;
+				updateUsers();
+				alldir("update_users", users[req.uid]);
+				if(ifself){
+					cb(true);
+				} else {
+					onedir("unfollowed_cur_"+req.uid+"_"+req.cur, true, flip(getDir(req.from)));
+				}
+			});
+		}
+	} else if (cb){
+		alldir("unfollow_cur", req);
+		whenonce("unfollowed_cur_"+req.uid+"_"+req.cur, cb);
+	} else {
+		if(adjacent[flip(getDir(req.from))]){
+			passAlong("unfollow_cur", req);
+		} else {
+			onedir("unfollowed_cur_"+req.uid+"_"+req.cur, false, getDir(req.from));
+		}
+	}
 
+
+}
 function unfollow(req, ifself, cb) {
 	console.log(req.uid);
 	if (users[req.uid]) {
@@ -1074,7 +1100,7 @@ function updateRec(id) {
 
 function get_curation_posts(cur, cb, count){
 	if(!count){
-	
+
 		count = 10;
 	}
 	var got = 0;
@@ -1094,7 +1120,7 @@ function get_curation_posts(cur, cb, count){
 					gotposts = gotposts.posts;
 					got++;
 					Object.keys(gotposts).forEach(function(key){
-					posts[key] = gotposts[key];
+						posts[key] = gotposts[key];
 					});
 					if(got >= need){
 						cb(posts);
@@ -1259,7 +1285,7 @@ var serv_handles = {
 	},
 	"c_get_cur_posts":function(req){
 		get_curation_posts(req.cur, function(posts){
-			
+
 			io.to(req.cid).emit("c_got_cur_posts", posts);
 		}, req.count);
 	},
@@ -1513,6 +1539,7 @@ var serv_handles = {
 	"unfollow": unfollow,
 	"follow_tag": follow_tag,
 	"follow_cur":follow_cur,
+	"unfollow_cur":unfollow_cur,
 	"c_follow_cur":function(req){
 		if(logged[req.cid]){
 			if(logged[req.cid] == req.uid) {
@@ -1521,7 +1548,18 @@ var serv_handles = {
 				})
 			}
 		}
-	
+
+	},
+	"c_unfollow_cur":function(req){
+		if(logged[req.cid]){
+			if(logged[req.cid] == req.uid){
+				unfollow_cur({from:selfId, original:selfId, uid:req.uid, cur:req.cur, token:req.token}, function(res){
+					io.to(req.cid).emit("c_unfollow_cur_"+req.cur, res);
+				})
+
+			}
+		}
+
 	},
 	"c_follow_tag": function(req) {
 		if (logged[req.cid]) {
