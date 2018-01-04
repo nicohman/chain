@@ -1039,6 +1039,14 @@ window.onload = function() {
 					});
 				}
 			});
+			document.getElementById("results-cur-follow").addEventListener("click", function(e){
+				if(resultsTag !== false){
+					chain.follow_cur(resultsTag, function(){
+						notify("Followed "+resultsTag);
+						checkRes();
+					});
+				}
+			});
 			document.getElementById("settings-name").addEventListener("submit", function(e) {
 				prevent(e);
 				chain.change_username(e.target.elements.username.value, function(res) {
@@ -1061,6 +1069,14 @@ window.onload = function() {
 					chain.unfollow(resultsTag, function() {
 						notify("Unfollowed " + resultsTag);
 						checkRes()
+					});
+				}
+			});
+			document.getElementById("results-cur-unfollow").addEventListener("click", function(e){
+				if(resultsTag !== false){
+					chain.unfollow_cur(resultsTag, function(){
+						notify("Unfollowed "+resultsTag);
+						checkRes();
 					});
 				}
 			});
