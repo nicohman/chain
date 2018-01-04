@@ -882,15 +882,34 @@ function change_username_e(uid, name, token, cb) {
 		new_u: name
 	}, cb);
 }
-function checkFavs(favs, fposts){
+function checkFavs(favs, rposts){
+	var fposts = rposts;
+	if(rposts.posts){
+		fposts = rposts.posts;
+	}
+
 	Object.keys(favs).forEach(function(fav){
-		if(fav === true){
+		if(favs[fav] === true){
+			console.log("TRUE");
 			if(fposts[fav]){
 				fposts[fav].favorited = true;
+			} else {
+				console.log(fposts);
+		console.log("POST NOT HERE")	
 			}
+		} else {
+		console.log("NOT TRUE");
 		}
 	});
 	return fposts;
+}
+function checkFavsArr(favs, rposts){
+	rposts.forEach(function(post, index){
+		if(favs[post.id] ===true){
+			rposts[index].favorited = true;
+		}
+	});
+	return rposts
 }
 function change_username(req, cb) {
 	console.log("func");
@@ -1388,9 +1407,9 @@ var serv_handles = {
 					}
 				});
 			});*/
-			postsR = checkFavs(users[logged[req.id]].favorites, postsR);
+			postsR = checkFavs(users[logged[req.id]].favorites, postsR.posts);
 
-			io.to(req.id).emit("c_got_posts_" + req.data, postsR);
+			io.to(req.id).emit("c_got_posts_" + req.data,{posts: postsR});
 		});
 
 	},
@@ -1412,9 +1431,10 @@ var serv_handles = {
 					}
 				});
 			})*/
-			postsR = checkFavs(users[logged[req.id]].favorites, postsR);
-			console.log("GOT OTP< COUNT:" + Object.keys(postsR.posts).length);
-			io.to(req.id).emit("c_got_top", postsR)
+			postsR = checkFavsArr(users[logged[req.id]].favorites, postsR.posts);
+			console.log("GOT OTP< COUNT:" + Object.keys(postsR).length);
+			console.log(postsR);
+			io.to(req.id).emit("c_got_top", {posts:postsR})
 		});
 	},
 	"get_curation": get_curation,
