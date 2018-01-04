@@ -1142,6 +1142,62 @@ function get_curation_posts(cur, cb, count){
 	});
 
 }
+function edit_cur_mod(req, cb){
+	if(curations[req.cur]){
+		jwt.verify(req.token, secret, function(err, decode){
+			if(err){
+				if(cb){
+					cb(false);
+				} else {
+					onedir("edited_cur_mod_"+req.cur, false, getDir(req.from));
+				}
+			} else {
+				if(curations[req.cur].own !=== decode.uid){
+					if(cb){
+						cb(false)
+					} else {
+						onedir("edited_cur_mod_"+req.cur, false, getDir(req.from));
+					}
+				} else {
+					Object.keys(req.changes).forEach(function(change){
+						if(curations[req.cur][change]){
+							curations[req.cur][change] = req.changes[change];
+						} else {
+							console.log("Invalid change");
+						}
+					});
+					updateCurs();
+					alldir("update_curs", curations[req.cur]);
+					if (cb){
+						cb(true);
+					} else {
+						onedir("edited_cur_mod_"+req.cur, true, getDir(req.from));
+
+					}
+				}
+			}
+		});
+	} else if(cb){
+		alldir("edit_cur_mod", req);
+		when("edited_cur_mod_"+req.cur, twice(cb));
+	} else {
+		if(adjacent[flip(getDir(req.from))]){
+			passAlong("edit_cur_mod_"+req.cur, req);
+		} else {
+			onedir("edited_cur_mod_"+req.cur, false, getDir(req.from));
+
+		}
+	}
+}
+function twice(fn){
+	var count = 0;
+	return function(res){
+		count++;
+		if(count >=2){
+			fn(res);
+		}
+	}
+}
 var socket = io.sockets;
 console.log(socket);
 if (process.argv[2] == "1") {
@@ -1572,6 +1628,48 @@ var serv_handles = {
 			}
 		}
 
+	},
+	"c_get_cur_mod":function(req){
+		if(logged[req.cid]){
+			jwt.verify(req.token, secret, function(err, decode){
+				if(err || (decode.uid !== logged[req.cid])){
+					io.to(req.cid).emit("got_cur_mod_"+req.cur, false);
+				} else {
+					get_user(logged[req.cid], function(u){
+						if(u.curations_owned[logged[req.cur]] === true){
+							get_curation_by_name(req.cur, function(cur){
+								io.to(req.cid).emit("got_cur_mod_"+req.cur, {
+									rules:cur.rules,
+									tags:cur.tags
+								});
+							});
+						} else {
+							io.to(req.cid).emit("got_cur_mod_"+req.cur, false);
+						}
+					})}
+			});
+		}
+	},
+	"edit_cur_mod":edit_cur_mod,
+	"c_edit_cur_mod":function(req){
+		if(logged[req.cid]){
+			jwt.verify(req.token, secret, function(err, decode){
+				if(err || (decode.uid !== logged[req.cid])){
+					io.to(req.cid).emit("c_edited_cur_mod_"+req.cur, false);
+				} else {
+					edit_cur_mod({
+						from:selfId,
+						original:selfId,
+						cur:req.cur,
+						token:req.token,
+						changes:req.changes
+					}, function(res){
+						io.to(req.cid).emit("c_edited_cur_mod_"+req.cur, res);
+					});
+				}
+					onedir("c_edited_cur_mod_"+req.cur, false, getDir(req.from));
+			});
+		}
 	},
 	"c_follow_tag": function(req) {
 		if (logged[req.cid]) {
