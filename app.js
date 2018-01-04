@@ -882,7 +882,16 @@ function change_username_e(uid, name, token, cb) {
 		new_u: name
 	}, cb);
 }
-
+function checkFavs(favs, fposts){
+	Object.keys(favs).forEach(function(fav){
+		if(fav === true){
+			if(fposts[fav]){
+				fposts[fav].favorited = true;
+			}
+		}
+	});
+	return fposts;
+}
 function change_username(req, cb) {
 	console.log("func");
 	if (users[req.uid]) {
@@ -1315,14 +1324,15 @@ var serv_handles = {
 			from: selfId,
 			posts: {}
 		}, function(postsR) {
-			Object.keys(users[logged[req.id]].favorites).forEach(function(fav) {
+			/*Object.keys(users[logged[req.id]].favorites).forEach(function(fav) {
 				Object.keys(postsR.posts).forEach(function(key) {
 					if (postsR.posts[key].id == fav && users[logged[req.id]].favorites[postsR.posts[key].id] == true) {
 						console.log("UDPATEW");
 						postsR.posts[key].favorited = true;
 					}
 				});
-			});
+			});*/
+			postsR = checkFavs(users[logged[req.id]].favorites, postsR);
 
 			io.to(req.id).emit("c_got_posts_" + req.data, postsR);
 		});
@@ -1338,14 +1348,15 @@ var serv_handles = {
 			from: selfId
 		}, function(postsR) {
 			//console.log(Object.keys(postsR.posts));
-			Object.keys(users[logged[req.id]].favorites).forEach(function(fav) {
+			/*	Object.keys(users[logged[req.id]].favorites).forEach(function(fav) {
 				Object.keys(postsR.posts).forEach(function(key) {
 					if (postsR.posts[key].id == fav && users[logged[req.id]].favorites[postsR.posts[key].id] == true) {
-						//console.log("UDPATEW");
+			//console.log("UDPATEW");
 						postsR.posts[key].favorited = true;
 					}
 				});
-			});
+			})*/
+			postsR = checkFavs(users[logged[req.id]].favorites, postsR);
 			console.log("GOT OTP< COUNT:" + Object.keys(postsR.posts).length);
 			io.to(req.id).emit("c_got_top", postsR)
 		});
@@ -1510,7 +1521,7 @@ var serv_handles = {
 			toget.count = req.count;
 			console.log("getting");
 			get_feed(toget, function(postsR) {
-				Object.keys(users[logged[req.cid]].favorites).forEach(function(fav) {
+				/*	Object.keys(users[logged[req.cid]].favorites).forEach(function(fav) {
 
 					Object.keys(postsR).forEach(function(key) {
 						if (postsR[key].id == fav && users[logged[req.cid]].favorites[postsR[key].id] == true) {
@@ -1518,8 +1529,9 @@ var serv_handles = {
 							postsR[key].favorited = true;
 						}
 					});
-				});
+				});*/
 
+				postsR = checkFavs(users[logged[req.cid]].favorites, postsR);
 
 				console.log("c_got_feed_" + logged[req.cid]);
 				io.to(req.cid).emit("c_got_feed_" + logged[req.cid], postsR);
