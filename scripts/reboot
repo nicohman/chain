@@ -1,0 +1,4 @@
+#!/bin/bash
+DEMENSES_DIR=~/chain
+$DEMENSES_DIR/scripts/shutdown
+$DEMENSES_DIR/scripts/start_servers

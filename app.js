@@ -1171,7 +1171,7 @@ function edit_cur_mod(req, cb){
 					onedir("edited_cur_mod_"+req.cur, false, getDir(req.from));
 				}
 			} else {
-				if(curations[req.cur].own !=== decode.uid){
+				if(curations[req.cur].own !== decode.uid){
 					if(cb){
 						cb(false)
 					} else {
