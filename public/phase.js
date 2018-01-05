@@ -32,7 +32,25 @@ window.onload = function() {
 				cb(null, newtoken);
 			});
 		},
-	
+		get_cur_mod:function(cur, cb){
+			client.emit("c_get_cur_mod", {
+				token:token,
+				cid:client.id,
+				cur:cur,
+				uid:loggedin.uid
+			});
+			client.once("c_got_cur_mod_"+cur, cb);
+		},
+		edit_cur_mod:function(cur, ed, cb){
+			client.emit("c_edit_cur_mod", {
+				cur:cur,
+				cid:client.id,
+				uid:loggedin.uid,
+				token:token,
+				changes:ed
+			});
+			client.once("c_edited_cur_mod_"+cur, cb);
+		},
 		get_curation: function get_curation(id, cb) {
 			client.emit("c_get_curation", {
 				cid: client.id,
@@ -813,6 +831,17 @@ window.onload = function() {
 				});
 
 			}
+			chain.get_self(function(me){
+				if(me.curations_owned[cur] === true){
+					chain.get_cur_mod(cur, function(res){
+						if(res){
+							//Showing and updating mod tools	
+						} else {
+							alert("Something went wrong!");
+						}
+					});	
+				}
+			});	
 			resCur = true;
 			resultsTag = cur;
 

@@ -1653,18 +1653,18 @@ var serv_handles = {
 		if(logged[req.cid]){
 			jwt.verify(req.token, secret, function(err, decode){
 				if(err || (decode.uid !== logged[req.cid])){
-					io.to(req.cid).emit("got_cur_mod_"+req.cur, false);
+					io.to(req.cid).emit("c_got_cur_mod_"+req.cur, false);
 				} else {
 					get_user(logged[req.cid], function(u){
 						if(u.curations_owned[logged[req.cur]] === true){
 							get_curation_by_name(req.cur, function(cur){
-								io.to(req.cid).emit("got_cur_mod_"+req.cur, {
+								io.to(req.cid).emit("c_got_cur_mod_"+req.cur, {
 									rules:cur.rules,
 									tags:cur.tags
 								});
 							});
 						} else {
-							io.to(req.cid).emit("got_cur_mod_"+req.cur, false);
+							io.to(req.cid).emit("c_got_cur_mod_"+req.cur, false);
 						}
 					})}
 			});
@@ -1687,7 +1687,7 @@ var serv_handles = {
 						io.to(req.cid).emit("c_edited_cur_mod_"+req.cur, res);
 					});
 				}
-					onedir("c_edited_cur_mod_"+req.cur, false, getDir(req.from));
+					io.to(req.cid).emit("c_edited_cur_mod_"+req.cur, false);
 			});
 		}
 	},
