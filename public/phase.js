@@ -833,6 +833,7 @@ window.onload = function() {
 			}
 			chain.get_self(function(me){
 				if(me.curations_owned[cur] === true){
+					document.getElementById("cur-mod").style.display = "block";
 					chain.get_cur_mod(cur, function(res){
 						if(res){
 
@@ -861,7 +862,7 @@ window.onload = function() {
 										case "no_string":
 											desc = "Exclude posts containing "+rule.value;
 											break;
-										case default:
+										default:
 											return;
 											break;
 									}
@@ -885,6 +886,8 @@ window.onload = function() {
 							alert("Something went wrong!");
 						}
 					});
+				} else {
+					document.getElementById("cur-mod").style.display = "none";
 				}
 			});
 			resCur = true;
@@ -910,6 +913,7 @@ window.onload = function() {
 		return toAdd;
 	}
 	function findByTag(tag) {
+		
 		var max_res = 20;
 		var coll = {};
 		var max = 0
@@ -958,12 +962,14 @@ window.onload = function() {
 		var follow = document.getElementById("results-follow");
 		var unfollow = document.getElementById("results-unfollow");
 		if(resCur){
+			
 			document.getElementById("results-cur").style.display = "block";
 			document.getElementById("results-tag").style.display = "none";
 			document.getElementById('cur-span').innerHTML = resultsTag;
 			follow = document.getElementById("results-cur-follow");
 			unfollow = document.getElementById("results-cur-unfollow");
 		} else {
+			document.getElementById("cur-mod").style.display  = "none";
 			document.getElementById("results-cur").style.display = "none";
 			document.getElementById("results-tag").style.display = "block";
 			document.getElementById("results-span").innerHTML = resultsTag;

@@ -114,6 +114,7 @@
 				</div>
 				<div id="cur-mod">
 					<div>
+						<h2>Curation Moderation</h2>
 					<div id="cur-info"></div>
 					<div id="cur-mod-tags">
 						<form id="createmodtag">
@@ -126,11 +127,11 @@
 					</div>
 					<div id="cur-rules">
 						<ul id="cur-rules-list">
-							<li> This curation doesn't have any special rule yet!</li>
+							<li> This curation doesn't have any special rules yet!</li>
 						</ul>
 						
 						<form id="add-rules">
-							Add a rule to govern your curations:
+							Add a rule to govern your curations:<br><br>
 							<select name="type">
 								<optgroup label="Users">
 									<option value="not_u">Exclude user's posts:</option>
@@ -140,9 +141,9 @@
 									<option value="no_string">Exclude posts containing this:</option>
 									<option value="yes_string" selected>Include posts containing this:</option>
 								</optgroup>
-							</select>
-							<span id="rules-desc">Include posts that containing the selected string:</span>
-							<input type="text" placeholder="String:" name="string">
+							</select><br><br>
+							<span id="rules-desc">Include posts that containing the selected string:</span><br><br>
+							<input type="text" placeholder="String:" name="string"><br><br>
 							<input type="submit" value="Add Rule">
 						</form>
 					</div>
