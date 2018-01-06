@@ -1104,20 +1104,46 @@ window.onload = function() {
 				}
 
 			});
-			document.getElementById("find-tag").addEventListener("submit", function(e) {
+			document.getElementById("createmodtag").addEventListener("submit", function(e){
 				prevent(e);
-				var data = e.target.elements.tag.value;
-				findByTag(data);
-			});
-			document.getElementById("results-follow").addEventListener("click", function(e) {
-				if (resultsTag !== false) {
-					chain.follow_tag(resultsTag, function() {
-						notify("Followed " + resultsTag);
-						checkRes()
+				var tag = e.target.tag.value;
+				chain.get_cur_mod(resultsTag, function(res){
+					if(res){
+						if(res.tags.indexOf(tag)){
+							notify("Tag already added!");
+						} else {
+							document.getElementById("cur-mod-tags-list").appendChild(createTagDiv(tag, function(){
+								chain.get_cur_mod(resultsTag, function(res){
+									res.tags.splice(res.tags.indexOf(tag), 1);
+									chain.edit_cur_mod(resultsTag, res, function(res){
+										notify("Tag removed from curation!");
+									});
+								});
+							}));
+							res.tags.push(tag)
+							chain.edit_cur_mod(resultsTag, res, function(res){
+								notify("Tag added to curation!");
+							});
 
-					});
-				}
+
+						}
+					}
+				});
 			});
+							document.getElementById("find-tag").addEventListener("submit", function(e) {
+								prevent(e);
+								var data = e.target.elements.tag.value;
+								findByTag(data);
+							});
+							document.getElementById("results-follow").addEventListener("click", function(e) {
+								if (resultsTag !== false) {
+									chain.follow_tag(resultsTag, function() {
+										notify("Followed " + resultsTag);
+										checkRes()
+
+									});
+								}
+							});
 			document.getElementById("results-cur-follow").addEventListener("click", function(e){
 				if(resultsTag !== false){
 					chain.follow_cur(resultsTag, function(){
