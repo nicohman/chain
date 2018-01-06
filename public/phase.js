@@ -138,7 +138,7 @@ window.onload = function() {
 			}
 		},
 		follow_cur: function(cur, cb)
-		
+
 		{
 			client.emit("c_follow_cur", {
 				cid:client.id,
@@ -147,7 +147,7 @@ window.onload = function() {
 				uid:loggedin.uid
 			});
 			client.once("c_follow_cur_"+cur, cb);
-		
+
 		},
 		unfollow_cur:function(cur, cb){
 			client.emit("c_unfollow_cur", {
@@ -215,7 +215,7 @@ window.onload = function() {
 		get_feed: function get_feed(cb, count) {
 			if (!count) {
 				console.log("DEFAULTS");
-	var need = cur.tags.length;
+				var need = cur.tags.length;
 				count = 10;
 			}
 			client.emit("c_get_feed", {
@@ -655,9 +655,9 @@ window.onload = function() {
 						findByCuration(key);
 					});
 					document.getElementById("owned-curs").appendChild(li);
-				});	
+				});
 			});
-		
+
 		},
 		"favs": function() {
 			removeFrom(document.getElementById("fav"));
@@ -819,7 +819,7 @@ window.onload = function() {
 						var arr = Object.keys(posts2);
 						arr.forEach(function(key){
 							if(coll[key]){
-							
+
 							} else {
 								max++;
 								coll[key] = true;
@@ -835,18 +835,79 @@ window.onload = function() {
 				if(me.curations_owned[cur] === true){
 					chain.get_cur_mod(cur, function(res){
 						if(res){
-							//Showing and updating mod tools	
+
+							res.tags.forEach(function(tag, index){
+								document.getElementById("cur-mod-tags-list").appendChild(createTagDiv(tag, function(v){
+									res.tags.splice(index, 1);
+									chain.edit_cur_mod(cur, res, function(res){
+										notify("That tag is no longer in the curation "+cur+" !");
+									});
+								}));
+							});
+							if(rules.length > 0){
+								removeFrom(document.getElementById("cur-rules-list"))
+								res.rules.forEach(function(rule, index){
+									var desc = "";
+									switch(rule.type){
+										case "not_u":
+											desc = "Exclude user "+ rule.value;
+											break;
+										case "yes_u":
+											desc = "Include user " + rule.value;
+											break;
+										case "yes_string":
+											desc = "Include posts containing "+rule.value;
+											break;
+										case "no_string":
+											desc = "Exclude posts containing "+rule.value;
+											break;
+										case default:
+											return;
+											break;
+									}
+									var el = document.createElement("li");
+									el.className = "curtag";
+									el.innerHTML = desc+ " ";
+									var but = document.createElement("button");
+									but.className = "curbutx";
+									but.innerHTML = " ";
+									but.addEventListener("click", function(e){
+										res.rules.splice(index, 1);
+										chain.edit_cur_mod(cur, res, function(res){
+											notify("That rule has been removed from the curation "+cur+" !");
+										});
+									});
+									el.appendChild(but);
+									document.getElementById("cur-rules-list").appendChild(el);
+								});
+							}
 						} else {
 							alert("Something went wrong!");
 						}
-					});	
+					});
 				}
-			});	
+			});
 			resCur = true;
 			resultsTag = cur;
 
 			checkRes();
 		}, 20);
+	}
+	function createTagDiv(tag, cb){
+		var toAdd = document.createElement("a");
+		toAdd.style['font-size'] = "small";
+		toAdd.className = "curtag";
+		toAdd.innerHTML = tag + " ";
+		var remove = document.createElement("button");
+		remove.innerHTML = 'X';
+		remove.type = "button";
+		remove.className = "create-remove";
+		remove.addEventListener("click", function(e) {
+			e.target.parentNode.remove();
+			cb(tag);
+		});
+		toAdd.appendChild(remove);
+		return toAdd;
 	}
 	function findByTag(tag) {
 		var max_res = 20;
@@ -1007,22 +1068,11 @@ window.onload = function() {
 					e.target.reset();
 					prevent(e);
 				}
-				
+
 			});
 			document.getElementById("cur-tags-form").addEventListener("submit", function(e) {
 				if (e.target.tag.value.trim()) {
-					var toAdd = document.createElement("a");
-					toAdd.style['font-size'] = "small";
-					toAdd.className = "curtag";
-					toAdd.innerHTML = e.target.tag.value + " ";
-					var remove = document.createElement("button");
-					remove.innerHTML = 'X';
-					remove.type = "button";
-					remove.className = "create-remove";
-					remove.addEventListener("click", function(e) {
-						e.target.parentNode.remove();
-					});
-					toAdd.appendChild(remove);
+
 					document.getElementById("toaddcur").appendChild(toAdd);
 					prevent(e);
 					e.target.reset();
@@ -1031,24 +1081,24 @@ window.onload = function() {
 			document.getElementById("create-cur").addEventListener("submit", function(e){
 				prevent(e);
 				var name = e.target.elements.curname.value.trim();
-								var tags = [];
+				var tags = [];
 				var t = document.getElementsByClassName("curtag")
 				for (var i = 0; i < t.length; i++) {
 					tags.push(t.item(i).innerHTML.split("<")[0].trim());
 				}
 				removeFrom(document.getElementById("toaddcur"));
 				if(name && tags.length){
-				
-				chain.create_curation(name, tags, function(res){
-					if(res === true){
-						notify("Curation created!");
-						showblocking("manage");
-					} else {
-						if(res === "already"){
-							alert("There's already a curation named that!");
+
+					chain.create_curation(name, tags, function(res){
+						if(res === true){
+							notify("Curation created!");
+							showblocking("manage");
+						} else {
+							if(res === "already"){
+								alert("There's already a curation named that!");
+							}
 						}
-					}
-				});
+					});
 				} else {
 					alert("Your curation needs to start with a name and at least one tag");
 				}
