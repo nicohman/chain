@@ -659,3 +659,21 @@ body {
         bottom: 0;
         display: flex;
 }
+#cur-mod {
+	width:30%;
+	height:90%;
+	position:fixed;
+	right:0;
+	bottom:0;
+	background-color:var(--sec-bg);
+	border:2px var(--border) solid;
+}
+#cur-mod h2 {
+	margin-top:4%;
+	margin-left:1%;
+}
+#cur-mod div {
+	margin-left:1.5%;
+	margin-top:4%;
+}
+

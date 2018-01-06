@@ -1136,6 +1136,9 @@ function get_curation_posts(cur, cb, count){
 	get_curation_by_name(cur, function(cur){
 		if(cur){
 			var need = cur.tags.length;
+			if(need == 0){
+				cb(posts);
+			}
 			cur.tags.forEach(function(tag){
 				get_even({
 					count: count,
@@ -1657,7 +1660,7 @@ var serv_handles = {
 					io.to(req.cid).emit("c_got_cur_mod_"+req.cur, false);
 				} else {
 					get_user(logged[req.cid], function(u){
-						if(u.curations_owned[logged[req.cur]] === true){
+						if(u.curations_owned[req.cur] === true){
 
 							get_curation_by_name(req.cur, function(cur){
 								io.to(req.cid).emit("c_got_cur_mod_"+req.cur, {
