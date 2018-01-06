@@ -803,6 +803,7 @@ window.onload = function() {
 		var max = 0;
 		chain.get_cur_posts(cur, function(posts){
 			removeFrom(document.getElementById("results-posts"));
+			removeFrom(document.getElementById("cur-mod-tags-list"));
 			document.getElementById("results").style.display = "block";
 			hideall();
 			Object.keys(posts).forEach(function(key){
@@ -1115,7 +1116,7 @@ window.onload = function() {
 				var tag = e.target.tag.value;
 				chain.get_cur_mod(resultsTag, function(res){
 					if(res){
-						if(res.tags.indexOf(tag)){
+						if(res.tags.indexOf(tag) !== -1){
 							notify("Tag already added!");
 						} else {
 							document.getElementById("cur-mod-tags-list").appendChild(createTagDiv(tag, function(){
