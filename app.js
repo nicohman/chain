@@ -1653,10 +1653,12 @@ var serv_handles = {
 		if(logged[req.cid]){
 			jwt.verify(req.token, secret, function(err, decode){
 				if(err || (decode.uid !== logged[req.cid])){
+					console.log("Not who they appear to be");
 					io.to(req.cid).emit("c_got_cur_mod_"+req.cur, false);
 				} else {
 					get_user(logged[req.cid], function(u){
 						if(u.curations_owned[logged[req.cur]] === true){
+
 							get_curation_by_name(req.cur, function(cur){
 								io.to(req.cid).emit("c_got_cur_mod_"+req.cur, {
 									rules:cur.rules,
@@ -1664,6 +1666,7 @@ var serv_handles = {
 								});
 							});
 						} else {
+							console.log("does not own curation");
 							io.to(req.cid).emit("c_got_cur_mod_"+req.cur, false);
 						}
 					})}
