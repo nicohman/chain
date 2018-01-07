@@ -876,6 +876,9 @@ window.onload = function() {
 
 			}
 			chain.get_self(function(me){
+				if(me.curs[cur] === true){
+				
+				}
 				if(me.curations_owned[cur] === true){
 					document.getElementById("cur-mod").style.display = "block";
 					chain.get_cur_mod(cur, function(res){
@@ -1001,6 +1004,14 @@ window.onload = function() {
 		}
 		chain.get_self(function(me) {
 			var yes = false;
+			if(resCur){
+				if(me.curs[resultsTag] === true){
+					yes = true;
+					follow.style.display  = "none";
+					unfollow.style.display = "block";
+
+				}
+			} else {
 			Object.keys(me.tags).forEach(function(tag) {
 				if (me.tags[tag] == true && tag == resultsTag) {
 					console.log(tag);
@@ -1012,6 +1023,7 @@ window.onload = function() {
 
 				}
 			});
+			}
 			if (!yes) {
 				unfollow.style.display = "none";
 				follow.style.display = "block";
@@ -1136,7 +1148,7 @@ window.onload = function() {
 			document.getElementById("cur-tags-form").addEventListener("submit", function(e) {
 				if (e.target.tag.value.trim()) {
 
-					document.getElementById("toaddcur").appendChild(toAdd);
+					document.getElementById("toaddcur").appendChild(createTagDiv(e.target.tag.value.trim(), function(){}));
 					prevent(e);
 					e.target.reset();
 				}

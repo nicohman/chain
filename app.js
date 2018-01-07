@@ -795,7 +795,7 @@ function follow_cur(req, cb){
 				users[req.uid].curs[req.cur] = true;
 				updateUsers();
 				alldir("update_users", users[req.uid]);
-				if(ifself){
+				if(cb){
 					cb(true);
 				} else {
 					onedir("followed_cur_"+req.uid+"_"+req.cur, true, flip(getDir(req.from)));
@@ -821,7 +821,7 @@ function unfollow_cur(req, cb){
 				users[req.uid].curs[req.cur] = false;
 				updateUsers();
 				alldir("update_users", users[req.uid]);
-				if(ifself){
+				if(cb){
 					cb(true);
 				} else {
 					onedir("unfollowed_cur_"+req.uid+"_"+req.cur, true, flip(getDir(req.from)));
@@ -1099,6 +1099,7 @@ function getCurationById(id, cb) {
 
 function get_curation_by_name(name, cb) {
 	count = 0;
+	console.log("GCBYN");
 	get_curation({
 		from: selfId,
 		filter: "name",
@@ -1160,8 +1161,9 @@ function get_curation(req, cb) {
 			}
 		}
 	}
-	else if (!found && cb) {
-		var got = 0;
+	if (!found && cb) {
+		var got = 0
+		console.log("Couldn't find here, passing on");;
 		alldir("get_curation", req);
 		when("got_curation_" + req.filter + "_" + req.filter_data, function(res) {
 			got++;
@@ -1174,6 +1176,8 @@ function get_curation(req, cb) {
 				cb(false);
 
 				never("got_curation_" + req.filter + "_" + req.filter_data);
+			} else {
+				console.log("Sad res");
 			}
 		});
 	} else if (adjacent[flip(getDir(req.from))]) {
@@ -1722,7 +1726,7 @@ var serv_handles = {
 				}
 			});
 			var to2 = Object.keys(users[logged[req.cid]].curs).map(function(key){
-				if (users[logged[req.cid]].cur[key] === true) {
+				if (users[logged[req.cid]].curs[key] === true) {
 					return {
 						type:'cur',
 						cur:key
