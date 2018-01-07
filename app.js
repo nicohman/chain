@@ -425,7 +425,31 @@ function cmpfavs(post1, post2) {
 		return 0;
 	}
 }
-
+function checkRules(post, rules){
+	var ok = true;
+	if(rules){
+		Object.keys(rules).forEach(function(key){
+			var rule = rules[key];
+			switch (rule.type){
+				case "not_u":
+					if(post.uid == rule.value){
+						ok = false;
+					}
+					break;
+				case "no_string":
+					if(post.content.indexOf(rule.value) !== -1){
+						ok = false;
+					}
+					break;
+			}
+		});
+	}
+	if(ok){
+		return true;
+	} else {
+		return false;
+	}
+}
 function get_posts(criterion, cb) {
 
 	console.log("Request for posts");
@@ -440,11 +464,14 @@ function get_posts(criterion, cb) {
 						post.tags.forEach(function(tag) {
 							criterion.filter_data.forEach(function(filter) {
 								if (filter.trim() == tag.trim()) {
-							console.log("LOOKING FOR TAG"+filter);
+									console.log("LOOKING FOR TAG"+filter);
 
 									console.log("Found a post");
 									if (!criterion.posts[key]) {
-										criterion.posts[key] = post;
+										if(checkRules(post,criterion.rules)){
+
+											criterion.posts[key] = post;
+										}
 									}
 								}
 							});
@@ -452,6 +479,31 @@ function get_posts(criterion, cb) {
 					}
 				} else {
 					console.log(Object.keys(criterion.posts).length + " " + criterion.count);
+				}
+				break;
+			case "user":
+				if (Object.keys(criterion.posts).length < criterion.count) {
+					if(post.uid === criterion.filter_data){
+						if (!criterion.posts[key]) {
+							if(checkRules(post,criterion.rules)){
+
+								criterion.posts[key] = post;
+							}
+						}
+					}
+				}
+				break;
+			case "string":
+				if(Object.keys(criterion.posts).length < criterion.count) {
+					if(post.content.indexOf(criterion.filter_data) !== -1){
+						if (!criterion.posts[key]) {
+							if(checkRules(post,criterion.rules)){
+
+								criterion.posts[key] = post;
+							}
+						}
+
+					}
 				}
 				break;
 			default:
@@ -503,9 +555,9 @@ function get_posts(criterion, cb) {
 		var cbe = function(postse) {
 			count++;
 			if(count >=2){
-			 never(eventname);
-			} 			cb(postse);
-			
+				never(eventname);
+			}			cb(postse);
+
 		};
 		when(eventname, cbe);
 	} else if (Object.keys(criterion.posts).length < criterion.count && adjacent[flip(getDir(criterion.from))]) {
@@ -902,10 +954,10 @@ function checkFavs(favs, rposts){
 				fposts[fav].favorited = true;
 			} else {
 				console.log(fposts);
-		console.log("POST NOT HERE")	
+				console.log("POST NOT HERE")
 			}
 		} else {
-		console.log("NOT TRUE");
+			console.log("NOT TRUE");
 		}
 	});
 	return fposts;
@@ -1090,7 +1142,7 @@ function get_curation(req, cb) {
 			}
 		}
 	}
-	 else if (!found && cb) {
+	else if (!found && cb) {
 		var got = 0;
 		alldir("get_curation", req);
 		when("got_curation_" + req.filter + "_" + req.filter_data, function(res) {
@@ -1146,21 +1198,8 @@ function get_curation_posts(cur, cb, count){
 	var posts = {};
 	get_curation_by_name(cur, function(cur){
 		if(cur){
-			var need = cur.tags.length 
-			if(need == 0){
-				cb(posts);
-			}
-			cur.tags.forEach(function(tag){
-				console.log("GETTING TAG NOW : "+tag);
-				get_even({
-					count: count*2,
-					filter: "tag",
-					filter_data: [tag],
-					from: selfId,
-					original: selfId,
-					posts: {}
-				}, function(gotposts){
-					if(gotposts.posts){
+			var rec = function(gotposts){
+				if(gotposts.posts){
 					console.log("GET EVEN CALLED")
 					gotposts = gotposts.posts;
 					got++;
@@ -1174,8 +1213,54 @@ function get_curation_posts(cur, cb, count){
 						cb(posts)
 						posts = {};
 					}
-					}
-				});
+				}
+
+			}
+			var need = cur.tags.length
+			Object.keys(cur.rules).forEach(function(key){
+				var rule = cur.rules[key];
+				switch(rule.type){
+					case "yes_string":
+						need++;
+						get_even({
+							count: count*2,
+							filter: "string",
+							filter_data: rule.value,
+							from: selfId,
+							rules:cur.rules,
+							original: selfId,
+							posts: {}
+						}, rec);
+						break;
+					case "yes_u":
+						need++;
+						get_even({
+							count: count*2,
+							filter: "user",
+							filter_data: rule.value,
+							from: selfId,
+							rules:cur.rules,
+							original: selfId,
+							posts: {}
+						}, rec);
+						break;
+
+				}
+			});
+			if(need == 0){
+				cb(posts);
+			}
+			cur.tags.forEach(function(tag){
+				console.log("GETTING TAG NOW : "+tag);
+				get_even({
+					count: count*2,
+					filter: "tag",
+					filter_data: [tag],
+					from: selfId,
+					rules:cur.rules,
+					original: selfId,
+					posts: {}
+				}, rec);
 			});
 		}else {
 			cb(false);
@@ -1716,7 +1801,7 @@ var serv_handles = {
 						io.to(req.cid).emit("c_edited_cur_mod_"+req.cur, res);
 					});
 				}
-					io.to(req.cid).emit("c_edited_cur_mod_"+req.cur, false);
+				io.to(req.cid).emit("c_edited_cur_mod_"+req.cur, false);
 			});
 		}
 	},
