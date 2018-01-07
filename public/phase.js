@@ -805,16 +805,16 @@ window.onload = function() {
 		var desc = "";
 		switch(rule.type){
 			case "not_u":
-				desc = "Exclude user "+ rule.value;
+				desc = "Exclude user <strong>"+ rule.value+"</strong>";
 				break;
 			case "yes_u":
-				desc = "Include user " + rule.value;
+				desc = "Include user <strong>" + rule.value+"</strong>";
 				break;
 			case "yes_string":
-				desc = "Include posts containing "+rule.value;
+				desc = "Include posts containing <strong>"+rule.value+"</strong>";
 				break;
 			case "no_string":
-				desc = "Exclude posts containing "+rule.value;
+				desc = "Exclude posts containing <strong>"+rule.value+"</strong>";
 				break;
 			default:
 				return;
@@ -1072,7 +1072,7 @@ window.onload = function() {
 
 			});
 			document.getElementById("add-rules").type.addEventListener("change", function(e){
-				document.getElementById("rules-desc").innerHTML = dispRule({type:document.getElementById("add-rules").type.value,value:""},null,true);
+				document.getElementById("rules-desc").innerHTML = dispRule({type:document.getElementById("add-rules").type.value,value:""},null,true)+":";
 			});
 			document.getElementById("add-rules").addEventListener("submit", function(e){
 				prevent(e);
