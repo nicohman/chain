@@ -203,12 +203,16 @@ window.onload = function() {
 			if (!count) {
 				count = 10;
 			}
+			var time = Date.now();
 			client.emit("c_get_cur_posts", {
 				cid:client.id,
 				count:count,
-				cur:cur
+				cur:cur,
+				time:time
 			});
-			client.once("c_got_cur_posts",function(posts){
+		;
+			client.once("c_got_cur_posts_"+cur+"_"+time,function(posts){
+				console.log("RES FROM SERVER");
 				cb(posts)
 			});
 		},
@@ -817,11 +821,11 @@ window.onload = function() {
 				break;
 		}
 		var el = document.createElement("li");
-		el.className = "curtag";
+		el.className = "currule";
 		el.innerHTML = desc+ " ";
 		var but = document.createElement("button");
 		but.className = "curbutx";
-		but.innerHTML = " ";
+		but.innerHTML = "X";
 		but.addEventListener("click", function(e){
 			e.target.parentNode.remove();
 			cb(e);
@@ -836,6 +840,7 @@ window.onload = function() {
 		var coll = {};
 		var max = 0;
 		chain.get_cur_posts(cur, function(posts){
+			console.log("CUR POSTS CALLED");
 			removeFrom(document.getElementById("results-posts"));
 			removeFrom(document.getElementById("cur-mod-tags-list"));
 			document.getElementById("results").style.display = "block";
@@ -876,16 +881,21 @@ window.onload = function() {
 								document.getElementById("cur-mod-tags-list").appendChild(createTagDiv(tag, function(v){
 									res.tags.splice(index, 1);
 									chain.edit_cur_mod(cur, res, function(res){
+
+									findByCuration(cur);
 										notify("That tag is no longer in the curation "+cur+" !");
 									});
 								}));
 							});
-							if(rules.length > 0){
+							if(Object.keys(res.rules).length > 0){
 								removeFrom(document.getElementById("cur-rules-list"))
-								res.rules.forEach(function(rule, index){
+								Object.keys(res.rules).forEach(function(key, index){
+									var rule = res.rules[key];
 									var el = dispRule(rule, function(e){
-										res.rules.splice(index, 1);
+										delete res.rules[key];
 										chain.edit_cur_mod(cur, res, function(res){
+
+										findByCuration(cur);
 											notify("That rule has been removed from the curation "+cur+" !");
 										});
 									})
@@ -1164,6 +1174,7 @@ window.onload = function() {
 									chain.get_cur_mod(resultsTag, function(res){
 										res.tags.splice(res.tags.indexOf(tag), 1);
 										chain.edit_cur_mod(resultsTag, res, function(res){
+											findByCuration(resultsTag);
 											notify("Tag removed from curation!");
 										});
 									});

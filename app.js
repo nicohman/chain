@@ -440,6 +440,7 @@ function get_posts(criterion, cb) {
 						post.tags.forEach(function(tag) {
 							criterion.filter_data.forEach(function(filter) {
 								if (filter.trim() == tag.trim()) {
+							console.log("LOOKING FOR TAG"+filter);
 
 									console.log("Found a post");
 									if (!criterion.posts[key]) {
@@ -496,11 +497,16 @@ function get_posts(criterion, cb) {
 	} else if (cb) {
 		alldir("get_posts", criterion);
 		console.log("got_posts_" + criterion.filter + "_" + criterion.filter_data);
-		var cbe = function(postse) {
+		var count = 0;
 
-			cb(postse);
-		};
 		var eventname = "got_posts_" + criterion.filter + "_" + criterion.filter_data;
+		var cbe = function(postse) {
+			count++;
+			if(count >=2){
+			 never(eventname);
+			} 			cb(postse);
+			
+		};
 		when(eventname, cbe);
 	} else if (Object.keys(criterion.posts).length < criterion.count && adjacent[flip(getDir(criterion.from))]) {
 		console.log("Passing along");
@@ -565,6 +571,7 @@ function get_even(criterion, cb) {
 
 			//console.log(posts.posts);
 			cb(posts);
+			posts = {}
 			console.log("gotten");
 		} else {
 			console.log(gotten);
@@ -1021,12 +1028,15 @@ function getCurationById(id, cb) {
 }
 
 function get_curation_by_name(name, cb) {
+	count = 0;
 	get_curation({
 		from: selfId,
 		filter: "name",
 		filter_data: name,
 		original: selfId
 	}, function(res) {
+		count++;
+		console.log(count+": GOT A CURATION OF NAME "+name+" WITH TAGS "+res.tags);
 		cb(res);
 	});
 }
@@ -1073,14 +1083,14 @@ function get_curation(req, cb) {
 			found = true;
 			if (cb) {
 				cb(curations[req.filter_data]);
+				found = true;
 			} else {
 				onedir("got_curation_name_" + req.filter_data, curations[req.filter_data], flip(getDir(req.from)));
+				found = true;
 			}
 		}
 	}
-	if (found) {
-
-	} else if (!found && cb) {
+	 else if (!found && cb) {
 		var got = 0;
 		alldir("get_curation", req);
 		when("got_curation_" + req.filter + "_" + req.filter_data, function(res) {
@@ -1131,30 +1141,39 @@ function get_curation_posts(cur, cb, count){
 
 		count = 10;
 	}
-	var got = 0;
+	var got = 0
+	var called = false;
 	var posts = {};
 	get_curation_by_name(cur, function(cur){
 		if(cur){
-			var need = cur.tags.length;
+			var need = cur.tags.length 
 			if(need == 0){
 				cb(posts);
 			}
 			cur.tags.forEach(function(tag){
+				console.log("GETTING TAG NOW : "+tag);
 				get_even({
-					count: count,
+					count: count*2,
 					filter: "tag",
 					filter_data: [tag],
 					from: selfId,
 					original: selfId,
 					posts: {}
 				}, function(gotposts){
+					if(gotposts.posts){
+					console.log("GET EVEN CALLED")
 					gotposts = gotposts.posts;
 					got++;
 					Object.keys(gotposts).forEach(function(key){
 						posts[key] = gotposts[key];
 					});
-					if(got >= need){
-						cb(posts);
+					if(got >= need && !called){
+						called = true;
+						console.log("GOT ALL POSTS : ");
+						console.log(posts);
+						cb(posts)
+						posts = {};
+					}
 					}
 				});
 			});
@@ -1189,7 +1208,7 @@ function edit_cur_mod(req, cb){
 						}
 					});
 					updateCurs();
-					alldir("update_curs", curations[req.cur]);
+					alldir("update_curations", curations[req.cur]);
 					if (cb){
 						cb(true);
 					} else {
@@ -1372,8 +1391,12 @@ var serv_handles = {
 	},
 	"c_get_cur_posts":function(req){
 		get_curation_posts(req.cur, function(posts){
-
-			io.to(req.cid).emit("c_got_cur_posts", posts);
+			var got = false;
+			if(!got){
+				io.to(req.cid).emit("c_got_cur_posts_"+req.cur+"_"+req.time, posts);
+				console.log("EMITTING EVENT C: "+req.time);
+				got = true;
+			}
 		}, req.count);
 	},
 	"change_username": change_username,
