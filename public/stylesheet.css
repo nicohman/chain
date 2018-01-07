@@ -13,7 +13,10 @@
         flex-wrap: wrap;
         justify-content: space-around;
 }
+#cur-rules-list {
+        list-style-type: none;
 
+}
 .post {
         width: 30%;
         height: 200%;

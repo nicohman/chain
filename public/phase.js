@@ -801,7 +801,7 @@ window.onload = function() {
 			feed.removeChild(feed.lastChild);
 		}
 	}
-	function dispRule(rule, cb){
+	function dispRule(rule, cb, span){
 		var desc = "";
 		switch(rule.type){
 			case "not_u":
@@ -819,6 +819,10 @@ window.onload = function() {
 			default:
 				return;
 				break;
+		}
+		if(span)
+			{
+				return desc;
 		}
 		var el = document.createElement("li");
 		el.className = "currule";
@@ -1066,6 +1070,9 @@ window.onload = function() {
 				e.target.reset();
 
 
+			});
+			document.getElementById("add-rules").type.addEventListener("change", function(e){
+				document.getElementById("rules-desc").innerHTML = dispRule({type:document.getElementById("add-rules").type.value,value:""},null,true);
 			});
 			document.getElementById("add-rules").addEventListener("submit", function(e){
 				prevent(e);
