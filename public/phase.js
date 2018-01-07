@@ -12,6 +12,17 @@ window.onload = function() {
 			e.returnValue = false;
 		}
 	}
+	Object.keys(schemes).forEach(function(scheme){
+		var sel = document.createElement("option");
+		sel.value = scheme;
+		sel.innerHTML = scheme;
+		document.getElementById("cs-select").appendChild(sel);
+	});
+	document.getElementById("cs-form").addEventListener("submit", function(e){
+		prevent(e);
+		localStorage.setItem("colorscheme", e.target["cs-select"].value)
+		changeColorscheme(e.target["cs-select"].value);
+	});
 	var cur_com = "";
 	var token = localStorage.getItem("auth_token");
 	var chain = {

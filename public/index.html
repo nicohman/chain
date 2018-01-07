@@ -6,6 +6,7 @@
 		<link rel="stylesheet" href="stylesheet.css">
 		<link rel="icon" type="image/png" href="/favicon.png">
 		<script src="socket.js"></script>
+		<script src="color.js"></script>
 		<script src="phase.js"></script>
 	</head>
 	<body>
@@ -34,212 +35,215 @@
 						<form id="settings-name"><input type="text" name="username" id="username-form">
 							<br> <input type="submit" value="Change!"></form>
 					</div>
-				</div>
-			</div>
-			<div id="pop">
+					<div id="colorscheme-div">Change your colorscheme:<br>
+						<form id="cs-form"><select id="cs-select" name="cs-select"></select><br><input type="submit" value="Select"></form>
 
-				<div  class="centered main-con">
-					<form id="createformtags">
-					</form>
-					<form id="create-post">
-						<div id="create-label">
-							Create Post
-						</div>
-						<div id="create-title">
-							title<br>
-							<input type="text" name="title">
-						</div>
-						<div id="create-content">
-							content<br>
-							<textarea rows=10 cols=70 name="content" placeholder="Your content here!"></textarea>
-						</div>
-						<div id="create-tags">
-							<div id="create-already-tags">
-							</div>
-							add tag<br>
-
-							<input type="text" name="tag" form="createformtags">
-							<input type="submit" value="add tag" form="createformtags">
-						</div>
-						<div id="create-bottom">
-							<input type="submit" value="Post">
-						</div>
-					</form>
+					</div>
 				</div>
-			</div>
-			<div id="search">
-				<div class="centered main-con">
-					<form id="find-tag">
-						<div id="tags-seperator">
-							<div id="tags-popular">
-								<p>Popular Tags:</p>
-								<ul id="pop-tags">
-									<li>Couldn't fetch popular tags</li>
-								</ul>
-							</div>
-							<div id="tags-self">
-								<p> Your tags:</p>
-								<ul id="your-tags">
-									<li> Couldn't fetch your followed tags</li>
-								</ul>
-							</div>
-						</div>
-						<div id="tags-find">
-							<p> Search tag:</p>
-							<input type="text" name="tag">
-						</div>
+				<div id="pop">
 
-					</form>
-				</div>
-			</div>
-			<div id="results">
-				<nav id="results-nav">
-					<ul>
-						<li id="results-tag">
-							<ul>
-							<li>You are currently viewing the tag <strong><span id="results-span">unknown</span></strong>. </li>
-							<li><button id="results-follow" type="button" class="results-follow"><strong>Follow this tag</strong></button></li>
-							<li><button id="results-unfollow" type="button" class="results-follow"><strong>Unfollow this tag</strong></button></li></ul>
-						</li>
-						<li id="results-cur">
-							<ul>
-							<li>You are currently viewing the curation <strong><span id="cur-span">unknown</span></strong>. </li>
-							<li><button id="results-cur-follow" type="button" class="results-follow"><strong>Follow this curation</strong></button></li>
-							<li><button id="results-cur-unfollow" type="button" class="results-follow"><strong>Unfollow this curation</strong></button></li></ul>
-						</li>
-
-					</ul>
-				</nav>
-				<div id="results-posts">
-				</div>
-				<div id="cur-mod">
-					<div>
-						<h2>Curation Moderation</h2>
-					<div id="cur-info"></div>
-					<div id="cur-mod-tags">
-						<form id="createmodtag">
-							<div id="cur-mod-tags-list">
+					<div  class="centered main-con">
+						<form id="createformtags">
+						</form>
+						<form id="create-post">
+							<div id="create-label">
+								Create Post
 							</div>
-							add tag<br>
-							<input type="text" name="tag">
-							<input type="submit" value="add tag">
+							<div id="create-title">
+								title<br>
+								<input type="text" name="title">
+							</div>
+							<div id="create-content">
+								content<br>
+								<textarea rows=10 cols=70 name="content" placeholder="Your content here!"></textarea>
+							</div>
+							<div id="create-tags">
+								<div id="create-already-tags">
+								</div>
+								add tag<br>
+
+								<input type="text" name="tag" form="createformtags">
+								<input type="submit" value="add tag" form="createformtags">
+							</div>
+							<div id="create-bottom">
+								<input type="submit" value="Post">
+							</div>
 						</form>
 					</div>
-					<div id="cur-rules">
-						<ul id="cur-rules-list">
-							<li> This curation doesn't have any special rules yet!</li>
+				</div>
+				<div id="search">
+					<div class="centered main-con">
+						<form id="find-tag">
+							<div id="tags-seperator">
+								<div id="tags-popular">
+									<p>Popular Tags:</p>
+									<ul id="pop-tags">
+										<li>Couldn't fetch popular tags</li>
+									</ul>
+								</div>
+								<div id="tags-self">
+									<p> Your tags:</p>
+									<ul id="your-tags">
+										<li> Couldn't fetch your followed tags</li>
+									</ul>
+								</div>
+							</div>
+							<div id="tags-find">
+								<p> Search tag:</p>
+								<input type="text" name="tag">
+							</div>
+
+						</form>
+					</div>
+				</div>
+				<div id="results">
+					<nav id="results-nav">
+						<ul>
+							<li id="results-tag">
+								<ul>
+									<li>You are currently viewing the tag <strong><span id="results-span">unknown</span></strong>. </li>
+									<li><button id="results-follow" type="button" class="results-follow"><strong>Follow this tag</strong></button></li>
+									<li><button id="results-unfollow" type="button" class="results-follow"><strong>Unfollow this tag</strong></button></li></ul>
+							</li>
+							<li id="results-cur">
+								<ul>
+									<li>You are currently viewing the curation <strong><span id="cur-span">unknown</span></strong>. </li>
+									<li><button id="results-cur-follow" type="button" class="results-follow"><strong>Follow this curation</strong></button></li>
+									<li><button id="results-cur-unfollow" type="button" class="results-follow"><strong>Unfollow this curation</strong></button></li></ul>
+							</li>
+
 						</ul>
-						
-						<form id="add-rules">
-							Add a rule to govern your curations:<br><br>
-							<select name="type" >
-								<optgroup label="Users">
-									<option value="not_u">Exclude user's posts:</option>
-									<option value="yes_u">Include user's posts:</option>
-								</optgroup>
-								<optgroup label="Filters">
-									<option value="no_string">Exclude posts containing this:</option>
-									<option value="yes_string" selected>Include posts containing this:</option>
-								</optgroup>
-							</select><br><br>
-							<span id="rules-desc">Include posts that containing the selected string:</span><br><br>
-							<input type="text" placeholder="String:" name="string"><br><br>
-							<input type="submit" value="Add Rule">
+					</nav>
+					<div id="results-posts">
+					</div>
+					<div id="cur-mod">
+						<div>
+							<h2>Curation Moderation</h2>
+							<div id="cur-info"></div>
+							<div id="cur-mod-tags">
+								<form id="createmodtag">
+									<div id="cur-mod-tags-list">
+									</div>
+									add tag<br>
+									<input type="text" name="tag">
+									<input type="submit" value="add tag">
+								</form>
+							</div>
+							<div id="cur-rules">
+								<ul id="cur-rules-list">
+									<li> This curation doesn't have any special rules yet!</li>
+								</ul>
+
+								<form id="add-rules">
+									Add a rule to govern your curations:<br><br>
+									<select name="type" >
+										<optgroup label="Users">
+											<option value="not_u">Exclude user's posts:</option>
+											<option value="yes_u">Include user's posts:</option>
+										</optgroup>
+										<optgroup label="Filters">
+											<option value="no_string">Exclude posts containing this:</option>
+											<option value="yes_string" selected>Include posts containing this:</option>
+										</optgroup>
+									</select><br><br>
+									<span id="rules-desc">Include posts that containing the selected string:</span><br><br>
+									<input type="text" placeholder="String:" name="string"><br><br>
+									<input type="submit" value="Add Rule">
+								</form>
+							</div>
+						</div></div>
+				</div>
+				<div id="feed">
+					<div id="posts">
+					</div>
+				</div>
+				<div id="favs">
+					<div id="fav">
+					</div>
+				</div>
+				<div id="curations">
+					<div class="centered main-con">
+						<form id="find-curation">
+							<div id="cur-seperator">
+								<div id="cur-pop">
+									<p>Popular Curations:</p>
+									<ul id="pop-curs">
+										<li>Couldn't fetch popular curations</li>
+									</ul>
+								</div>
+								<div id="curs-self">
+									<p> Your followed curations:</p>
+									<ul id="fol-curs">
+										<li>Couldn't fetch your followed curations</li>
+									</ul>
+								</div>
+							</div>
+							<div id="curs-find">
+								<p>Search for a curations:</p>
+								<input type="text" name="cur">
+							</div>
 						</form>
 					</div>
-					</div></div>
-			</div>
-			<div id="feed">
-				<div id="posts">
 				</div>
-			</div>
-			<div id="favs">
-				<div id="fav">
-				</div>
-			</div>
-			<div id="curations">
-				<div class="centered main-con">
-					<form id="find-curation">
-						<div id="cur-seperator">
-							<div id="cur-pop">
-								<p>Popular Curations:</p>
-								<ul id="pop-curs">
-									<li>Couldn't fetch popular curations</li>
+				<div id="manage">
+					<form id="cur-tags-form">
+					</form>
+
+					<div class="centered main-con">
+						<div class="main-label">
+							Manage your Curations
+						</div>
+						<div class="horsplit">
+							<div class="tosplit">
+								<p>Create a Curation</p>
+								<form id="create-cur">
+									<p>Curation name:</p>
+									<input type="text" autocomplete="off" name='curname'>
+									<p>Curation tags:</p>
+									<input type="text" name='tag' form="cur-tags-form">
+									<input type="submit" value="Add Tag" form="cur-tags-form">
+
+									<ul id="toaddcur">
+									</ul>
+									<br>
+									<input type="submit" value="Create">
+									<p class="small">You'll be able to perform more advanced operations upon you curation once it's created.</p>
+
+								</form>
+							</div>
+							<div class="tosplit">
+								<p>Manage your curations</p>
+								<ul id="owned-curs">
+									<li>You don't own any curations!</li>
 								</ul>
 							</div>
-							<div id="curs-self">
-								<p> Your followed curations:</p>
-								<ul id="fol-curs">
-									<li>Couldn't fetch your followed curations</li>
-								</ul>
-							</div>
-						</div>
-						<div id="curs-find">
-							<p>Search for a curations:</p>
-							<input type="text" name="cur">
-						</div>
-					</form>
-				</div>
-			</div>
-			<div id="manage">
-				<form id="cur-tags-form">
-				</form>
-
-				<div class="centered main-con">
-					<div class="main-label">
-						Manage your Curations
-					</div>
-					<div class="horsplit">
-						<div class="tosplit">
-							<p>Create a Curation</p>
-							<form id="create-cur">
-								<p>Curation name:</p>
-								<input type="text" autocomplete="off" name='curname'>
-								<p>Curation tags:</p>
-								<input type="text" name='tag' form="cur-tags-form">
-								<input type="submit" value="Add Tag" form="cur-tags-form">
-
-								<ul id="toaddcur">
-								</ul>
-								<br>
-								<input type="submit" value="Create">
-								<p class="small">You'll be able to perform more advanced operations upon you curation once it's created.</p>
-
-							</form>
-						</div>
-						<div class="tosplit">
-							<p>Manage your curations</p>
-							<ul id="owned-curs">
-								<li>You don't own any curations!</li>
-							</ul>
 						</div>
 					</div>
 				</div>
+				<div id="mng-cur">
+				</div>
 			</div>
-			<div id="mng-cur">
-			</div>
-		</div>
-		<div id="overlay">
-			<div id="overlay-background">
-			</div>
-			<div id="comment-container">
-				<div id="com-split">
-					<div id="comment-title">
+			<div id="overlay">
+				<div id="overlay-background">
+				</div>
+				<div id="comment-container">
+					<div id="com-split">
+						<div id="comment-title">
+						</div>
+						<ul id="comments-list">
+						</ul>
 					</div>
-					<ul id="comments-list">
-					</ul>
-				</div>
-				<div id="make-div">
-					<form id="comment">
-						<input type="text" placeholder="Post a comment!" name="content">
-						<button type="submit" form="comment">POST</button>
-					</form>
+					<div id="make-div">
+						<form id="comment">
+							<input type="text" placeholder="Post a comment!" name="content">
+							<button type="submit" form="comment">POST</button>
+						</form>
+					</div>
 				</div>
 			</div>
-		</div>
-		<div id="notifications">
-		</div>
-		<div id="about"><a href="/info.html">About Demenses</a></div>
+			<div id="notifications">
+			</div>
+			<div id="about"><a href="/info.html">About Demenses</a></div>
 	</body>
 
 </html>
