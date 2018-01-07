@@ -729,6 +729,24 @@ function get_feed(toget, cb) {
 					check();
 				});
 				break
+			case "cur":
+				var pro;
+				if (get.pro) {
+					pro = get.pro;
+				} else {
+					pro = 1 / toget.length;
+				}
+
+				var amount = pro * toget.count;
+				console.log(amount + ":amount");
+				get_curation_posts(get.cur, function(gposts){
+					gotten++;
+					Object.keys(gposts).forEach(function(key){
+						posts[key] = gposts[key];
+					});
+					check();
+				}, amount);
+
 			default:
 				break;
 		}
@@ -1703,6 +1721,23 @@ var serv_handles = {
 					return false;
 				}
 			});
+			var to2 = Object.keys(users[logged[req.cid]].curs).map(function(key){
+				if (users[logged[req.cid]].cur[key] === true) {
+					return {
+						type:'cur',
+						cur:key
+					}
+				} else {
+					return undefined;
+				}
+			}).filter(function(e) {
+				if (e !== undefined) {
+					return true;
+				} else {
+					return false;
+				}
+			});
+			toget.push.apply(toget, to2);
 			console.log(toget);
 			console.log(users[logged[req.cid]]);
 			toget.count = req.count;

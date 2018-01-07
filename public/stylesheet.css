@@ -15,7 +15,7 @@
 }
 #cur-rules-list {
         list-style-type: none;
-
+	color:var(--text);
 }
 .post {
         width: 30%;
