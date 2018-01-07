@@ -17,6 +17,12 @@
         list-style-type: none;
 
 }
+.curbutx {
+	background:none;
+	border:none;
+	margin:none;
+	padding:0;
+}
 .post {
         width: 30%;
         height: 200%;
