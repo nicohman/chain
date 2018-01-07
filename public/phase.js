@@ -210,7 +210,7 @@ window.onload = function() {
 				cur:cur,
 				time:time
 			});
-		;
+			;
 			client.once("c_got_cur_posts_"+cur+"_"+time,function(posts){
 				console.log("RES FROM SERVER");
 				cb(posts)
@@ -575,7 +575,31 @@ window.onload = function() {
 				}
 			}, 40);
 		},
-		"curations": function() {},
+		"curations": function() {
+			removeFrom(document.getElementById("fol-curs");
+				var li = document.createElement("li");
+				li.innerHTML = "Couldn't fetch your followed curations";
+				document.getElementById("fol-curs").appendChild(li);
+
+				chain.get_self(function(me){
+					removeFrom((document.getElementById("fol-curs");
+						Object.keys(me.curs).forEach(function(cur){
+							if(me.curs[cur] === true){
+								var li = document.createElement("li");
+								li.innerHTML = cur;
+								document.getElementById("fol-curs").appendChild(li);
+
+							}
+						});
+						if(Object.keys(me.curs).length == 0){
+							var li = document.createElement("li");
+							li.innerHTML = "You're not following any curations!";
+							document.getElementById("fol-curs").appendChild(li);
+
+						}
+				});
+
+		},
 		"search": function() {
 			removeFrom(document.getElementById("your-tags"));
 			removeFrom(document.getElementById("pop-tags"));
@@ -821,8 +845,8 @@ window.onload = function() {
 				break;
 		}
 		if(span)
-			{
-				return desc;
+		{
+			return desc;
 		}
 		var el = document.createElement("li");
 		el.className = "currule";
@@ -877,7 +901,7 @@ window.onload = function() {
 			}
 			chain.get_self(function(me){
 				if(me.curs[cur] === true){
-				
+
 				}
 				if(me.curations_owned[cur] === true){
 					document.getElementById("cur-mod").style.display = "block";
@@ -889,7 +913,7 @@ window.onload = function() {
 									res.tags.splice(index, 1);
 									chain.edit_cur_mod(cur, res, function(res){
 
-									findByCuration(cur);
+										findByCuration(cur);
 										notify("That tag is no longer in the curation "+cur+" !");
 									});
 								}));
@@ -902,7 +926,7 @@ window.onload = function() {
 										delete res.rules[key];
 										chain.edit_cur_mod(cur, res, function(res){
 
-										findByCuration(cur);
+											findByCuration(cur);
 											notify("That rule has been removed from the curation "+cur+" !");
 										});
 									})
@@ -1012,17 +1036,17 @@ window.onload = function() {
 
 				}
 			} else {
-			Object.keys(me.tags).forEach(function(tag) {
-				if (me.tags[tag] == true && tag == resultsTag) {
-					console.log(tag);
-					console.log(me.tags);
-					console.log("FAFS");
-					follow.style.display = "none";
-					unfollow.style.display = "block";
-					yes = true;
+				Object.keys(me.tags).forEach(function(tag) {
+					if (me.tags[tag] == true && tag == resultsTag) {
+						console.log(tag);
+						console.log(me.tags);
+						console.log("FAFS");
+						follow.style.display = "none";
+						unfollow.style.display = "block";
+						yes = true;
 
-				}
-			});
+					}
+				});
 			}
 			if (!yes) {
 				unfollow.style.display = "none";
