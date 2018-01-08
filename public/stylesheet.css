@@ -23,6 +23,9 @@
 	margin:none;
 	padding:0;
 }
+#fol-curs li {
+	cursor:pointer;
+}
 .post {
         width: 30%;
         height: 200%;

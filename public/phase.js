@@ -576,22 +576,24 @@ window.onload = function() {
 			}, 40);
 		},
 		"curations": function() {
-			removeFrom(document.getElementById("fol-curs");
+			removeFrom(document.getElementById("fol-curs"));
 				var li = document.createElement("li");
 				li.innerHTML = "Couldn't fetch your followed curations";
 				document.getElementById("fol-curs").appendChild(li);
 
 				chain.get_self(function(me){
-					removeFrom((document.getElementById("fol-curs");
-						Object.keys(me.curs).forEach(function(cur){
-							if(me.curs[cur] === true){
+					removeFrom(document.getElementById("fol-curs"));
+					var arr = Object.keys(me.curs);
+					arr = arr.filter(function(item){ if(me.curs[item] === true){ return true} else {return false}});
+						arr.forEach(function(cur){
 								var li = document.createElement("li");
 								li.innerHTML = cur;
+							li.addEventListener("click", function(e){
+								findByCuration(cur);
+							});
 								document.getElementById("fol-curs").appendChild(li);
-
-							}
 						});
-						if(Object.keys(me.curs).length == 0){
+						if(arr.length == 0){
 							var li = document.createElement("li");
 							li.innerHTML = "You're not following any curations!";
 							document.getElementById("fol-curs").appendChild(li);
@@ -1255,6 +1257,10 @@ window.onload = function() {
 						checkRes();
 					});
 				}
+			});
+			document.getElementById("find-curation").addEventListener("submit", function(e){
+				prevent(e);
+				findByCuration(e.target.cur.value.trim());
 			});
 			document.getElementById("settings-name").addEventListener("submit", function(e) {
 				prevent(e);
