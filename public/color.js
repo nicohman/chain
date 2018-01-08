@@ -8,8 +8,8 @@ var schemes = {
 		"follow":"#657b83"
 	},
 	"jackson":{
-		"main-bg":"#D15000",
-		"sec-bg":"#3F88C5",
+		"main-bg":"#3F88C5",
+		"sec-bg":"#D15000",
 		"border":"#C6CAD1",
 		"text":"#AEB2B7",
 		"follow":"#F7F5FA"
