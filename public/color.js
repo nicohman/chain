@@ -13,6 +13,14 @@ var schemes = {
 		"border":"#C6CAD1",
 		"text":"#AEB2B7",
 		"follow":"#F7F5FA"
+	},
+	"monokai":{
+		"main-bg":"# 272822",
+		"sec-bg":"#F92672",
+		"border":"#66D9EF",
+		"text":"#A6E22E",
+		"follow":"#FD971F"
+
 	}
 }
 if(localStorage.getItem("colorscheme")){
