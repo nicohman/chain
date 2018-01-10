@@ -1145,6 +1145,14 @@ client.on('connect', function() {
 			for (var i = 0; i < t.length; i++) {
 				tags.push(t.item(i).innerHTML.split("<")[0].trim());
 			}
+			tags.filter(function(tag){
+				if(tag.length <= 20){
+					return true;
+				} else {
+					return false;
+					notify("Tag "+tag+ " is too long and was removed!");
+				}
+			});
 			removeFrom(document.getElementById("create-already-tags"));
 			chain.create_post(title, content, tags, function(res) {
 				if (res) {
