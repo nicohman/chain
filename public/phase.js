@@ -514,7 +514,7 @@ function makePost(post) {
 	bar.appendChild(buttons);
 	var id = document.createElement("div");
 	id.className = "post-id";
-	id.innerHTML = post.id;
+	id.innerHTML = post.id+"<br>"+post.date;
 	postt.appendChild(title);
 	postt.appendChild(auth);
 	if (post.content) {
