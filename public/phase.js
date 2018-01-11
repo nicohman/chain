@@ -369,12 +369,13 @@ window.onload = function() {
 		});
 	}
 	function checkUrl(url){
-		var res = /(https:*:\/\/S+\.S+\/*S*)/
-		var is = res.exec(url);
+		var res = /(https*:\/\/\S+\.\S+)/
+		var is = url.match(res);
 		if(is){
+			console.log("RETURNING URL");
 			return {res:is, un: url.replace(res, "")}
 		} else {
-			reutrn false;
+			return  false;
 		}
 	}
 	function checkImage(url) {
@@ -404,10 +405,12 @@ window.onload = function() {
 	}
 	function replLinks(cont, rmfirst){
 		var done = 0;
-		var res = /(https:*:\/\/S+\.S+\/*S*)/
+		var res = /(https*:\/\/\S+\.\S+)/
+
 		var is = cont.replace(res, function(match){
 			if(rmfirst && done === 0){
 				done = 1;
+				return "";
 			} else {
 				return "<a href='"+match+"'>"+match+"</a>"
 			}
@@ -415,11 +418,11 @@ window.onload = function() {
 		if(is){
 			return is
 		} else {
-			reutrn false;
+			return  "";
 		}
 	}
 
-}
+
 function makePost(post) {
 	if (!post.title) {
 		return;
@@ -436,27 +439,33 @@ function makePost(post) {
 	if (post.content) {
 		var e = checkUrl(post.content.trim());
 		var res = e.res;
+		var img;
 		if (res) {
+			console.log("URLRL");
 			var imgC = checkImage(res[0]);
 			if(imgC){
-				var img = document.createElement("img");
+				 img = document.createElement("img");
 				img.src = res[0];
 				console.log("IT'S A MEME");
 				img.className = "post-image";
-				res[0].shift();
+				res.shift();
 			}
 		}
 		var yes = false;
-		if(imgc){
+		if(imgC){
 			yes = true;
 		}
 
 		var links = replLinks(post.content, yes);
-
+		if(!links){
+			links = "";
+		}
 		var content = document.createElement("div");
 		content.className = "post-content";
 		content.innerHTML = links;
+		if(img){
 		content.appendChild(img);
+		}
 	}
 	var bar = document.createElement("div");
 	bar.className = "post-bar";
