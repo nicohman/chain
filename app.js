@@ -1020,7 +1020,57 @@ function change_username(req, cb) {
 		}
 	}
 }
+function changeEmail(req, cb){
+	var kill = false;
 
+	if(users[req.uid]){
+		if(users[req.uid].original == true){
+			jwt.verify(req.tokenm secret, function(err, decode){
+				if(!err){
+					if(decode.uid ===  req.uid){
+						users[req.uid].email = req.email;
+						updateUsers();
+						alldir("update_users", users[req.uid]);
+						if(cb){
+							cb(true);
+						} else {
+							onedir("changed_email_" + req.uid, true, flip(getDir(req.from)));
+
+						}
+					} else {
+						onedir("changed_email_" + req.uid, false, flip(getDir(req.from)));
+
+					}
+				} else {
+					onedir("changed_email_" + req.uid, false, flip(getDir(req.from)));
+
+				}
+			});
+		}
+	} else if (cb) {
+		alldir("change_email", req);
+		var time = 0;
+		when("changed_email_"+req.uid, function(res){
+			time++;
+			if(res){
+				cb(true);
+				never("changed_email_"+req.uid)
+			} else if (time >= 2){
+				cb(true)
+				never("changed_email_"+req.uid)
+			}
+		});
+	}else {
+		if (adjacent[getDir(flip(req.from))]) {
+			passAlong("change_email", req);
+		} else {
+			onedir("changed_email_" + req.uid, false, flip(getDir(req.from)));
+
+		}
+	}
+
+
+}
 function unfavorite(req, cb) {
 	if (users[req.uid]) {
 		console.log("have user");
@@ -1483,6 +1533,26 @@ var serv_handles = {
 			});
 		}
 	},
+	"c_change_email":function(req){
+		if(logged[req.cid]){
+			jwt.verify(req.token, secret, function(err, dec){
+				if(!err){
+					easyEmail(req.email, function(u){
+						if(u){
+							io.to(req.cid).emit("c_changed_email", false);
+						} else {
+							changeEmail({from:selfId, original:selfId, email:req.email ,token:req.token, uid:dec.uid}, function(res){
+								io.to(req.cid).emit("c_changed_email", res);
+							});
+						}
+					});
+				}else {
+					io.to(req.cid).emit("c_changed_email", false);
+				}
+			});
+		}
+	},
+	"change_email":changeEmail,
 	"c_change_username": function(req) {
 		if (logged[req.cid]) {
 			jwt.verify(req.token, secret, function(err, dec) {
