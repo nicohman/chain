@@ -632,7 +632,14 @@ function get_even(criterion, cb) {
 
 	});
 }
-
+function getPostsbyUser(uid, cb, count){
+	if(!count){
+		count = 10;
+	}
+	get_even({filter:"user", filter_data:uid, from:selfId, original:selfId}, function(posts){
+		cb(posts);
+	});
+}
 function isNeighbor(id) {
 	var neighbor = false;
 	adjacent.forEach(function(adj) {
