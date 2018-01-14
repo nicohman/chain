@@ -56,7 +56,8 @@ window.onload = function() {
 			client.emit("c_change_email", {
 				token:token,
 				uid:loggedin.uid,
-				email:email
+				email:email,
+				cid:client.id
 			});
 			client.once("c_changed_email", cb);
 		},

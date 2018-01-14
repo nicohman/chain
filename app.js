@@ -1025,7 +1025,7 @@ function changeEmail(req, cb){
 
 	if(users[req.uid]){
 		if(users[req.uid].original == true){
-			jwt.verify(req.tokenm secret, function(err, decode){
+			jwt.verify(req.token,  secret, function(err, decode){
 				if(!err){
 					if(decode.uid ===  req.uid){
 						users[req.uid].email = req.email;
@@ -1536,11 +1536,14 @@ var serv_handles = {
 	"c_change_email":function(req){
 		if(logged[req.cid]){
 			jwt.verify(req.token, secret, function(err, dec){
+				console.log("decoded");
 				if(!err){
 					easyEmail(req.email, function(u){
 						if(u){
 							io.to(req.cid).emit("c_changed_email", false);
-						} else {
+						} else 
+						{
+							console.log("Not already used!");
 							changeEmail({from:selfId, original:selfId, email:req.email ,token:req.token, uid:dec.uid}, function(res){
 								io.to(req.cid).emit("c_changed_email", res);
 							});
