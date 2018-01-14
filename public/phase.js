@@ -532,7 +532,8 @@ window.onload = function() {
 		bar.appendChild(buttons);
 		var id = document.createElement("div");
 		id.className = "post-id";
-		id.innerHTML = post.id+"<br>"+post.date;
+		var date = new Date(post.date);
+		id.innerHTML = post.id+"<br>"+date.toDateString();
 		postt.appendChild(title);
 		postt.appendChild(auth);
 		if (post.content) {
