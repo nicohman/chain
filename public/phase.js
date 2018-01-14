@@ -4,6 +4,25 @@ window.onload = function() {
 	var resultsTag;
 	var home_num = 10;
 	var cur_show = "home";
+	var resCur = false;
+	function prevent(e){
+		if(e.preventDefault){
+			e.preventDefault();
+		} else {
+			e.returnValue = false;
+		}
+	}
+	Object.keys(schemes).forEach(function(scheme){
+		var sel = document.createElement("option");
+		sel.value = scheme;
+		sel.innerHTML = scheme;
+		document.getElementById("cs-select").appendChild(sel);
+	});
+	document.getElementById("cs-form").addEventListener("submit", function(e){
+		prevent(e);
+		localStorage.setItem("colorscheme", e.target["cs-select"].value)
+		changeColorscheme(e.target["cs-select"].value);
+	});
 	var cur_com = "";
 	var token = localStorage.getItem("auth_token");
 	var chain = {
@@ -23,6 +42,34 @@ window.onload = function() {
 				}
 				cb(null, newtoken);
 			});
+		},
+		get_cur_mod:function(cur, cb){
+			client.emit("c_get_cur_mod", {
+				token:token,
+				cid:client.id,
+				cur:cur,
+				uid:loggedin.uid
+			});
+			client.once("c_got_cur_mod_"+cur, cb);
+		},
+		change_email:function(email, cb){
+			client.emit("c_change_email", {
+				token:token,
+				uid:loggedin.uid,
+				email:email,
+				cid:client.id
+			});
+			client.once("c_changed_email", cb);
+		},
+		edit_cur_mod:function(cur, ed, cb){
+			client.emit("c_edit_cur_mod", {
+				cur:cur,
+				cid:client.id,
+				uid:loggedin.uid,
+				token:token,
+				changes:ed
+			});
+			client.once("c_edited_cur_mod_"+cur, cb);
 		},
 		get_curation: function get_curation(id, cb) {
 			client.emit("c_get_curation", {
@@ -110,6 +157,27 @@ window.onload = function() {
 				});
 			}
 		},
+		follow_cur: function(cur, cb)
+
+		{
+			client.emit("c_follow_cur", {
+				cid:client.id,
+				cur:cur,
+				token:token,
+				uid:loggedin.uid
+			});
+			client.once("c_follow_cur_"+cur, cb);
+
+		},
+		unfollow_cur:function(cur, cb){
+			client.emit("c_unfollow_cur", {
+				cid:client.id,
+				cur:cur,
+				token:token,
+				uid:loggedin.uid
+			});
+			client.once("c_unfollow_cur_"+cur, cb);
+		},
 		unfollow: function(tag, cb) {
 			if (loggedin.uid && token) {
 				client.emit("c_unfollow", {
@@ -151,9 +219,27 @@ window.onload = function() {
 				});
 			}
 		},
+		get_cur_posts: function(cur, cb, count){
+			if (!count) {
+				count = 10;
+			}
+			var time = Date.now();
+			client.emit("c_get_cur_posts", {
+				cid:client.id,
+				count:count,
+				cur:cur,
+				time:time
+			});
+			;
+			client.once("c_got_cur_posts_"+cur+"_"+time,function(posts){
+				console.log("RES FROM SERVER");
+				cb(posts)
+			});
+		},
 		get_feed: function get_feed(cb, count) {
 			if (!count) {
 				console.log("DEFAULTS");
+				var need = cur.tags.length;
 				count = 10;
 			}
 			client.emit("c_get_feed", {
@@ -186,7 +272,10 @@ window.onload = function() {
 					login();
 					set_username(res.username);
 					//notify("Welcome back, " + res.username);
-				} else {}
+				} else {
+					localStorage.removeItem("auth_token");
+					window.location.href = "/login.html";
+				}
 				cb(res);
 			});
 		},
@@ -288,7 +377,16 @@ window.onload = function() {
 
 		});
 	}
-
+	function checkUrl(url){
+		var res = /(https*:\/\/\S+\.\S+)/
+		var is = url.match(res);
+		if(is){
+			console.log("RETURNING URL");
+			return {res:is, un: url.replace(res, "")}
+		} else {
+			return  false;
+		}
+	}
 	function checkImage(url) {
 		var re = /https*:\/\/\S+\.\S+\.(jpg|png|gif)/;
 		var res = re.exec(url)
@@ -314,6 +412,25 @@ window.onload = function() {
 			}
 		});
 	}
+	function replLinks(cont, rmfirst){
+		var done = 0;
+		var res = /(https*:\/\/\S+\.\S+)/
+
+		var is = cont.replace(res, function(match){
+			if(rmfirst && done === 0){
+				done = 1;
+				return "";
+			} else {
+				return "<a href='"+match+"'>"+match+"</a>"
+			}
+		});
+		if(is){
+			return is
+		} else {
+			return  "";
+		}
+	}
+
 
 	function makePost(post) {
 		if (!post.title) {
@@ -329,15 +446,34 @@ window.onload = function() {
 		auth.className = "post-auth";
 		auth.innerHTML = "by " + post.auth;
 		if (post.content) {
-			if (checkImage(post.content.trim())) {
-				var content = document.createElement("img");
-				content.src = post.content.trim()
-				console.log("IT'S A MEME");
-				content.className = "post-image";
-			} else {
-				var content = document.createElement("div");
-				content.className = "post-content";
-				content.innerHTML = post.content;
+			var e = checkUrl(post.content.trim());
+			var res = e.res;
+			var img;
+			if (res) {
+				console.log("URLRL");
+				var imgC = checkImage(res[0]);
+				if(imgC){
+					img = document.createElement("img");
+					img.src = res[0];
+					console.log("IT'S A MEME");
+					img.className = "post-image";
+					res.shift();
+				}
+			}
+			var yes = false;
+			if(imgC){
+				yes = true;
+			}
+
+			var links = replLinks(post.content, yes);
+			if(!links){
+				links = "";
+			}
+			var content = document.createElement("div");
+			content.className = "post-content";
+			content.innerHTML = links;
+			if(img){
+				content.appendChild(img);
 			}
 		}
 		var bar = document.createElement("div");
@@ -365,7 +501,7 @@ window.onload = function() {
 		comments.type = "button";
 		comments.innerHTML = "Comments: " + post.comments.length;
 		comments.addEventListener("click", function(e) {
-			e.preventDefault();
+			prevent(e)
 			chain.get_by_id(post.id, function(post) {
 				show_comments(post);
 			});
@@ -373,7 +509,7 @@ window.onload = function() {
 		if (post.favorited == true) {
 			fav.innerHTML = "Unfavorite"
 			fav.addEventListener("click", function(e) {
-				e.preventDefault();
+				prevent(e);
 				chain.unfavorite(e.target.parentNode.parentNode.parentNode.getElementsByClassName("post-id").item(0).innerHTML, function(res) {
 					reloadCur();
 				});
@@ -383,7 +519,7 @@ window.onload = function() {
 			console.log(post);
 			fav.innerHTML = "Favorite"
 			fav.addEventListener("click", function(e) {
-				e.preventDefault();
+				prevent(e);
 				console.log("Favoriting");
 				chain.add_favorite(e.target.parentNode.parentNode.parentNode.getElementsByClassName("post-id").item(0).innerHTML, function(res) {
 					reloadCur();
@@ -396,7 +532,8 @@ window.onload = function() {
 		bar.appendChild(buttons);
 		var id = document.createElement("div");
 		id.className = "post-id";
-		id.innerHTML = post.id;
+		var date = new Date(post.date);
+		id.innerHTML = post.id+"<br>"+date.toDateString();
 		postt.appendChild(title);
 		postt.appendChild(auth);
 		if (post.content) {
@@ -506,7 +643,33 @@ window.onload = function() {
 				}
 			}, 40);
 		},
-		"curations": function() {},
+		"curations": function() {
+			removeFrom(document.getElementById("fol-curs"));
+			var li = document.createElement("li");
+			li.innerHTML = "Couldn't fetch your followed curations";
+			document.getElementById("fol-curs").appendChild(li);
+
+			chain.get_self(function(me){
+				removeFrom(document.getElementById("fol-curs"));
+				var arr = Object.keys(me.curs);
+				arr = arr.filter(function(item){ if(me.curs[item] === true){ return true} else {return false}});
+				arr.forEach(function(cur){
+					var li = document.createElement("li");
+					li.innerHTML = cur;
+					li.addEventListener("click", function(e){
+						findByCuration(cur);
+					});
+					document.getElementById("fol-curs").appendChild(li);
+				});
+				if(arr.length == 0){
+					var li = document.createElement("li");
+					li.innerHTML = "You're not following any curations!";
+					document.getElementById("fol-curs").appendChild(li);
+
+				}
+			});
+
+		},
 		"search": function() {
 			removeFrom(document.getElementById("your-tags"));
 			removeFrom(document.getElementById("pop-tags"));
@@ -577,7 +740,23 @@ window.onload = function() {
 
 		},
 		"pop": function() {},
-		"manage": function() {},
+		"manage": function() {
+			var def = document.createElement("li");
+			def.innerHTML = "You don't own any curations!";
+			document.getElementById("owned-curs").appendChild(def);
+			chain.get_self(function(me){
+				removeFrom(document.getElementById("owned-curs"));
+				Object.keys(me.curations_owned).forEach(function(key){
+					var li = document.createElement("li");
+					li.innerHTML = key;
+					li.addEventListener("click", function(){
+						findByCuration(key);
+					});
+					document.getElementById("owned-curs").appendChild(li);
+				});
+			});
+
+		},
 		"favs": function() {
 			removeFrom(document.getElementById("fav"));
 			document.getElementById("fav").appendChild(makeFake("No favorited posts!"));
@@ -716,8 +895,147 @@ window.onload = function() {
 			feed.removeChild(feed.lastChild);
 		}
 	}
+	function dispRule(rule, cb, span){
+		var desc = "";
+		switch(rule.type){
+			case "not_u":
+				desc = "Exclude user <strong>"+ rule.value+"</strong>";
+				break;
+			case "yes_u":
+				desc = "Include user <strong>" + rule.value+"</strong>";
+				break;
+			case "yes_string":
+				desc = "Include posts containing <strong>"+rule.value+"</strong>";
+				break;
+			case "no_string":
+				desc = "Exclude posts containing <strong>"+rule.value+"</strong>";
+				break;
+			default:
+				return;
+				break;
+		}
+		if(span)
+		{
+			return desc;
+		}
+		var el = document.createElement("li");
+		el.className = "currule";
+		el.innerHTML = desc+ " ";
+		var but = document.createElement("button");
+		but.className = "curbutx";
+		but.innerHTML = "X";
+		but.addEventListener("click", function(e){
+			e.target.parentNode.remove();
+			cb(e);
+		});
+		el.appendChild(but);
+		return el;
 
+
+	}
+	function findByCuration(cur){
+		var max_res = 20;
+		var coll = {};
+		var max = 0;
+		chain.get_cur_posts(cur, function(posts){
+			console.log("CUR POSTS CALLED");
+			removeFrom(document.getElementById("results-posts"));
+			removeFrom(document.getElementById("cur-mod-tags-list"));
+			document.getElementById("results").style.display = "block";
+			hideall();
+			Object.keys(posts).forEach(function(key){
+				var post = posts[key];
+				coll[key] = true;
+				max++;
+				console.log("CUR:");
+				console.log(posts);
+				show_post(post, document.getElementById("results-posts"));
+			});
+			if(Object.keys(posts).length >= 10){
+				makeLoad(document.getElementById("results-posts"), function(load){
+					chain.get_cur_posts(cur, function(posts2){
+						var arr = Object.keys(posts2);
+						arr.forEach(function(key){
+							if(coll[key]){
+
+							} else {
+								max++;
+								coll[key] = true;
+								document.getElementById("results-posts").insertBefore(makePost(posts2[key]), load);
+							}
+						});
+						max_res+=20;
+					},max_res+20);
+				});
+
+			}
+			chain.get_self(function(me){
+				if(me.curs[cur] === true){
+
+				}
+				if(me.curations_owned[cur] === true){
+					document.getElementById("cur-mod").style.display = "block";
+					chain.get_cur_mod(cur, function(res){
+						if(res){
+
+							res.tags.forEach(function(tag, index){
+								document.getElementById("cur-mod-tags-list").appendChild(createTagDiv(tag, function(v){
+									res.tags.splice(index, 1);
+									chain.edit_cur_mod(cur, res, function(res){
+
+										findByCuration(cur);
+										notify("That tag is no longer in the curation "+cur+" !");
+									});
+								}));
+							});
+							if(Object.keys(res.rules).length > 0){
+								removeFrom(document.getElementById("cur-rules-list"))
+								Object.keys(res.rules).forEach(function(key, index){
+									var rule = res.rules[key];
+									var el = dispRule(rule, function(e){
+										delete res.rules[key];
+										chain.edit_cur_mod(cur, res, function(res){
+
+											findByCuration(cur);
+											notify("That rule has been removed from the curation "+cur+" !");
+										});
+									})
+
+									document.getElementById("cur-rules-list").appendChild(el);
+								});
+							}
+						} else {
+							alert("Something went wrong!");
+						}
+					});
+				} else {
+					document.getElementById("cur-mod").style.display = "none";
+				}
+			});
+			resCur = true;
+			resultsTag = cur;
+
+			checkRes();
+		}, 20);
+	}
+	function createTagDiv(tag, cb){
+		var toAdd = document.createElement("a");
+		toAdd.style['font-size'] = "small";
+		toAdd.className = "curtag";
+		toAdd.innerHTML = tag + " ";
+		var remove = document.createElement("button");
+		remove.innerHTML = 'X';
+		remove.type = "button";
+		remove.className = "create-remove";
+		remove.addEventListener("click", function(e) {
+			e.target.parentNode.remove();
+			cb(tag);
+		});
+		toAdd.appendChild(remove);
+		return toAdd;
+	}
 	function findByTag(tag) {
+
 		var max_res = 20;
 		var coll = {};
 		var max = 0
@@ -754,7 +1072,7 @@ window.onload = function() {
 				});
 			}
 			resultsTag = tag;
-			document.getElementById("results-span").innerHTML = tag;
+			resCur = false;
 			console.log("TOTAL TAG: ") + tag;
 			checkRes();
 		}, 20);
@@ -763,22 +1081,46 @@ window.onload = function() {
 
 	function checkRes() {
 		console.log("checking");
+		var follow = document.getElementById("results-follow");
+		var unfollow = document.getElementById("results-unfollow");
+		if(resCur){
+
+			document.getElementById("results-cur").style.display = "block";
+			document.getElementById("results-tag").style.display = "none";
+			document.getElementById('cur-span').innerHTML = resultsTag;
+			follow = document.getElementById("results-cur-follow");
+			unfollow = document.getElementById("results-cur-unfollow");
+		} else {
+			document.getElementById("cur-mod").style.display  = "none";
+			document.getElementById("results-cur").style.display = "none";
+			document.getElementById("results-tag").style.display = "block";
+			document.getElementById("results-span").innerHTML = resultsTag;
+		}
 		chain.get_self(function(me) {
 			var yes = false;
-			Object.keys(me.tags).forEach(function(tag) {
-				if (me.tags[tag] == true && tag == resultsTag) {
-					console.log(tag);
-					console.log(me.tags);
-					console.log("FAFS");
-					document.getElementById("results-follow").style.display = "none";
-					document.getElementById("results-unfollow").style.display = "block";
+			if(resCur){
+				if(me.curs[resultsTag] === true){
 					yes = true;
+					follow.style.display  = "none";
+					unfollow.style.display = "block";
 
 				}
-			});
+			} else {
+				Object.keys(me.tags).forEach(function(tag) {
+					if (me.tags[tag] == true && tag == resultsTag) {
+						console.log(tag);
+						console.log(me.tags);
+						console.log("FAFS");
+						follow.style.display = "none";
+						unfollow.style.display = "block";
+						yes = true;
+
+					}
+				});
+			}
 			if (!yes) {
-				document.getElementById("results-unfollow").style.display = "none";
-				document.getElementById("results-follow").style.display = "block";
+				unfollow.style.display = "none";
+				follow.style.display = "block";
 			}
 		});
 	}
@@ -803,7 +1145,7 @@ window.onload = function() {
 				}
 			});
 			document.getElementById("comment").addEventListener("submit", function(e) {
-				e.preventDefault();
+				prevent(e);
 				var content = e.target.elements.content.value;
 				e.target.reset();
 				chain.add_comment(content, cur_com, function(res) {
@@ -814,7 +1156,7 @@ window.onload = function() {
 				});
 			});
 			document.getElementById("create-post").addEventListener("submit", function(e) {
-				e.preventDefault();
+				prevent(e);
 				var title = e.target.title.value;
 				var content = e.target.content.value;
 				var tags = [];
@@ -822,6 +1164,14 @@ window.onload = function() {
 				for (var i = 0; i < t.length; i++) {
 					tags.push(t.item(i).innerHTML.split("<")[0].trim());
 				}
+				tags.filter(function(tag){
+					if(tag.length <= 20){
+						return true;
+					} else {
+						return false;
+						notify("Tag "+tag+ " is too long and was removed!");
+					}
+				});
 				removeFrom(document.getElementById("create-already-tags"));
 				chain.create_post(title, content, tags, function(res) {
 					if (res) {
@@ -834,6 +1184,38 @@ window.onload = function() {
 				e.target.reset();
 
 
+			});
+			document.getElementById("add-rules").type.addEventListener("change", function(e){
+				document.getElementById("rules-desc").innerHTML = dispRule({type:document.getElementById("add-rules").type.value,value:""},null,true)+":";
+			});
+			document.getElementById("add-rules").addEventListener("submit", function(e){
+				prevent(e);
+				var val = e.target.string.value;
+				var rule = e.target.type.value;
+				if(val){
+					e.target.reset();
+					chain.get_cur_mod(resultsTag, function(res){
+						var key = rule+"_"+val;
+						if(res.rules[key]){
+							notify("That rule is already added to this curation!");
+						} else {
+							res.rules[key] = {
+								type:rule,
+								value:val
+							}
+							chain.edit_cur_mod(resultsTag, res, function(res){
+								if(res){
+									notify("Rule successfully added!");
+									findByCuration(resultsTag);
+								} else {
+									notify("Could not add rule");
+								}
+							});
+						}
+					});
+				} else {
+					notify("Not a complete rule!");
+				}
 			});
 			document.getElementById("tags-seperator").addEventListener("click", function(e) {
 				if (e.target.tagName.toLowerCase() == "li") {
@@ -860,57 +1242,90 @@ window.onload = function() {
 					});
 					toAdd.appendChild(remove);
 					document.getElementById("create-already-tags").appendChild(toAdd);
-					e.preventDefault();
 					e.target.reset();
+					prevent(e);
 				}
+
 			});
 			document.getElementById("cur-tags-form").addEventListener("submit", function(e) {
 				if (e.target.tag.value.trim()) {
-					var toAdd = document.createElement("a");
-					toAdd.style['font-size'] = "small";
-					toAdd.className = "curtag";
-					toAdd.innerHTML = e.target.tag.value + " ";
-					var remove = document.createElement("button");
-					remove.innerHTML = 'X';
-					remove.type = "button";
-					remove.className = "create-remove";
-					remove.addEventListener("click", function(e) {
-						e.target.parentNode.remove();
-					});
-					toAdd.appendChild(remove);
-					document.getElementById("toaddcur").appendChild(toAdd);
-					e.preventDefault();
+
+					document.getElementById("toaddcur").appendChild(createTagDiv(e.target.tag.value.trim(), function(){}));
+					prevent(e);
 					e.target.reset();
 				}
 			});
 			document.getElementById("create-cur").addEventListener("submit", function(e){
-				e.preventDefault();
+				prevent(e);
 				var name = e.target.elements.curname.value.trim();
-								var tags = [];
+				var tags = [];
 				var t = document.getElementsByClassName("curtag")
 				for (var i = 0; i < t.length; i++) {
 					tags.push(t.item(i).innerHTML.split("<")[0].trim());
 				}
 				removeFrom(document.getElementById("toaddcur"));
 				if(name && tags.length){
-				
-				chain.create_curation(name, tags, function(res){
-					if(res === true){
-						notify("Curation created!");
-						showblocking("manage");
-					} else {
-						if(res === "already"){
-							alert("There's already a curation named that!");
+
+					chain.create_curation(name, tags, function(res){
+						if(res === true){
+							notify("Curation created!");
+							showblocking("manage");
+						} else {
+							if(res === "already"){
+								alert("There's already a curation named that!");
+							}
 						}
-					}
-				});
+					});
 				} else {
 					alert("Your curation needs to start with a name and at least one tag");
 				}
 
 			});
+			document.getElementById("createmodtag").addEventListener("submit", function(e){
+				prevent(e);
+				var tag = e.target.tag.value;
+				if(tag){
+					e.target.reset();
+					chain.get_cur_mod(resultsTag, function(res){
+						if(res){
+							if(res.tags.indexOf(tag) !== -1){
+								notify("Tag already added!");
+							} else {
+								document.getElementById("cur-mod-tags-list").appendChild(createTagDiv(tag, function(){
+									chain.get_cur_mod(resultsTag, function(res){
+										res.tags.splice(res.tags.indexOf(tag), 1);
+										chain.edit_cur_mod(resultsTag, res, function(res){
+											findByCuration(resultsTag);
+											notify("Tag removed from curation!");
+										});
+									});
+								}));
+								res.tags.push(tag)
+								chain.edit_cur_mod(resultsTag, res, function(res){
+									findByCuration(resultsTag);
+									notify("Tag added to curation!");
+								});
+
+
+							}
+						}
+					});
+				}
+			});
+			document.getElementById("settings-email").addEventListener("submit", function(e){
+				prevent(e);
+				var email = e.target.elements.email.value;
+				chain.change_email(email, function(res){
+					if(res){
+						e.target.reset();
+						notify("Email changed!");
+					} else {
+						notify("Could not change email. Maybe someone else has that email?");
+					}
+				});
+			});
 			document.getElementById("find-tag").addEventListener("submit", function(e) {
-				e.preventDefault();
+				prevent(e);
 				var data = e.target.elements.tag.value;
 				findByTag(data);
 			});
@@ -923,8 +1338,20 @@ window.onload = function() {
 					});
 				}
 			});
+			document.getElementById("results-cur-follow").addEventListener("click", function(e){
+				if(resultsTag !== false){
+					chain.follow_cur(resultsTag, function(){
+						notify("Followed "+resultsTag);
+						checkRes();
+					});
+				}
+			});
+			document.getElementById("find-curation").addEventListener("submit", function(e){
+				prevent(e);
+				findByCuration(e.target.cur.value.trim());
+			});
 			document.getElementById("settings-name").addEventListener("submit", function(e) {
-				e.preventDefault();
+				prevent(e);
 				chain.change_username(e.target.elements.username.value, function(res) {
 					if (res) {
 						localStorage.removeItem("auth_token");
@@ -945,6 +1372,14 @@ window.onload = function() {
 					chain.unfollow(resultsTag, function() {
 						notify("Unfollowed " + resultsTag);
 						checkRes()
+					});
+				}
+			});
+			document.getElementById("results-cur-unfollow").addEventListener("click", function(e){
+				if(resultsTag !== false){
+					chain.unfollow_cur(resultsTag, function(){
+						notify("Unfollowed "+resultsTag);
+						checkRes();
 					});
 				}
 			});

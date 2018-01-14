@@ -1,5 +1,6 @@
 var express = require('express');
 var app = express();
+var path = require("path");
 var jwt = require("jsonwebtoken");
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({
@@ -45,7 +46,7 @@ client.on("connect", function() {
 		});
 
 	});
-	app.use(express.static('public'));
+	app.use(express.static(path.join(__dirname, 'public')));
 	console.log("Listening on 3953");
 	app.listen(3953);
 });

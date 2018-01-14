@@ -1,3 +1,11 @@
+:root {
+	--main-bg:#073642;
+	--sec-bg:#002b36;
+	--border:#2aa198;
+	--text:#93a1a1;
+	--follow:#657b83;
+}
+
 #post-container {
         height: 100%;
         width: 100%;
@@ -5,14 +13,26 @@
         flex-wrap: wrap;
         justify-content: space-around;
 }
-
+#cur-rules-list {
+        list-style-type: none;
+	color:var(--text);
+}
+.curbutx {
+	background:none;
+	border:none;
+	margin:none;
+	padding:0;
+}
+#fol-curs li {
+	cursor:pointer;
+}
 .post {
         width: 30%;
         height: 200%;
-        border: 5px #2aa198 solid;
-        background: #002b36;
+        border: 5px var(--border) solid;
+        background: var(--sec-bg);
         display: flex;
-        color: #93a1a1;
+        color: var(--text);
         flex-direction: column;
         justify-content: center;
         margin-left: 25px;
@@ -45,10 +65,10 @@
 .load {
 	        width: 20%;
         height: 200%;
-        border: 5px #2aa198 solid;
-        background: #002b36;
+        border: 5px var(--border) solid;
+        background: var(--sec-bg);;
         display: flex;
-        color: #93a1a1;
+        color: var(--text);
         flex-direction: column;
         justify-content: center;
         margin-left: 25px;
@@ -61,7 +81,7 @@
 
 }
 .post-auth {
-        border-bottom: 1px #2aa198 solid;
+        border-bottom: 1px var(--border) solid;
         padding-bottom: 15px;
 }
 
@@ -81,7 +101,7 @@
 
         padding: 20px 0 20px 0;
         height: 400%;
-        border-bottom: 1px #2aa198 solid;
+        border-bottom: 1px var(--border) solid;
 }
 
 .post-bar {
@@ -131,14 +151,14 @@ button {
         position: fixed;
         padding: 0;
         overflow: hidden;
-        background-color: #002b36;
+        background-color: var(--sec-bg);
         display: flex;
         justify-content: flex-start;
 }
 
 a {
         text-decoration: none;
-        color: #93a1a1;
+        color: var(--text);
 
 }
 
@@ -163,21 +183,21 @@ a {
 }
 
 .username {
-        color: #93a1a1;
+        color: var(--text);
 }
 
 body {
         font-family: Hack;
-        background-color: #073642;
+        background-color: var(--main-bg);
 }
 
 #pop {}
 
 .centered {
-        border: 5px #2aa198 solid;
-        background: #002b36;
+        border: 5px var(--border) solid;
+        background: var(--sec-bg);
 
-        color: #93a1a1;
+        color: var(--text);
         top: 50%;
         left: 50%;
         position: absolute;
@@ -191,7 +211,7 @@ body {
 }
 
 .label-content {
-        border-bottom: 5px #2aa198 solid;
+        border-bottom: 5px var(--border) solid;
 	padding: 2%;
 }
 #info-container {
@@ -200,7 +220,7 @@ body {
 #settings-label {
         padding: 2%;
         margin-bottom: 2%;
-        border-bottom: 5px #2aa198 solid;
+        border-bottom: 5px var(--border) solid;
 }
 
 #settings-change-name {
@@ -257,7 +277,7 @@ body {
 #curs-self{
         padding-left: 10px;
 
-        border-left: 5px #2aa198 solid;
+        border-left: 5px var(--border) solid;
 }
 
 #cur-seperator li {
@@ -266,7 +286,7 @@ body {
 }
 
 #cur-seperator div {
-        border-bottom: 5px #2aa198 solid;
+        border-bottom: 5px var(--border) solid;
         width: 100%;
 }
 #curs-find {
@@ -290,12 +310,12 @@ body {
 }
 
 #tags-seperator div {
-        border-bottom: 5px #2aa198 solid;
+        border-bottom: 5px var(--border) solid;
         width: 100%;
 }
 
 #tags-self {
-        border-left: 5px #2aa198 solid;
+        border-left: 5px var(--border) solid;
 }
 
 #tags-find {
@@ -310,12 +330,12 @@ body {
 }
 
 #create-label {
-        border-bottom: 1px #2aa198 solid;
+        border-bottom: 1px var(--border) solid;
         font-size: large;
         padding: 2% 1%;
 }
 .main-label {
-        border-bottom: 3px #2aa198 solid;
+        border-bottom: 3px var(--border) solid;
         font-size: large;
         padding: 2% 1%;
 
@@ -332,7 +352,7 @@ body {
 .tosplit:nth-child(2) {
 	margin-left:2%;
 	padding-left:2%;
-	border-left: 5px #2aa198 solid;
+	border-left: 5px var(--border) solid;
 }
 .tosplit {
 	font-size:medium;
@@ -375,13 +395,13 @@ body {
 }
 
 .create-tags {
-        border: 1px #2aa198 solid;
+        border: 1px var(--border) solid;
         padding: 0.25%;
         border-radius: 10%;
         margin-right: 1%;
 }
 .curtag {
-        border: 1px #2aa198 solid;
+        border: 1px var(--border) solid;
         padding: 0.25%;
         border-radius: 10%;
         margin-right: 1%;
@@ -412,7 +432,7 @@ body {
 .tag {
 
         background: none;
-        border: 1px #2aa198 solid;
+        border: 1px var(--border) solid;
         color: inherit;
         padding: none;
 
@@ -421,9 +441,9 @@ body {
 
 #reset-con {
         font-size: large;
-        border: 5px #2aa198 solid;
-        background: #002b36;
-        color: #93a1a1;
+        border: 5px var(--border) solid;
+        background: var(--sec-bg);
+        color: var(--text);
         top: 50%;
         left: 50%;
         position: absolute;
@@ -436,7 +456,7 @@ body {
 }
 
 #reset-label {
-        border-bottom: 1px #2aa198 solid;
+        border-bottom: 1px var(--border) solid;
         margin-bottom: 1%;
         padding: 2%;
 
@@ -445,12 +465,11 @@ body {
 	position:fixed;
 }
 #about {
-	display:none;
 	position:fixed;
 	right:0;
 	bottom:0;
 	font-size:small;
-	color:#002b36;
+	color:var(--sec-bg);
 }
 #reset-form-con {
         padding: 2%;
@@ -464,9 +483,9 @@ body {
 
 #changed-con {
         font-size: large;
-        border: 5px #2aa198 solid;
-        background: #002b36;
-        color: #93a1a1;
+        border: 5px var(--border) solid;
+        background: var(--sec-bg);
+        color: var(--text);
         top: 50%;
         left: 50%;
         position: absolute;
@@ -477,11 +496,11 @@ body {
 
 #login-container {
         font-size: large;
-        border: 5px #2aa198 solid;
-        background: #002b36;
+        border: 5px var(--border) solid;
+        background: var(--sec-bg);
         display: flex;
         justify-content: center;
-        color: #93a1a1;
+        color: var(--text);
         top: 50%;
         left: 50%;
         position: absolute;
@@ -494,14 +513,14 @@ body {
 }
 
 #login-label {
-        border-bottom: 1px #2aa198 solid;
+        border-bottom: 1px var(--border) solid;
         font-size: large;
         padding: 2% 1%;
 }
 
 #rec-label {
 
-        border-bottom: 1px #2aa198 solid;
+        border-bottom: 1px var(--border) solid;
         font-size: large;
         padding: 2% 1%;
         margin-bottom: 1%;
@@ -533,10 +552,10 @@ body {
 .fake-post {
         width: 20%;
         height: 200%;
-        border: 5px #2aa198 solid;
-        background: #002b36;
+        border: 5px var(--border) solid;
+        background: var(--sec-bg);
         display: flex;
-        color: #93a1a1;
+        color: var(--text);
         flex-direction: column;
         justify-content: center;
         margin-left: 25px;
@@ -561,7 +580,7 @@ body {
         position: fixed;
         padding: 0;
         overflow: hidden;
-        background-color: #002b36;
+        background-color: var(--sec-bg);
         display: flex;
         justify-content: flex-start;
 }
@@ -577,7 +596,7 @@ body {
 .results-follow {
         background: none;
         border: none;
-        color: #657b83 !important;
+        color: var(--follow) !important;
         font: inherit;
 }
 
@@ -611,7 +630,7 @@ body {
         height: 30%;
         top: 30%;
         left: 30%;
-        background: #002b36;
+        background: var(--sec-bg);
         display: flex;
         flex-direction: column;
         justify-content: space-between;
@@ -621,12 +640,12 @@ body {
         margin-left: 2%;
         padding-top: 3%;
         font-size: large;
-        color: #93a1a1;
+        color: var(--text);
 }
 
 #comments-list {
         list-style-type: none;
-        color: #93a1a1;
+        color: var(--text);
 }
 
 .comment {
@@ -636,7 +655,7 @@ body {
 }
 
 .comment-author {
-        border-top: 1px #2aa198 solid;
+        border-top: 1px var(--border) solid;
         font-size: small;
 }
 
@@ -652,3 +671,21 @@ body {
         bottom: 0;
         display: flex;
 }
+#cur-mod {
+	width:30%;
+	height:90%;
+	position:fixed;
+	right:0;
+	bottom:0;
+	background-color:var(--sec-bg);
+	border:2px var(--border) solid;
+}
+#cur-mod h2 {
+	margin-top:4%;
+	margin-left:1%;
+}
+#cur-mod div {
+	margin-left:1.5%;
+	margin-top:4%;
+}
+

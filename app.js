@@ -12,6 +12,7 @@ var fs = require("fs");
 var names = ["dragon", "defiant", "dragon's teeth", "saint", "weaver"];
 var semaphore = require('semaphore');
 var sem = semaphore(1);
+var DEMPATH = "/home/nicohman/.demenses/"
 var san = require("sanitizer");
 var events = require('events');
 var nodemailer = require('nodemailer');
@@ -24,15 +25,15 @@ var selfId = format(new FlakeId({
 var shahash = require('crypto');
 var clients = [];
 console.log(selfId)
-var config = require("./config.json");
+var config = require(DEMPATH+"config.json");
 var jwt = require("jsonwebtoken");
 var name = names[parseInt(process.argv[2])];
 console.log("I am the " + name);
-var posts = require('./posts_' + name + '.json');
-var users = require("./users_" + name + ".json");
+var posts = require(DEMPATH+'posts_' + name + '.json');
+var users = require(DEMPATH+"users_" + name + ".json");
 var port = ports[parseInt(process.argv[2]) - 1];
 console.log(port);
-var curations = require("./curations_"+name+".json");
+var curations = require(DEMPATH+"curations_"+name+".json");
 var secret = config.secret;
 var emailSecret = config.emailSecret;
 var moment = require('moment')
@@ -87,7 +88,7 @@ function sendRecEmail(email, cb) {
 				to: email,
 				subject: 'Recovery link for your Demenses account',
 				text: 'Please use this link to reset your password: ' + link,
-				html: '<p>Please use this link to reset your password: ' + link + '</p>'
+				html: '<p>Please use <a href="' + link + '">this</a> link to reset your password.</p>'
 
 			}, function(err, info) {
 				if (err) {
@@ -138,7 +139,7 @@ function get_user(uid, cb) {
 			uid: uid,
 			condition: 'fulfill'
 		});
-		io.once('got_user_' + uid, function(got) {
+		whenonce('got_user_' + uid, function(got) {
 			cb(got);
 		});
 	}
@@ -316,11 +317,11 @@ function createPost(post) {
 function updateCurs(){
 	sem.take(function(){
 		var curstring = JSON.stringify(curations);
-		fs.writeFile("curations_"+name+".json", curstring, function(err){
+		fs.writeFile(DEMPATH+"curations_"+name+".json", curstring, function(err){
 			if(err){
 				console.log("Error updating curations");
 			}
-			curations = require("./curations_"+name+".json");
+			curations = require(DEMPATH+"curations_"+name+".json");
 			sem.leave();
 		});
 	});
@@ -333,13 +334,13 @@ function updatePosts() {
 			}
 		});
 		var usersstring = JSON.stringify(posts);
-		fs.writeFile('posts_' + name + '.json', usersstring, function(err) {
+		fs.writeFile(DEMPATH+'posts_' + name + '.json', usersstring, function(err) {
 			if (err) {
 				console.log("Error creating posts");
 			} else {
 				console.log("Created post successfully");
 			}
-			posts = require("./posts_" + name + ".json");
+			posts = require(DEMPATH+"posts_" + name + ".json");
 			sem.leave();
 		});
 	})
@@ -424,7 +425,31 @@ function cmpfavs(post1, post2) {
 		return 0;
 	}
 }
-
+function checkRules(post, rules){
+	var ok = true;
+	if(rules){
+		Object.keys(rules).forEach(function(key){
+			var rule = rules[key];
+			switch (rule.type){
+				case "not_u":
+					if(post.uid == rule.value){
+						ok = false;
+					}
+					break;
+				case "no_string":
+					if(post.content.indexOf(rule.value) !== -1){
+						ok = false;
+					}
+					break;
+			}
+		});
+	}
+	if(ok){
+		return true;
+	} else {
+		return false;
+	}
+}
 function get_posts(criterion, cb) {
 
 	console.log("Request for posts");
@@ -439,10 +464,14 @@ function get_posts(criterion, cb) {
 						post.tags.forEach(function(tag) {
 							criterion.filter_data.forEach(function(filter) {
 								if (filter.trim() == tag.trim()) {
+									console.log("LOOKING FOR TAG"+filter);
 
 									console.log("Found a post");
 									if (!criterion.posts[key]) {
-										criterion.posts[key] = post;
+										if(checkRules(post,criterion.rules)){
+
+											criterion.posts[key] = post;
+										}
 									}
 								}
 							});
@@ -450,6 +479,31 @@ function get_posts(criterion, cb) {
 					}
 				} else {
 					console.log(Object.keys(criterion.posts).length + " " + criterion.count);
+				}
+				break;
+			case "user":
+				if (Object.keys(criterion.posts).length < criterion.count) {
+					if(post.uid === criterion.filter_data){
+						if (!criterion.posts[key]) {
+							if(checkRules(post,criterion.rules)){
+
+								criterion.posts[key] = post;
+							}
+						}
+					}
+				}
+				break;
+			case "string":
+				if(Object.keys(criterion.posts).length < criterion.count) {
+					if(post.content.indexOf(criterion.filter_data) !== -1){
+						if (!criterion.posts[key]) {
+							if(checkRules(post,criterion.rules)){
+
+								criterion.posts[key] = post;
+							}
+						}
+
+					}
 				}
 				break;
 			default:
@@ -495,11 +549,16 @@ function get_posts(criterion, cb) {
 	} else if (cb) {
 		alldir("get_posts", criterion);
 		console.log("got_posts_" + criterion.filter + "_" + criterion.filter_data);
-		var cbe = function(postse) {
+		var count = 0;
 
-			cb(postse);
-		};
 		var eventname = "got_posts_" + criterion.filter + "_" + criterion.filter_data;
+		var cbe = function(postse) {
+			count++;
+			if(count >=2){
+				never(eventname);
+			}			cb(postse);
+
+		};
 		when(eventname, cbe);
 	} else if (Object.keys(criterion.posts).length < criterion.count && adjacent[flip(getDir(criterion.from))]) {
 		console.log("Passing along");
@@ -564,6 +623,7 @@ function get_even(criterion, cb) {
 
 			//console.log(posts.posts);
 			cb(posts);
+			posts = {}
 			console.log("gotten");
 		} else {
 			console.log(gotten);
@@ -586,12 +646,13 @@ function isNeighbor(id) {
 function updateUsers() {
 	sem.take(function() {
 		var usersstring = JSON.stringify(users);
-		fs.writeFile('users_' + name + '.json', usersstring, function(err) {
+		fs.writeFile(DEMPATH+'users_' + name + '.json', usersstring, function(err) {
 			if (err) {
 				console.log("Error creating user");
 			} else {
 				console.log("Created user successfully");
 			}
+			console.log("leaving! from "+name);
 			sem.leave();
 		});
 	})
@@ -606,8 +667,10 @@ function createUser(username, password, email, cb) {
 			pass: hashed,
 			username: san.escape(username),
 			subbed: [],
+			curs:{},
 			email: san.escape(email),
 			tags: {},
+			curations_owned:{},
 			favorites: {}
 		}
 
@@ -666,6 +729,24 @@ function get_feed(toget, cb) {
 					check();
 				});
 				break
+			case "cur":
+				var pro;
+				if (get.pro) {
+					pro = get.pro;
+				} else {
+					pro = 1 / toget.length;
+				}
+
+				var amount = pro * toget.count;
+				console.log(amount + ":amount");
+				get_curation_posts(get.cur, function(gposts){
+					gotten++;
+					Object.keys(gposts).forEach(function(key){
+						posts[key] = gposts[key];
+					});
+					check();
+				}, amount);
+
 			default:
 				break;
 		}
@@ -707,7 +788,59 @@ function follow_tag(req, ifself, cb) {
 
 	}
 }
+function follow_cur(req, cb){
+	if(users[req.uid]){
+		if(users[req.uid].original == true){
+			jwt.verify(req.token, secret, function(err, decode){
+				users[req.uid].curs[req.cur] = true;
+				updateUsers();
+				alldir("update_users", users[req.uid]);
+				if(cb){
+					cb(true);
+				} else {
+					onedir("followed_cur_"+req.uid+"_"+req.cur, true, flip(getDir(req.from)));
+				}
+			});
+		}
+	} else if (cb){
+		alldir("follow_cur", req);
+		whenonce("followed_cur_"+req.uid+"_"+req.cur, cb);
+	} else {
+		if(adjacent[flip(getDir(req.from))]){
+			passAlong("follow_cur", req);
+		} else {
+			onedir("followed_cur_"+req.uid+"_"+req.cur, false, getDir(req.from));
+		}
+	}
 
+}
+function unfollow_cur(req, cb){
+	if(users[req.uid]){
+		if(users[req.uid].original == true){
+			jwt.verify(req.token, secret, function(err, decode){
+				users[req.uid].curs[req.cur] = false;
+				updateUsers();
+				alldir("update_users", users[req.uid]);
+				if(cb){
+					cb(true);
+				} else {
+					onedir("unfollowed_cur_"+req.uid+"_"+req.cur, true, flip(getDir(req.from)));
+				}
+			});
+		}
+	} else if (cb){
+		alldir("unfollow_cur", req);
+		whenonce("unfollowed_cur_"+req.uid+"_"+req.cur, cb);
+	} else {
+		if(adjacent[flip(getDir(req.from))]){
+			passAlong("unfollow_cur", req);
+		} else {
+			onedir("unfollowed_cur_"+req.uid+"_"+req.cur, false, getDir(req.from));
+		}
+	}
+
+
+}
 function unfollow(req, ifself, cb) {
 	console.log(req.uid);
 	if (users[req.uid]) {
@@ -826,7 +959,35 @@ function change_username_e(uid, name, token, cb) {
 		new_u: name
 	}, cb);
 }
+function checkFavs(favs, rposts){
+	var fposts = rposts;
+	if(rposts.posts){
+		fposts = rposts.posts;
+	}
 
+	Object.keys(favs).forEach(function(fav){
+		if(favs[fav] === true){
+			console.log("TRUE");
+			if(fposts[fav]){
+				fposts[fav].favorited = true;
+			} else {
+				console.log(fposts);
+				console.log("POST NOT HERE")
+			}
+		} else {
+			console.log("NOT TRUE");
+		}
+	});
+	return fposts;
+}
+function checkFavsArr(favs, rposts){
+	rposts.forEach(function(post, index){
+		if(favs[post.id] ===true){
+			rposts[index].favorited = true;
+		}
+	});
+	return rposts
+}
 function change_username(req, cb) {
 	console.log("func");
 	if (users[req.uid]) {
@@ -859,7 +1020,57 @@ function change_username(req, cb) {
 		}
 	}
 }
+function changeEmail(req, cb){
+	var kill = false;
 
+	if(users[req.uid]){
+		if(users[req.uid].original == true){
+			jwt.verify(req.token,  secret, function(err, decode){
+				if(!err){
+					if(decode.uid ===  req.uid){
+						users[req.uid].email = req.email;
+						updateUsers();
+						alldir("update_users", users[req.uid]);
+						if(cb){
+							cb(true);
+						} else {
+							onedir("changed_email_" + req.uid, true, flip(getDir(req.from)));
+
+						}
+					} else {
+						onedir("changed_email_" + req.uid, false, flip(getDir(req.from)));
+
+					}
+				} else {
+					onedir("changed_email_" + req.uid, false, flip(getDir(req.from)));
+
+				}
+			});
+		}
+	} else if (cb) {
+		alldir("change_email", req);
+		var time = 0;
+		when("changed_email_"+req.uid, function(res){
+			time++;
+			if(res){
+				cb(true);
+				never("changed_email_"+req.uid)
+			} else if (time >= 2){
+				cb(true)
+				never("changed_email_"+req.uid)
+			}
+		});
+	}else {
+		if (adjacent[getDir(flip(req.from))]) {
+			passAlong("change_email", req);
+		} else {
+			onedir("changed_email_" + req.uid, false, flip(getDir(req.from)));
+
+		}
+	}
+
+
+}
 function unfavorite(req, cb) {
 	if (users[req.uid]) {
 		console.log("have user");
@@ -937,12 +1148,16 @@ function getCurationById(id, cb) {
 }
 
 function get_curation_by_name(name, cb) {
+	count = 0;
+	console.log("GCBYN");
 	get_curation({
 		from: selfId,
 		filter: "name",
 		filter_data: name,
 		original: selfId
 	}, function(res) {
+		count++;
+		console.log(count+": GOT A CURATION OF NAME "+name+" WITH TAGS "+res.tags);
 		cb(res);
 	});
 }
@@ -952,6 +1167,10 @@ function easy_add_own(uid, cid, cb){
 function add_cur_own(req, cb){
 	if(users[req.uid]){
 		users[req.uid].curations_owned[req.cid] = true;
+		console.log("writing for curation");
+		console.log(users[req.uid]);
+		updateUsers();
+		alldir("update_users", users[req.uid]);
 		if(cb){
 			cb(true);
 		} else {
@@ -985,15 +1204,16 @@ function get_curation(req, cb) {
 			found = true;
 			if (cb) {
 				cb(curations[req.filter_data]);
+				found = true;
 			} else {
 				onedir("got_curation_name_" + req.filter_data, curations[req.filter_data], flip(getDir(req.from)));
+				found = true;
 			}
 		}
 	}
-	if (found) {
-
-	} else if (!found && cb) {
-		var got = 0;
+	if (!found && cb) {
+		var got = 0
+		console.log("Couldn't find here, passing on");;
 		alldir("get_curation", req);
 		when("got_curation_" + req.filter + "_" + req.filter_data, function(res) {
 			got++;
@@ -1006,6 +1226,8 @@ function get_curation(req, cb) {
 				cb(false);
 
 				never("got_curation_" + req.filter + "_" + req.filter_data);
+			} else {
+				console.log("Sad res");
 			}
 		});
 	} else if (adjacent[flip(getDir(req.from))]) {
@@ -1038,16 +1260,141 @@ function updateRec(id) {
 	});
 }
 
-function getPostsByCur(count, cur, cb) {
-	var n = cur.rules.tags.length;
-	var total = 0;
-	var sort = cur.rules.sort;
-	cur.rules.tags.forEach(function(tag) {
-		get_even({
+function get_curation_posts(cur, cb, count){
+	if(!count){
 
+		count = 10;
+	}
+	var got = 0
+	var called = false;
+	var posts = {};
+	get_curation_by_name(cur, function(cur){
+		if(cur){
+			var rec = function(gotposts){
+				if(gotposts.posts){
+					console.log("GET EVEN CALLED")
+					gotposts = gotposts.posts;
+					got++;
+					Object.keys(gotposts).forEach(function(key){
+						posts[key] = gotposts[key];
+					});
+					if(got >= need && !called){
+						called = true;
+						console.log("GOT ALL POSTS : ");
+						console.log(posts);
+						cb(posts)
+						posts = {};
+					}
+				}
 
-		}, function(posts) {});
+			}
+			var need = cur.tags.length
+			Object.keys(cur.rules).forEach(function(key){
+				var rule = cur.rules[key];
+				switch(rule.type){
+					case "yes_string":
+						need++;
+						get_even({
+							count: count*2,
+							filter: "string",
+							filter_data: rule.value,
+							from: selfId,
+							rules:cur.rules,
+							original: selfId,
+							posts: {}
+						}, rec);
+						break;
+					case "yes_u":
+						need++;
+						get_even({
+							count: count*2,
+							filter: "user",
+							filter_data: rule.value,
+							from: selfId,
+							rules:cur.rules,
+							original: selfId,
+							posts: {}
+						}, rec);
+						break;
+
+				}
+			});
+			if(need == 0){
+				cb(posts);
+			}
+			cur.tags.forEach(function(tag){
+				console.log("GETTING TAG NOW : "+tag);
+				get_even({
+					count: count*2,
+					filter: "tag",
+					filter_data: [tag],
+					from: selfId,
+					rules:cur.rules,
+					original: selfId,
+					posts: {}
+				}, rec);
+			});
+		}else {
+			cb(false);
+		}
 	});
+
+}
+function edit_cur_mod(req, cb){
+	if(curations[req.cur]){
+		jwt.verify(req.token, secret, function(err, decode){
+			if(err){
+				if(cb){
+					cb(false);
+				} else {
+					onedir("edited_cur_mod_"+req.cur, false, getDir(req.from));
+				}
+			} else {
+				if(curations[req.cur].own !== decode.uid){
+					if(cb){
+						cb(false)
+					} else {
+						onedir("edited_cur_mod_"+req.cur, false, getDir(req.from));
+					}
+				} else {
+					Object.keys(req.changes).forEach(function(change){
+						if(curations[req.cur][change]){
+							curations[req.cur][change] = req.changes[change];
+						} else {
+							console.log("Invalid change");
+						}
+					});
+					updateCurs();
+					alldir("update_curations", curations[req.cur]);
+					if (cb){
+						cb(true);
+					} else {
+						onedir("edited_cur_mod_"+req.cur, true, getDir(req.from));
+
+					}
+				}
+			}
+		});
+	} else if(cb){
+		alldir("edit_cur_mod", req);
+		when("edited_cur_mod_"+req.cur, twice(cb));
+	} else {
+		if(adjacent[flip(getDir(req.from))]){
+			passAlong("edit_cur_mod_"+req.cur, req);
+		} else {
+			onedir("edited_cur_mod_"+req.cur, false, getDir(req.from));
+
+		}
+	}
+}
+function twice(fn){
+	var count = 0;
+	return function(res){
+		count++;
+		if(count >=2){
+			fn(res);
+		}
+	}
 }
 var socket = io.sockets;
 console.log(socket);
@@ -1075,10 +1422,9 @@ if (process.argv[2] == "3") {
 console.log("co");
 var serv_handles = {
 	"update_users": function(u) {
-		if (!users[u.id]) {
-			users[u.id] = u;
-			updateUsers();
-		}
+		users[u.id] = u;
+		updateUsers();
+
 	},
 	"update_curations":function(cur){
 		curations[cur.name] = cur;
@@ -1095,10 +1441,14 @@ var serv_handles = {
 	},
 	"get_user": function(id) {
 		if (users[id.uid]) {
-			onedir('got_user_' + uid, id, flip(getDir(id.id)));
+			onedir('got_user_' + id.uid, users[id.uid], flip(getDir(id.from)));
 		} else {
-			id.from = selfId;
-			passAlong('get_user', id);
+			if(adjacent[getDir(flip(id.from))]){
+				passAlong('get_user', id);
+			} else {
+				onedir('got_user_' + id.uid, false, getDir(id.from));
+
+			}
 		}
 	},
 	"check_login": function(u) {
@@ -1156,6 +1506,7 @@ var serv_handles = {
 	"create_curation": create_curation,
 	"c_create_curation": function(req) {
 		if (logged[req.cid]) {
+			console.log("creating");
 			var to_create = {
 				id: hash(req.name + Date.now()),
 				title: req.name,
@@ -1166,6 +1517,8 @@ var serv_handles = {
 				token: req.token
 			}
 			get_curation_by_name(req.name, function(res) {
+				console.log(res);
+				console.log("RES");
 				if (res) {
 					io.to(req.cid).emit("already");
 				} else {
@@ -1180,6 +1533,29 @@ var serv_handles = {
 			});
 		}
 	},
+	"c_change_email":function(req){
+		if(logged[req.cid]){
+			jwt.verify(req.token, secret, function(err, dec){
+				console.log("decoded");
+				if(!err){
+					easyEmail(req.email, function(u){
+						if(u){
+							io.to(req.cid).emit("c_changed_email", false);
+						} else 
+						{
+							console.log("Not already used!");
+							changeEmail({from:selfId, original:selfId, email:req.email ,token:req.token, uid:dec.uid}, function(res){
+								io.to(req.cid).emit("c_changed_email", res);
+							});
+						}
+					});
+				}else {
+					io.to(req.cid).emit("c_changed_email", false);
+				}
+			});
+		}
+	},
+	"change_email":changeEmail,
 	"c_change_username": function(req) {
 		if (logged[req.cid]) {
 			jwt.verify(req.token, secret, function(err, dec) {
@@ -1192,6 +1568,16 @@ var serv_handles = {
 				}
 			});
 		}
+	},
+	"c_get_cur_posts":function(req){
+		get_curation_posts(req.cur, function(posts){
+			var got = false;
+			if(!got){
+				io.to(req.cid).emit("c_got_cur_posts_"+req.cur+"_"+req.time, posts);
+				console.log("EMITTING EVENT C: "+req.time);
+				got = true;
+			}
+		}, req.count);
 	},
 	"change_username": change_username,
 	"c_req_rec": function(req) {
@@ -1219,16 +1605,17 @@ var serv_handles = {
 			from: selfId,
 			posts: {}
 		}, function(postsR) {
-			Object.keys(users[logged[req.id]].favorites).forEach(function(fav) {
+			/*Object.keys(users[logged[req.id]].favorites).forEach(function(fav) {
 				Object.keys(postsR.posts).forEach(function(key) {
 					if (postsR.posts[key].id == fav && users[logged[req.id]].favorites[postsR.posts[key].id] == true) {
 						console.log("UDPATEW");
 						postsR.posts[key].favorited = true;
 					}
 				});
-			});
+			});*/
+			postsR = checkFavs(users[logged[req.id]].favorites, postsR.posts);
 
-			io.to(req.id).emit("c_got_posts_" + req.data, postsR);
+			io.to(req.id).emit("c_got_posts_" + req.data,{posts: postsR});
 		});
 
 	},
@@ -1242,16 +1629,18 @@ var serv_handles = {
 			from: selfId
 		}, function(postsR) {
 			//console.log(Object.keys(postsR.posts));
-			Object.keys(users[logged[req.id]].favorites).forEach(function(fav) {
+			/*	Object.keys(users[logged[req.id]].favorites).forEach(function(fav) {
 				Object.keys(postsR.posts).forEach(function(key) {
 					if (postsR.posts[key].id == fav && users[logged[req.id]].favorites[postsR.posts[key].id] == true) {
-						//console.log("UDPATEW");
+			//console.log("UDPATEW");
 						postsR.posts[key].favorited = true;
 					}
 				});
-			});
-			console.log("GOT OTP< COUNT:" + Object.keys(postsR.posts).length);
-			io.to(req.id).emit("c_got_top", postsR)
+			})*/
+			postsR = checkFavsArr(users[logged[req.id]].favorites, postsR.posts);
+			console.log("GOT OTP< COUNT:" + Object.keys(postsR).length);
+			console.log(postsR);
+			io.to(req.id).emit("c_got_top", {posts:postsR})
 		});
 	},
 	"get_curation": get_curation,
@@ -1409,12 +1798,29 @@ var serv_handles = {
 					return false;
 				}
 			});
+			var to2 = Object.keys(users[logged[req.cid]].curs).map(function(key){
+				if (users[logged[req.cid]].curs[key] === true) {
+					return {
+						type:'cur',
+						cur:key
+					}
+				} else {
+					return undefined;
+				}
+			}).filter(function(e) {
+				if (e !== undefined) {
+					return true;
+				} else {
+					return false;
+				}
+			});
+			toget.push.apply(toget, to2);
 			console.log(toget);
 			console.log(users[logged[req.cid]]);
 			toget.count = req.count;
 			console.log("getting");
 			get_feed(toget, function(postsR) {
-				Object.keys(users[logged[req.cid]].favorites).forEach(function(fav) {
+				/*	Object.keys(users[logged[req.cid]].favorites).forEach(function(fav) {
 
 					Object.keys(postsR).forEach(function(key) {
 						if (postsR[key].id == fav && users[logged[req.cid]].favorites[postsR[key].id] == true) {
@@ -1422,8 +1828,9 @@ var serv_handles = {
 							postsR[key].favorited = true;
 						}
 					});
-				});
+				});*/
 
+				postsR = checkFavs(users[logged[req.cid]].favorites, postsR);
 
 				console.log("c_got_feed_" + logged[req.cid]);
 				io.to(req.cid).emit("c_got_feed_" + logged[req.cid], postsR);
@@ -1442,6 +1849,74 @@ var serv_handles = {
 	"change_pass": change_pass,
 	"unfollow": unfollow,
 	"follow_tag": follow_tag,
+	"follow_cur":follow_cur,
+	"unfollow_cur":unfollow_cur,
+	"c_follow_cur":function(req){
+		if(logged[req.cid]){
+			if(logged[req.cid] == req.uid) {
+				follow_cur({from:selfId, original:selfId, uid:req.uid, cur:req.cur, token:req.token}, function(res){
+					io.to(req.cid).emit("c_follow_cur_"+req.cur, res);
+				})
+			}
+		}
+
+	},
+	"c_unfollow_cur":function(req){
+		if(logged[req.cid]){
+			if(logged[req.cid] == req.uid){
+				unfollow_cur({from:selfId, original:selfId, uid:req.uid, cur:req.cur, token:req.token}, function(res){
+					io.to(req.cid).emit("c_unfollow_cur_"+req.cur, res);
+				})
+
+			}
+		}
+
+	},
+	"c_get_cur_mod":function(req){
+		if(logged[req.cid]){
+			jwt.verify(req.token, secret, function(err, decode){
+				if(err || (decode.uid !== logged[req.cid])){
+					console.log("Not who they appear to be");
+					io.to(req.cid).emit("c_got_cur_mod_"+req.cur, false);
+				} else {
+					get_user(logged[req.cid], function(u){
+						if(u.curations_owned[req.cur] === true){
+
+							get_curation_by_name(req.cur, function(cur){
+								io.to(req.cid).emit("c_got_cur_mod_"+req.cur, {
+									rules:cur.rules,
+									tags:cur.tags
+								});
+							});
+						} else {
+							console.log("does not own curation");
+							io.to(req.cid).emit("c_got_cur_mod_"+req.cur, false);
+						}
+					})}
+			});
+		}
+	},
+	"edit_cur_mod":edit_cur_mod,
+	"c_edit_cur_mod":function(req){
+		if(logged[req.cid]){
+			jwt.verify(req.token, secret, function(err, decode){
+				if(err || (decode.uid !== logged[req.cid])){
+					io.to(req.cid).emit("c_edited_cur_mod_"+req.cur, false);
+				} else {
+					edit_cur_mod({
+						from:selfId,
+						original:selfId,
+						cur:req.cur,
+						token:req.token,
+						changes:req.changes
+					}, function(res){
+						io.to(req.cid).emit("c_edited_cur_mod_"+req.cur, res);
+					});
+				}
+				io.to(req.cid).emit("c_edited_cur_mod_"+req.cur, false);
+			});
+		}
+	},
 	"c_follow_tag": function(req) {
 		if (logged[req.cid]) {
 			if (logged[req.cid] == req.uid) {
@@ -1485,10 +1960,16 @@ var serv_handles = {
 		var token = req.token
 		jwt.verify(token, secret, function(err, decode) {
 			if (decode) {
-				console.log("worked");
-				console.log(decode);
-				io.to(req.cid).emit("c_token_logged_in", decode);
-				logged[req.cid] = decode.uid
+				get_user(decode.uid, function(res){
+					if(res){
+
+						console.log("worked");
+						console.log(decode);
+						io.to(req.cid).emit("c_token_logged_in", decode);
+						logged[req.cid] = decode.uid
+					} else {
+						io.to(req.cid).emit("c_token_logged_in", false);
+					}});
 			} else {
 				io.to(req.cid).emit("c_token_logged_in", false);
 			}
