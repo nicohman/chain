@@ -483,7 +483,9 @@ function get_posts(criterion, cb) {
 				break;
 			case "user":
 				if (Object.keys(criterion.posts).length < criterion.count) {
-					if(post.uid === criterion.filter_data){
+					console.log("LOOKING BY USER");
+					if(post.uid.trim() == criterion.filter_data.trim()){
+						console.log("FOUND A POST BY USER");
 						if (!criterion.posts[key]) {
 							if(checkRules(post,criterion.rules)){
 
@@ -636,7 +638,7 @@ function getPostsByUser(uid, cb, count){
 	if(!count){
 		count = 10;
 	}
-	get_even({filter:"user", filter_data:uid, from:selfId, original:selfId, posts:{}}, function(posts){
+	get_even({filter:"user", count:count, filter_data:uid, from:selfId, original:selfId, posts:{}}, function(posts){
 		cb(posts);
 	});
 }
@@ -1562,7 +1564,7 @@ var serv_handles = {
 			});
 		}
 	},
-	"c_get_own_posts":function(req){
+	"c_get_self_posts":function(req){
 		jwt.verify(req.token, secret, function(err, dec){
 			if(!err){
 				if(dec.uid == logged[req.cid]){

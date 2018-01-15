@@ -585,6 +585,14 @@ window.onload = function() {
 		fake.innerHTML = text;
 		return fake;
 	}
+	function dispPostsU(posts){
+		hideall();
+		document.getElementById("resu").style.display = "block";
+		Object.keys(posts).forEach(function(key){
+			var post = posts[key];
+			show_post(post, document.getElementById("resu"));
+		});
+	}
 	var mains = {
 		"home": function() {
 			home_num = 20;
@@ -1175,8 +1183,9 @@ window.onload = function() {
 					if(tag.length <= 20){
 						return true;
 					} else {
-						return false;
+
 						notify("Tag "+tag+ " is too long and was removed!");
+						return false;
 					}
 				});
 				removeFrom(document.getElementById("create-already-tags"));
@@ -1266,6 +1275,7 @@ window.onload = function() {
 				chain.get_self_posts(function(posts){
 					if(posts){
 						console.log(posts);
+						dispPostsU(posts.posts);
 					} else {
 						notify("Couldn't get your posts!");
 					}
