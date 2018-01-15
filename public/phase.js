@@ -101,6 +101,13 @@ window.onload = function() {
 				cb(res);
 			});
 		},
+		get_self_posts: function(cb){
+			client.emit("c_get_self_posts", {
+				cid:client.id,
+				token:token
+			});
+			client.once("c_got_self_posts", cb);
+		},
 		get_self: function(cb) {
 			if (loggedin.uid && token) {
 				client.emit("c_get_self", {
@@ -1254,6 +1261,15 @@ window.onload = function() {
 					prevent(e);
 					e.target.reset();
 				}
+			});
+			document.getElementById("view-own").addEventListener("click", function(e){
+				chain.get_self_posts(function(posts){
+					if(posts){
+						console.log(posts);
+					} else {
+						notify("Couldn't get your posts!");
+					}
+				});
 			});
 			document.getElementById("create-cur").addEventListener("submit", function(e){
 				prevent(e);

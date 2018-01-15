@@ -632,11 +632,11 @@ function get_even(criterion, cb) {
 
 	});
 }
-function getPostsbyUser(uid, cb, count){
+function getPostsByUser(uid, cb, count){
 	if(!count){
 		count = 10;
 	}
-	get_even({filter:"user", filter_data:uid, from:selfId, original:selfId}, function(posts){
+	get_even({filter:"user", filter_data:uid, from:selfId, original:selfId, posts:{}}, function(posts){
 		cb(posts);
 	});
 }
@@ -1561,6 +1561,21 @@ var serv_handles = {
 				}
 			});
 		}
+	},
+	"c_get_own_posts":function(req){
+		jwt.verify(req.token, secret, function(err, dec){
+			if(!err){
+				if(dec.uid == logged[req.cid]){
+					getPostsByUser(dec.uid, function(posts){
+						io.to(req.cid).emit("c_got_self_posts", posts, req.count || 10);
+					});
+				} else {
+				io.to(req.cid).emit("c_got_self_posts", false);				
+				}
+			} else {
+				io.to(req.cid).emit("c_got_self_posts", false);
+			}
+		});
 	},
 	"change_email":changeEmail,
 	"c_change_username": function(req) {
