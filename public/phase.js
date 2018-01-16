@@ -71,6 +71,15 @@ window.onload = function() {
 			});
 			client.once("c_edited_cur_mod_"+cur, cb);
 		},
+		delete_post: function(pid, cb){
+			client.emit("c_delete_post", {
+				pid:pid,
+				uid:loggedin.uid,
+				token:token,
+				cid:client.id
+			});
+			client.once("c_deleted_post_"+pid, cb);
+		},
 		get_curation: function get_curation(id, cb) {
 			client.emit("c_get_curation", {
 				cid: client.id,
@@ -532,6 +541,21 @@ window.onload = function() {
 					reloadCur();
 				});
 
+			});
+		}
+		if(post.uid == loggedin.uid || loggedin.admin === true){
+			var deleteBut = document.createElement("button");
+			deleteBut.className = "delete-post";
+			deleteBut.type = "button";
+			deleteBut.innerHTML = "Delete";
+			deleteBut.addEventListener("click", function(e){
+				chain.delete_post(post.id, function(res){
+					if(res){
+						notify("Deleted post");
+					} else {
+						notify("Couldn't delete post");
+					}
+				});
 			});
 		}
 		buttons.appendChild(comments);
@@ -1146,6 +1170,7 @@ window.onload = function() {
 				if (res) {
 					loggedin.username = res.username;
 					loggedin.uid = res.uid;
+					loggedin.admin = res.admin;
 					loggedin.email = res.email;
 					console.log(res);
 				} else {

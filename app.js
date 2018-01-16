@@ -958,7 +958,55 @@ function favsUpdate(req, cb) {
 		passAlong("update_favs", req);
 	}
 }
+function deletePost(req, cb){
+	if(posts[req.pid]){
+		jwt.verify(req.token, secret, function(err, decode){
+			if(!err){
+				if(decode.uid == posts[req.pid].uid || decode.admin === true){
+					delete posts[req.pid];
+					updatePosts();
+					req.deleted++;
+					if (adjacent[flip(getDir(req.from))]){
+						passAlong("delete_post", req);
+					} else {
+						onedir("deleted_post_"+req.pid, req.deleted, flip(getDir(req.from)));
+					}
+				} else {
+					onedir("deleted_post_"+req.pid, req.deleted, flip(getDir(req.from)));
 
+				}
+			} else {
+				onedir("deleted_post_"+req.pid, req.deleted, flip(getDir(req.from)));
+
+			}
+		});
+	} else if (adjacent[flip(getDir(req.from))]){
+		passAlong("delete_post", req);
+	} else if(!cb){
+		onedir("deleted_post_"+req.pid, req.deleted, flip(getDir(req.from)));
+	}
+	if(cb){
+		var had = 0;
+		var del = 0;
+		when("deleted_post_"+req.pid, function(deli){
+			had++;
+			del += deli;
+			if(had >= 2){
+				never("deleted_post_"+req.pid);
+				cb(del);
+			}
+		});
+	}
+}
+function easyDel(pid, token, cb){
+	deletePost({
+		from:selfId,
+		original:selfId,
+		pid:pid,
+		token:token,
+		deleted:0
+	}, cb);
+}
 function change_username_e(uid, name, token, cb) {
 	change_username({
 		from: selfId,
@@ -1550,7 +1598,7 @@ var serv_handles = {
 					easyEmail(req.email, function(u){
 						if(u){
 							io.to(req.cid).emit("c_changed_email", false);
-						} else 
+						} else
 						{
 							console.log("Not already used!");
 							changeEmail({from:selfId, original:selfId, email:req.email ,token:req.token, uid:dec.uid}, function(res){
@@ -1572,7 +1620,7 @@ var serv_handles = {
 						io.to(req.cid).emit("c_got_self_posts", posts, req.count || 10);
 					});
 				} else {
-				io.to(req.cid).emit("c_got_self_posts", false);				
+					io.to(req.cid).emit("c_got_self_posts", false);
 				}
 			} else {
 				io.to(req.cid).emit("c_got_self_posts", false);
@@ -1675,6 +1723,23 @@ var serv_handles = {
 				io.to(req.cid).emit("c_found_user_by_email_" + req.email, res);
 			});
 		}
+	},
+	"delete_post":deletePost,
+	"c_delete_post":function(req){
+		jwt.verify(req.token, secret, function(err, decode){
+			if(!err){
+				if(logged[req.cid] == decode.uid){
+					easyDel(req.pid, req.token, function(res){
+						client.to(req.cid).emit("c_deleted_post_"+req.pid, res)
+					});
+				} else {
+					client.to(req.cid).emit("c_deleted_post_"+req.pid, false);
+
+				}
+			} else {
+				client.to(req.cid).emit("c_deleted_post_"+req.pid, false);
+			}
+		});
 	},
 	"c_get_curation_posts": function(req) {
 		getCurationById(req.id, function(curation) {
@@ -1783,10 +1848,15 @@ var serv_handles = {
 			bcrypt.compare(req.password, user.pass, function(err, res) {
 				if (res) {
 					console.log("User " + user.username + " successfully logged in");
+					var admin = false;
+					if(user.admin){
+						admin = true;
+					}
 					var token = jwt.sign({
 						username: user.username,
 						uid: user.id,
-						email: req.email
+						email: req.email,
+						admin:admin
 					}, secret);
 					io.to(req.cid).emit("c_logged_in_" + req.email, token);
 					logged[req.cid] = req.uid;
