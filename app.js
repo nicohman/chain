@@ -1,60 +1,15 @@
-var io = require('socket.io');
-var socketclient = require('socket.io-client');
-var ip = require('ip');
-var format = require('biguint-format');
-var FlakeId = require('flake-idgen');
-var bcrypt = require('bcrypt');
-var ports = ["2000", "3000", "4000", "5000", "6000"];
-var wildcard = require("socketio-wildcard");
-var middleware = wildcard();
-var patch = require("socketio-wildcard")(socketclient.Manager);
-var fs = require("fs");
-var names = ["dragon", "defiant", "dragon's teeth", "saint", "weaver"];
-var semaphore = require('semaphore');
-var sem = semaphore(1);
-var DEMPATH = "/home/nicohman/.demenses/"
-var san = require("sanitizer");
-var events = require('events');
-var nodemailer = require('nodemailer');
-var selfEmitter = new events.EventEmitter();
-var server = new events.EventEmitter();
-var selfId = format(new FlakeId({
-	datacenter: 1,
-	worker: parseInt(process.argv[2])
-}).next(), "dec");
-var shahash = require('crypto');
-var clients = [];
-console.log(selfId)
-var config = require(DEMPATH+"config.json");
-var jwt = require("jsonwebtoken");
-var name = names[parseInt(process.argv[2])];
-console.log("I am the " + name);
-var posts = require(DEMPATH+'posts_' + name + '.json');
-var users = require(DEMPATH+"users_" + name + ".json");
-var port = ports[parseInt(process.argv[2]) - 1];
-console.log(port);
-var curations = require(DEMPATH+"curations_"+name+".json");
-var secret = config.secret;
-var emailSecret = config.emailSecret;
-var moment = require('moment')
-var reg = {};
-var rec = {};
+//Initialize basic variables and require modules.
+var io = require('socket.io'),socketclient = require('socket.io-client'),ip = require('ip'),format = require('biguint-format'),FlakeId = require('flake-idgen'),bcrypt = require('bcrypt'),ports = ["2000", "3000", "4000", "5000", "6000"],middleware = require("socketio-wildcard")(),patch = require("socketio-wildcard")(socketclient.Manager), fs = require("fs"), names = ["dragon", "defiant", "dragon's teeth", "saint", "weaver"], semaphore = require('semaphore'),sem = semaphore(1), DEMPATH = "/home/nicohman/.demenses/",san = require("sanitizer"), events = require('events'), nodemailer = require('nodemailer'), selfEmitter = new events.EventEmitter(), server = new events.EventEmitter(), shahash = require('crypto'),  clients = [], selfId = format(new FlakeId({datacenter: 1,worker: parseInt(process.argv[2])}).next(), "dec"),config = require(DEMPATH+"config.json"),jwt = require("jsonwebtoken"), name = names[parseInt(process.argv[2])], posts = require(DEMPATH+'posts_' + name + '.json'),users = require(DEMPATH+"users_" + name + ".json"),port = ports[parseInt(process.argv[2]) - 1],curations = require(DEMPATH+"curations_"+name+".json"),secret = config.secret,emailSecret = config.emailSecret,moment = require('moment'),reg = {},smtpConf = {host: 'smtp.gmail.com',port: 465,secure: true,pool: true,auth: {user: 'nico.hickman@gmail.com',pass: config.emailpass}},rec = {}, logged = {};
+//Startup logs.
+console.log("________                                                     \n\______ \   ____   _____   ____   ____   ______ ____   ______\n |    |  \_/ __ \ /     \_/ __ \ /    \ /  ___// __ \ /  ___/\n |    `   \  ___/|  Y Y  \  ___/|   |  \\___ \\  ___/ \___ \ \n/_______  /\___  >__|_|  /\___  >___|  /____  >\___  >____  >\n        \/     \/      \/     \/     \/     \/     \/     \/ ");
+console.log("I am the node "+name+", with an id of "+selfId, " at the ip address "+ip.address());
+//Provide registry lookup for self.
 reg[selfId] = {
 	name: name,
 	ip: ip.address(),
 	id: selfId
 };
-var logged = {};
-var smtpConf = {
-	host: 'smtp.gmail.com',
-	port: 465,
-	secure: true,
-	pool: true,
-	auth: {
-		user: 'nico.hickman@gmail.com',
-		pass: config.emailpass
-	}
-}
+//Set up nodemailer.
 var transporter = nodemailer.createTransport(smtpConf);
 transporter.verify(function(err, suc) {
 	if (err) {
@@ -62,7 +17,7 @@ transporter.verify(function(err, suc) {
 		process.exit(0);
 	}
 });
-
+//Generates a Password reset link based on an user's email.
 function genRecLink(email, cb) {
 	easyEmail(email, function(u) {
 		if (u) {
@@ -79,7 +34,7 @@ function genRecLink(email, cb) {
 		}
 	});
 }
-
+//Sends a password reset email.
 function sendRecEmail(email, cb) {
 	var link = genRecLink(email, function(link) {
 		if (link) {
@@ -101,24 +56,25 @@ function sendRecEmail(email, cb) {
 		}
 	});
 }
-
+//Generic hash function, for unique ids where needed.
 function hash(data) {
 	return shahash.createHash('sha1').update(data, 'utf-8').digest('hex');
 }
 var globsocket;
+//Temporary code while I'm keeping all the nodes on one machine that lets them connect to each other.
 if (port != undefined) {
 	var to_connect = 'http://localhost:' + port;
 	createClient(to_connect);
 } else {
 	console.log("First!");
 }
+//Setup socketio server connection.
 var to_open = ports[parseInt(process.argv[2])];
-console.log(to_open);
 io = io(to_open);
 io.use(middleware);
 var adjacent = [];
 io.set('log level', false)
-
+//Takes a link id and finds which direction[1-0] it is connected in.
 function getDir(id) {
 	var index = -1;
 	adjacent.forEach(function(newid, newindex) {
@@ -128,7 +84,7 @@ function getDir(id) {
 	});
 	return index;
 }
-
+//Shortcut to get a user by uid.
 function get_user(uid, cb) {
 	if (users[uid]) {
 		cb(users[uid]);
@@ -144,7 +100,7 @@ function get_user(uid, cb) {
 		});
 	}
 }
-
+//Get a user by email.
 function get_user_by_email(req, cb) {
 	var found = false;
 	console.log("email trigger");
@@ -171,7 +127,7 @@ function get_user_by_email(req, cb) {
 		}
 	}
 }
-
+//Change password event function.
 function change_pass(req, cb) {
 	jwt.verify(req.token, secret, function(err, un) {
 		if (!err) {
@@ -209,7 +165,7 @@ function change_pass(req, cb) {
 }
 
 
-
+//Easier shortcut to change password.
 function change_pass_e(email, pass, cb) {
 	var f = 0;
 	console.log("changing");
@@ -234,7 +190,7 @@ function change_pass_e(email, pass, cb) {
 
 	});
 }
-
+//Easy shortcut to get a user by email hassle-free.
 function easyEmail(email, cb) {
 	var facount = 0;
 	get_user_by_email({
@@ -254,7 +210,7 @@ function easyEmail(email, cb) {
 		}
 	});
 }
-
+//Does exactly what it says on the tin. Used to reverse an event's direction.
 function flip(dir) {
 	switch (dir) {
 		case 0:
@@ -265,38 +221,28 @@ function flip(dir) {
 			break;
 	}
 }
-
+//Passes given event along chain.
 function passAlong(eventname, data) {
 	var from = flip(getDir(data.from));
-	console.log(from + " " + from);
 	data.from = selfId;
 	onedir(eventname, data, from);
 }
-
+//Sends an event in all directions down the chain.
 function alldir(eventname, data) {
-	console.log(clients);
 	clients.forEach(function(client) {
-		//console.log("emit");
 		client.emit(eventname, data);
 	});
 	io.emit(eventname, data);
 }
-
+//Sends event in one direction down chain.
 function onedir(eventname, data, dir) {
-	if (eventname == "found_user_by_email_nico.hickman@gmail.com") {
-		console.log(dir);
-		console.log(clients);
-		console.log(data);
-		console.log("DSADASRF");
-	}
 	if (clients[dir]) {
 		clients[dir].emit(eventname, data);
 	} else {
-		console.log("no hi");
 		io.emit(eventname, data);
 	}
 }
-
+//Creates a post, writes to disk and mirrors it to adjacent links.
 function createPost(post) {
 	var id = hash(post.title + post.auth + Date.now());
 	console.log("post");
@@ -314,6 +260,7 @@ function createPost(post) {
 	updatePosts();
 	alldir("update_posts", posts[id]);
 }
+//Writes curations to disk.
 function updateCurs(){
 	sem.take(function(){
 		var curstring = JSON.stringify(curations);
@@ -326,6 +273,7 @@ function updateCurs(){
 		});
 	});
 }
+//Writes posts to disk.
 function updatePosts() {
 	sem.take(function() {
 		Object.keys(posts).forEach(function(key) {
@@ -347,13 +295,13 @@ function updatePosts() {
 
 
 };
-
+//Adds a comment.
 function addComment(comment) {
 	if (posts[comment.postid]) {
 		posts.comments.push(comment);
 	}
 }
-
+//When given a number-based id, returns a human-readable string.
 function dirToString(dir) {
 	switch (dir) {
 		case -1:
@@ -367,7 +315,7 @@ function dirToString(dir) {
 			break;
 	}
 }
-
+//Sets listener everywhere.
 function when(eventname, cb) {
 	clients.forEach(function(client) {
 		console.log("whenening");
@@ -385,12 +333,12 @@ function when(eventname, cb) {
 	});
 	server.on(eventname, cb);
 }
-
+//Sets listener everywere once.
 function whenonce(eventname, cb) {
 	clients.forEach(function(client) {
 		console.log("whenening");
 		client.once(eventname, function(data) {
-			//never(eventname);
+			never(eventname);
 			console.log("whened " + eventname + getDir(data.from));
 			cb(data);
 		});
@@ -398,7 +346,7 @@ function whenonce(eventname, cb) {
 	io.once(eventname, function(data) {
 		console.log("whened" + eventname + getDir(data.from));
 		console.log(getDir(data.from));
-		// never(eventname);
+		 never(eventname);
 		cb(data)
 	});
 	selfEmitter.once(eventname, function(data) {
@@ -408,14 +356,14 @@ function whenonce(eventname, cb) {
 	});
 
 }
-
+//Unsets listener everywhere.
 function never(eventname) {
 	clients.forEach(function(client) {
 		client.removeAllListeners(eventname);
 	});
 	io.removeAllListeners(eventname);
 }
-
+//Compares favorite numbers of two posts. Intended for use with Array.sort().
 function cmpfavs(post1, post2) {
 	if (post1.favs < post2.favs) {
 		return 1;
@@ -425,6 +373,7 @@ function cmpfavs(post1, post2) {
 		return 0;
 	}
 }
+//Checks a post against a given set of curation rules to see whether it is allowed in.
 function checkRules(post, rules){
 	var ok = true;
 	if(rules){
@@ -450,26 +399,20 @@ function checkRules(post, rules){
 		return false;
 	}
 }
+//Get posts event function.
 function get_posts(criterion, cb) {
 
-	console.log("Request for posts");
 	Object.keys(posts).forEach(function(key) {
 		var post = posts[key]
 		switch (criterion.filter) {
 			case 'tag':
-				console.log("tags");
 				if (Object.keys(criterion.posts).length < criterion.count) {
-					console.log("not enough");
 					if (post.tags) {
 						post.tags.forEach(function(tag) {
 							criterion.filter_data.forEach(function(filter) {
 								if (filter.trim() == tag.trim()) {
-									console.log("LOOKING FOR TAG"+filter);
-
-									console.log("Found a post");
 									if (!criterion.posts[key]) {
 										if(checkRules(post,criterion.rules)){
-
 											criterion.posts[key] = post;
 										}
 									}
@@ -578,7 +521,7 @@ function get_posts(criterion, cb) {
 		}, getDir(criterion.from));
 	}
 }
-
+//Get a post by id easily.
 function get_post_by_id(id, cb) {
 	if (posts[id]) {
 		cb(posts[id]);
@@ -596,11 +539,10 @@ function get_post_by_id(id, cb) {
 		})
 	}
 }
-
+//Gets an even amount of posts from both directions.
 function get_even(criterion, cb) {
 	var gotten = 0;
 	var posts = {};
-	//console.log(criterion.count + ": count : " + criterion.count / 2);
 	criterion.count = criterion.count / 2;
 	get_posts(criterion, function(gposts) {
 		gotten++;
@@ -634,6 +576,7 @@ function get_even(criterion, cb) {
 
 	});
 }
+//Gets all posts of a user.
 function getPostsByUser(uid, cb, count){
 	if(!count){
 		count = 10;
@@ -642,6 +585,7 @@ function getPostsByUser(uid, cb, count){
 		cb(posts);
 	});
 }
+//Checks if a given link id is a neighbor.
 function isNeighbor(id) {
 	var neighbor = false;
 	adjacent.forEach(function(adj) {
@@ -651,7 +595,7 @@ function isNeighbor(id) {
 	})
 	return neighbor;
 }
-
+//Writes users to disk.
 function updateUsers() {
 	sem.take(function() {
 		var usersstring = JSON.stringify(users);
@@ -666,7 +610,7 @@ function updateUsers() {
 		});
 	})
 }
-
+//Creates a user.
 function createUser(username, password, email, cb) {
 	var id = hash(username + Date.now());
 	bcrypt.hash(password, 10, function(err, hashed) {
@@ -689,6 +633,7 @@ function createUser(username, password, email, cb) {
 		cb(id);
 	});
 }
+//Gets all posts based on an array of rules/needs.
 function get_feed(toget, cb) {
 	var gotten = 0;
 	var need = toget.length;
@@ -700,14 +645,10 @@ function get_feed(toget, cb) {
 		if (gotten >= need && !called) {
 
 			cb(posts);
-			console.log(posts);
 			called = true;
 		}
-		console.log(toget);
-		console.log("CALLING CB:" + need + ":" + gotten)
 
 	}
-	console.log(toget);
 	toget.forEach(function(get) {
 		switch (get.type) {
 			case 'tag':
@@ -761,7 +702,7 @@ function get_feed(toget, cb) {
 		}
 	});
 }
-
+//Lets a user follow a tag. Event function.
 function follow_tag(req, ifself, cb) {
 	console.log(req.uid);
 	if (users[req.uid]) {
@@ -797,6 +738,7 @@ function follow_tag(req, ifself, cb) {
 
 	}
 }
+//Lets a user follow a curation. Event function.
 function follow_cur(req, cb){
 	if(users[req.uid]){
 		if(users[req.uid].original == true){
@@ -823,6 +765,7 @@ function follow_cur(req, cb){
 	}
 
 }
+//Lets a user unfollow a curation. Event function.
 function unfollow_cur(req, cb){
 	if(users[req.uid]){
 		if(users[req.uid].original == true){
@@ -850,12 +793,11 @@ function unfollow_cur(req, cb){
 
 
 }
+//Lets a user unfollow a tag. Event function.
 function unfollow(req, ifself, cb) {
 	console.log(req.uid);
 	if (users[req.uid]) {
-		console.log("have user");
 		if (users[req.uid].original == true) {
-			console.log("verifying");
 			jwt.verify(req.token, secret, function(err, decode) {
 				if (err) {
 					console.log(err);
@@ -884,7 +826,7 @@ function unfollow(req, ifself, cb) {
 	}
 }
 
-
+//Lets a user favorite a post.
 function add_favorite(req, cb) {
 	if (users[req.uid]) {
 		console.log("have user");
@@ -919,7 +861,7 @@ function add_favorite(req, cb) {
 	}
 
 }
-
+//Easy way to update the number of favs for a post.
 function updateFavs(pid, num, cb) {
 	favsUpdate({
 		from: selfId,
@@ -933,10 +875,9 @@ function updateFavs(pid, num, cb) {
 		console.log(res);
 	});
 }
-
+//Favorite updating event function.
 function favsUpdate(req, cb) {
 	if (posts[req.pid]) {
-		console.log("FAV UPDATE");
 		posts[req.pid].favs += req.num;
 		console.log(posts[req.pid].favs + " " + req.num);
 		if (cb) {
@@ -948,16 +889,14 @@ function favsUpdate(req, cb) {
 		}
 		updatePosts();
 
-		//alldir("update_posts", posts[req.pid]);
 	} else if (cb) {
-		console.log("MED FAV UPDATE");
 		alldir("update_favs", req);
 		whenonce("updated_favs_" + req.pid + "_" + req.original, cb);
 	} else {
-		console.log("NO FAV UPDATE\n"+req.pid+"\n"+posts[req.pid]);
 		passAlong("update_favs", req);
 	}
 }
+//Delete post event function. Requires either author's jwt token or admin status.
 function deletePost(req, cb){
 	if(posts[req.pid]){
 		jwt.verify(req.token, secret, function(err, decode){
@@ -972,14 +911,14 @@ function deletePost(req, cb){
 						if(cb){
 							cb(req.deleted);
 						} else {
-						onedir("deleted_post_"+req.pid, req.deleted, flip(getDir(req.from)));
+							onedir("deleted_post_"+req.pid, req.deleted, flip(getDir(req.from)));
 						}
 					}
 				} else {
 					if(cb){
 						cb(req.deleted)
 					} else {
-					onedir("deleted_post_"+req.pid, req.deleted, flip(getDir(req.from)));
+						onedir("deleted_post_"+req.pid, req.deleted, flip(getDir(req.from)));
 					}
 
 				}
@@ -987,7 +926,7 @@ function deletePost(req, cb){
 				if(cb){
 					cb(req.deleted);
 				} else{
-				onedir("deleted_post_"+req.pid, req.deleted, flip(getDir(req.from)));
+					onedir("deleted_post_"+req.pid, req.deleted, flip(getDir(req.from)));
 				}
 			}
 		});
@@ -1010,6 +949,7 @@ function deletePost(req, cb){
 		});
 	}
 }
+// Easy way to delete a post given a token and pid.
 function easyDel(pid, token, cb){
 	deletePost({
 		from:selfId,
@@ -1022,6 +962,7 @@ function easyDel(pid, token, cb){
 		cb(res);
 	});
 }
+//Easy way to change username.
 function change_username_e(uid, name, token, cb) {
 	change_username({
 		from: selfId,
@@ -1031,6 +972,7 @@ function change_username_e(uid, name, token, cb) {
 		new_u: name
 	}, cb);
 }
+//Iterates through posts, adding favorited to them where they match favs.
 function checkFavs(favs, rposts){
 	var fposts = rposts;
 	if(rposts.posts){
@@ -1039,7 +981,6 @@ function checkFavs(favs, rposts){
 
 	Object.keys(favs).forEach(function(fav){
 		if(favs[fav] === true){
-			console.log("TRUE");
 			if(fposts[fav]){
 				fposts[fav].favorited = true;
 			} else {
@@ -1052,6 +993,7 @@ function checkFavs(favs, rposts){
 	});
 	return fposts;
 }
+//Same as checkFavs, but for when posts are in an array.
 function checkFavsArr(favs, rposts){
 	rposts.forEach(function(post, index){
 		if(favs[post.id] ===true){
@@ -1060,6 +1002,7 @@ function checkFavsArr(favs, rposts){
 	});
 	return rposts
 }
+//Change username event function
 function change_username(req, cb) {
 	console.log("func");
 	if (users[req.uid]) {
@@ -1092,6 +1035,7 @@ function change_username(req, cb) {
 		}
 	}
 }
+//Change email event function.
 function changeEmail(req, cb){
 	var kill = false;
 
