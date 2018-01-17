@@ -969,15 +969,26 @@ function deletePost(req, cb){
 					if (adjacent[flip(getDir(req.from))]){
 						passAlong("delete_post", req);
 					} else {
+						if(cb){
+							cb(req.deleted);
+						} else {
 						onedir("deleted_post_"+req.pid, req.deleted, flip(getDir(req.from)));
+						}
 					}
 				} else {
+					if(cb){
+						cb(req.deleted)
+					} else {
 					onedir("deleted_post_"+req.pid, req.deleted, flip(getDir(req.from)));
+					}
 
 				}
 			} else {
+				if(cb){
+					cb(req.deleted);
+				} else{
 				onedir("deleted_post_"+req.pid, req.deleted, flip(getDir(req.from)));
-
+				}
 			}
 		});
 	} else if (adjacent[flip(getDir(req.from))]){
@@ -990,6 +1001,7 @@ function deletePost(req, cb){
 		var del = 0;
 		when("deleted_post_"+req.pid, function(deli){
 			had++;
+			console.log("Would delete post");
 			del += deli;
 			if(had >= 2){
 				never("deleted_post_"+req.pid);
@@ -1005,7 +1017,10 @@ function easyDel(pid, token, cb){
 		pid:pid,
 		token:token,
 		deleted:0
-	}, cb);
+	}, function(res){
+		console.log("DELETED POST");
+		cb(res);
+	});
 }
 function change_username_e(uid, name, token, cb) {
 	change_username({
@@ -1730,14 +1745,14 @@ var serv_handles = {
 			if(!err){
 				if(logged[req.cid] == decode.uid){
 					easyDel(req.pid, req.token, function(res){
-						client.to(req.cid).emit("c_deleted_post_"+req.pid, res)
+						io.to(req.cid).emit("c_deleted_post_"+req.pid, res)
 					});
 				} else {
-					client.to(req.cid).emit("c_deleted_post_"+req.pid, false);
+					io.to(req.cid).emit("c_deleted_post_"+req.pid, false);
 
 				}
 			} else {
-				client.to(req.cid).emit("c_deleted_post_"+req.pid, false);
+				io.to(req.cid).emit("c_deleted_post_"+req.pid, false);
 			}
 		});
 	},

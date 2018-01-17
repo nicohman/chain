@@ -552,11 +552,13 @@ window.onload = function() {
 				chain.delete_post(post.id, function(res){
 					if(res){
 						notify("Deleted post");
+						reloadCur()
 					} else {
 						notify("Couldn't delete post");
 					}
 				});
-			});
+			})
+			buttons.appendChild(deleteBut);
 		}
 		buttons.appendChild(comments);
 		buttons.appendChild(fav);
@@ -1168,6 +1170,9 @@ window.onload = function() {
 		if (token) {
 			chain.attempt_token(token, function(res) {
 				if (res) {
+					if(res.admin){
+						console.log("ADMIN");
+					}
 					loggedin.username = res.username;
 					loggedin.uid = res.uid;
 					loggedin.admin = res.admin;
