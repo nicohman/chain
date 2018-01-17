@@ -428,7 +428,11 @@ body {
         color: inherit;
 
 }
-
+.delete-post {
+	background:none;
+	border:none;
+	color: inherit;
+}
 .tag {
 
         background: none;

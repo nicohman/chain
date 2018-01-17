@@ -954,7 +954,7 @@ function favsUpdate(req, cb) {
 		alldir("update_favs", req);
 		whenonce("updated_favs_" + req.pid + "_" + req.original, cb);
 	} else {
-		console.log("NO FAV UPDATE");
+		console.log("NO FAV UPDATE\n"+req.pid+"\n"+posts[req.pid]);
 		passAlong("update_favs", req);
 	}
 }
@@ -1164,6 +1164,8 @@ function unfavorite(req, cb) {
 							onedir("unfavorited_" + req.uid + "_" + req.pid, users[req.uid], flip(getDir(req.from)));
 						}
 
+					} else {
+						console.log("Not verified");
 					}
 				}
 			})

@@ -223,6 +223,7 @@ window.onload = function() {
 		},
 		unfavorite: function(pid, cb) {
 			if (loggedin.uid && token) {
+				console.log(pid);
 				client.emit("c_unfavorite", {
 					cid: client.id,
 					pid: pid,
@@ -526,7 +527,7 @@ window.onload = function() {
 			fav.innerHTML = "Unfavorite"
 			fav.addEventListener("click", function(e) {
 				prevent(e);
-				chain.unfavorite(e.target.parentNode.parentNode.parentNode.getElementsByClassName("post-id").item(0).innerHTML, function(res) {
+				chain.unfavorite(post.id, function(res) {
 					reloadCur();
 				});
 
@@ -537,7 +538,7 @@ window.onload = function() {
 			fav.addEventListener("click", function(e) {
 				prevent(e);
 				console.log("Favoriting");
-				chain.add_favorite(e.target.parentNode.parentNode.parentNode.getElementsByClassName("post-id").item(0).innerHTML, function(res) {
+				chain.add_favorite(post.id, function(res) {
 					reloadCur();
 				});
 

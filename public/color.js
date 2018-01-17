@@ -15,11 +15,11 @@ var schemes = {
 		"follow":"#F7F5FA"
 	},
 	"monokai":{
-		"main-bg":"# 272822",
-		"sec-bg":"#F92672",
+		"main-bg":"#272822",
+		"sec-bg":"#A6E22E",
 		"border":"#66D9EF",
 		"text":"#A6E22E",
-		"follow":"#FD971F"
+		"follow":"#F92672"
 
 	}
 }
