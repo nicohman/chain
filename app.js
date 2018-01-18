@@ -9,6 +9,162 @@ reg[selfId] = {
 	ip: ip.address(),
 	id: selfId
 };
+function Event(name, properties){
+	if(!properties){
+		var props = {}
+	} else {
+		var props = properties;
+	}
+	props.original = selfId;
+	props.from = selfId;
+	return function(func, newP){
+		Object.keys(newP).forEach(function(key){
+			props[key] = newP[key];
+		});
+		props.id = hash(Date.now()+selfId+name);
+		func(name, props);
+	}
+}
+function fulfill (name, condition, func, auth, amal, easy, def) {
+	var doneFunc = function(req, cb){
+		var con = condition(req);
+		if(con){
+			if(auth){
+				if(req.token){
+				
+				verify(req.token, function(res){
+					if(res){
+						var newreq = req;
+						Object.keys(res).forEach(function(key){
+							newreq[key] = res[key];
+						});
+						var done = func(newreq, con);
+						if(cb){
+							cb(done);
+						} else {
+							onedir(name+req.id, done, getDir(req.from))
+						}
+					} else {
+						if(cb){
+							cb(false);
+						} else {
+						
+						onedir(name+req.id, false, getDir(req.from));
+						}
+					}
+				});
+				} else {
+					if(cb){
+					cb(false)
+					} else {
+					onedir(name+req.id, false, getDir(req.from));
+					}
+				}
+			} else {
+			var res = func(req, con);
+			if(cb){
+				cb(res);
+			} else {
+				onedir(name+req.id, res, getDir(req.from));
+			}
+			}
+		} else if (cb){
+			alldir(name, req);
+			var done = 0;
+			var posts = {};
+			when(name+req.id, function(res){
+				done++;
+				switch(amal){
+					case "once":
+						if(res){
+							never(name+req.id);
+							cb(res)
+						} else if (done >= 2){
+							cb(false);
+							never(name+req.id);
+						}
+						break;
+					case "posts":
+						if(res){
+							Object.keys(res.posts).forEach(function(key){
+								if!(posts[key]){
+									posts[key] = res.posts[key];
+								}
+							});
+						}
+						if(done >=2){
+							cb(posts);
+						}
+						break;
+					default:
+						console.log("Invalid amal option");
+						never(name+req.id);
+						break;
+				}
+			});
+		} else if (adjacent[flip(getDir(req.from))]){
+			passAlong(name, req);
+		} else {
+			onedir(name+req.id, false, getDir(req.from));
+		}
+	}
+	if(easy){
+		var e = new Event(name, def);
+		doneFunc.easy = function(props, cb){
+			doneFunc(e(props), cb);
+		};
+	}
+	return doneFunc;
+}
+function verify(token, cb){
+	jwt.verify(token, secret, function(err, decode){
+		if(err){
+			cb(false);
+		} else {
+			cb(decode);
+		}
+	});
+}
+var follow_cur = new fulfill("follow_cur",function(req){
+	if(users[req.uid]){
+		if(users[req.uid].original === true){
+			return true;
+		}
+	}
+	return false;
+}, function(req){
+	users[req.uid].curs[req.cur] = true;
+	updateUsers(users[req.uid]);
+	return true;
+}, true,  "once", true);
+//Lets a user follow a curation. Event function.
+/*function follow_cur(req, cb){
+	if(users[req.uid]){
+		if(users[req.uid].original == true){
+			jwt.verify(req.token, secret, function(err, decode){
+				users[req.uid].curs[req.cur] = true;
+				updateUsers();
+				alldir("update_users", users[req.uid]);
+				if(cb){
+					cb(true);
+				} else {
+					onedir("followed_cur_"+req.uid+"_"+req.cur, true, flip(getDir(req.from)));
+				}
+			});
+		}
+	} else if (cb){
+		alldir("follow_cur", req);
+		whenonce("followed_cur_"+req.uid+"_"+req.cur, cb);
+	} else {
+		if(adjacent[flip(getDir(req.from))]){
+			passAlong("follow_cur", req);
+		} else {
+			onedir("followed_cur_"+req.uid+"_"+req.cur, false, getDir(req.from));
+		}
+	}
+
+}*/
+
 //Set up nodemailer.
 var transporter = nodemailer.createTransport(smtpConf);
 transporter.verify(function(err, suc) {
@@ -100,8 +256,33 @@ function get_user(uid, cb) {
 		});
 	}
 }
+var emails = {}
+function search_email(email){
+	var found = false;
+	if(emails[email]){
+		found = users[emails[email]];
+		return found;
+	}
+	Object.keys(users).forEach(function(key){
+		if(users[key].email.trim() == email.trim()){
+			if(!found){
+				found = users[key];
+			}
+			emails[email] = key;
+		}
+	});
+	if(!found){
+		cb(false);
+	} else {
+		return found;
+	}
+}
+var get_user_by_email = new fulfill("find_user_by_email", function(req){
+	return search_email(req.email);
+}, function(req, u){return u}, false, "once", true);
+var easyEmail = get_user_by_email.easy;
 //Get a user by email.
-function get_user_by_email(req, cb) {
+/*function get_user_by_email(req, cb) {
 	var found = false;
 	console.log("email trigger");
 	Object.keys(users).forEach(function(key) {
@@ -126,7 +307,7 @@ function get_user_by_email(req, cb) {
 			onedir("found_user_by_email_" + req.email, false, getDir(req.from));
 		}
 	}
-}
+}*/
 //Change password event function.
 function change_pass(req, cb) {
 	jwt.verify(req.token, secret, function(err, un) {
@@ -191,7 +372,7 @@ function change_pass_e(email, pass, cb) {
 	});
 }
 //Easy shortcut to get a user by email hassle-free.
-function easyEmail(email, cb) {
+/*function easyEmail(email, cb) {
 	var facount = 0;
 	get_user_by_email({
 		from: selfId,
@@ -209,7 +390,7 @@ function easyEmail(email, cb) {
 			cb(res);
 		}
 	});
-}
+}*/
 //Does exactly what it says on the tin. Used to reverse an event's direction.
 function flip(dir) {
 	switch (dir) {
@@ -346,7 +527,7 @@ function whenonce(eventname, cb) {
 	io.once(eventname, function(data) {
 		console.log("whened" + eventname + getDir(data.from));
 		console.log(getDir(data.from));
-		 never(eventname);
+		never(eventname);
 		cb(data)
 	});
 	selfEmitter.once(eventname, function(data) {
@@ -737,33 +918,6 @@ function follow_tag(req, ifself, cb) {
 		passAlong("follow_tag", req);
 
 	}
-}
-//Lets a user follow a curation. Event function.
-function follow_cur(req, cb){
-	if(users[req.uid]){
-		if(users[req.uid].original == true){
-			jwt.verify(req.token, secret, function(err, decode){
-				users[req.uid].curs[req.cur] = true;
-				updateUsers();
-				alldir("update_users", users[req.uid]);
-				if(cb){
-					cb(true);
-				} else {
-					onedir("followed_cur_"+req.uid+"_"+req.cur, true, flip(getDir(req.from)));
-				}
-			});
-		}
-	} else if (cb){
-		alldir("follow_cur", req);
-		whenonce("followed_cur_"+req.uid+"_"+req.cur, cb);
-	} else {
-		if(adjacent[flip(getDir(req.from))]){
-			passAlong("follow_cur", req);
-		} else {
-			onedir("followed_cur_"+req.uid+"_"+req.cur, false, getDir(req.from));
-		}
-	}
-
 }
 //Lets a user unfollow a curation. Event function.
 function unfollow_cur(req, cb){
@@ -1909,7 +2063,7 @@ var serv_handles = {
 	"c_follow_cur":function(req){
 		if(logged[req.cid]){
 			if(logged[req.cid] == req.uid) {
-				follow_cur({from:selfId, original:selfId, uid:req.uid, cur:req.cur, token:req.token}, function(res){
+				follow_cur.easy(uid:req.uid, cur:req.cur, token:req.token}, function(res){
 					io.to(req.cid).emit("c_follow_cur_"+req.cur, res);
 				})
 			}
