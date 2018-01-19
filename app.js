@@ -156,33 +156,6 @@ var follow_cur = new fulfill("follow_cur",function(req){
 	return true;
 }, true,  "once", true);
 //Lets a user follow a curation. Event function.
-/*function follow_cur(req, cb){
-	if(users[req.uid]){
-		if(users[req.uid].original == true){
-			jwt.verify(req.token, secret, function(err, decode){
-				users[req.uid].curs[req.cur] = true;
-				updateUsers();
-				alldir("update_users", users[req.uid]);
-				if(cb){
-					cb(true);
-				} else {
-					onedir("followed_cur_"+req.uid+"_"+req.cur, true, flip(getDir(req.from)));
-				}
-			});
-		}
-	} else if (cb){
-		alldir("follow_cur", req);
-		whenonce("followed_cur_"+req.uid+"_"+req.cur, cb);
-	} else {
-		if(adjacent[flip(getDir(req.from))]){
-			passAlong("follow_cur", req);
-		} else {
-			onedir("followed_cur_"+req.uid+"_"+req.cur, false, getDir(req.from));
-		}
-	}
-
-}*/
-
 //Set up nodemailer.
 var transporter = nodemailer.createTransport(smtpConf);
 transporter.verify(function(err, suc) {
@@ -301,32 +274,7 @@ var get_user_by_email = new fulfill("find_user_by_email", function(req){
 }, function(req, u){return u}, false, "once", true);
 var easyEmail = get_user_by_email.easy;
 //Get a user by email.
-/*function get_user_by_email(req, cb) {
-	var found = false;
-	console.log("email trigger");
-	Object.keys(users).forEach(function(key) {
-		if (users[key].email.trim() == req.email.trim()) {
-			found = users[key];
-		}
-	});
-	if (found && cb) {
-		console.log("FOUND BY EMAIL");
-		cb(found);
-	} else if (found) {
-		onedir("found_user_by_email_" + req.email, found, flip(getDir(req.from)));
-	} else if (cb) {
-		console.log("placing");
-		when("found_user_by_email_" + req.email, cb);
-		alldir("find_user_by_email", req);
-	} else {
-		if (adjacent[flip(getDir(req.from))]) {
-			passAlong("find_user_by_email", req);
-		} else {
-			console.log("NOT FOUND");
-			onedir("found_user_by_email_" + req.email, false, getDir(req.from));
-		}
-	}
-}*/
+
 var change_pass = new fulfill("change_pass", function(req){
 	console.log("REQ");
 	console.log(req);
@@ -338,89 +286,6 @@ var change_pass = new fulfill("change_pass", function(req){
 	});
 
 }, true, "once", true);
-//Change password event function.
-/*function change_pass(req, cb) {
-		jwt.verify(req.token, secret, function(err, un) {
-			if (!err) {
-				var found = false;
-				Object.keys(users).forEach(function(key) {
-					if (users[key].email.trim() == un.email.trim()) {
-						found = key;
-					}
-				});
-				if (found) {
-					bcrypt.hash(un.pass, 10, function(err, hashed) {
-						users[found].pass = hashed;
-						alldir("update_users", users[found]);
-						updateUsers();
-					});
-				}
-				if (found && cb) {
-					cb(true);
-				} else if (found) {
-					onedir("changed_pass_" + un.email, true, flip(getDir(req.from)));
-				} else if (cb) {
-					when("changed_pass_" + un.email, cb);
-					alldir("change_pass", req);
-				} else {
-					if (adjacent[flip(getDir(req.from))]) {
-						passAlong("change_pass", req);
-					} else {
-						console.log("NOT FOUND");
-						onedir("changed_pass_" + un.email, false, getDir(req.from));
-					}
-
-				}
-			}
-		});
-	}
-
-
-//Easier shortcut to change password.
-	function change_pass_e(email, pass, cb) {
-		var f = 0;
-		console.log("changing");
-		var tok = jwt.sign({
-			pass: pass,
-			email: email
-		}, secret);
-		change_pass({
-			token: tok,
-			from: selfId,
-			original: selfId
-		}, function(res) {
-			if (res == false) {
-				f++;
-				if (f >= 2) {
-					cb(false);
-				} else {}
-			} else {
-				cb(res);
-			}
-
-
-		});
-	}*/
-//Easy shortcut to get a user by email hassle-free.
-/*function easyEmail(email, cb) {
-	var facount = 0;
-	get_user_by_email({
-		from: selfId,
-		original: selfId,
-		email: email
-	}, function(res) {
-		if (res == false) {
-			facount++;
-			if (facount >= 2) {
-				cb(false);
-			} else {
-				console.log("DiasDIASD");
-			}
-		} else {
-			cb(res);
-		}
-	});
-}*/
 //Does exactly what it says on the tin. Used to reverse an event's direction.
 function flip(dir) {
 	switch (dir) {
@@ -922,69 +787,30 @@ function get_feed(toget, cb) {
 	});
 }
 //Lets a user follow a tag. Event function.
-function follow_tag(req, ifself, cb) {
-	console.log(req.uid);
-	if (users[req.uid]) {
-		console.log("have user");
-		if (users[req.uid].original == true) {
-			console.log("verifying");
-			jwt.verify(req.token, secret, function(err, decode) {
-				if (err) {
-					console.log(err);
-				} else {
-					if (decode.uid == req.uid) {
-						console.log("updating");
-						users[req.uid].tags[req.tag] = true;
-						updateUsers();
-						alldir("update_users", users[req.uid]);
-						if (ifself) {
-							console.log("emitting");
-							cb(true);
-
-						} else {
-							onedir("followed_tag_" + req.uid + "_" + req.tag, users[req.uid], flip(getDir(req.from)));
-						}
-					} else {
-						console.log("Fradulent request recieved!");
-					}
-				}
-			});
-		}
-	} else if (ifself) {
-		alldir("follow_tag", req);
-	} else {
-		passAlong("follow_tag", req);
-
-	}
-}
-//Lets a user unfollow a curation. Event function.
-function unfollow_cur(req, cb){
+var follow_tag = new fulfill("follow_tag", function(req){
 	if(users[req.uid]){
-		if(users[req.uid].original == true){
-			jwt.verify(req.token, secret, function(err, decode){
-				users[req.uid].curs[req.cur] = false;
-				updateUsers();
-				alldir("update_users", users[req.uid]);
-				if(cb){
-					cb(true);
-				} else {
-					onedir("unfollowed_cur_"+req.uid+"_"+req.cur, true, flip(getDir(req.from)));
-				}
-			});
-		}
-	} else if (cb){
-		alldir("unfollow_cur", req);
-		whenonce("unfollowed_cur_"+req.uid+"_"+req.cur, cb);
-	} else {
-		if(adjacent[flip(getDir(req.from))]){
-			passAlong("unfollow_cur", req);
-		} else {
-			onedir("unfollowed_cur_"+req.uid+"_"+req.cur, false, getDir(req.from));
+		if(users[req.uid].original === true){
+			return true;
 		}
 	}
+	return false;
+}, function(req){
+	users[req.uid].tags[req.tag] = true;
+	updateUsers(users[req.uid]);
+	return true;
+}, true, "once", true);
+//Lets a user unfollow a curation. Event function.
+var unfollow_cur = new fulfill("unfollow_cur", function(req){
+	if(users[req.uid]){
+		return users[req.uid].original
+	}
+	return false;
+}, function(req){
+	users[req.uid].curs[req.cur] = false;
+	updateUsers(users[req.uid]);
+	return true;
+}, true, "once", true);
 
-
-}
 //Lets a user unfollow a tag. Event function.
 function unfollow(req, ifself, cb) {
 	console.log(req.uid);
@@ -1154,16 +980,7 @@ function easyDel(pid, token, cb){
 		cb(res);
 	});
 }
-//Easy way to change username.
-/*function change_username_e(uid, name, token, cb) {
-	change_username({
-		from: selfId,
-		original: selfId,
-		uid: uid,
-		token: token,
-		new_u: name
-	}, cb);
-}*/
+
 //Iterates through posts, adding favorited to them where they match favs.
 function checkFavs(favs, rposts){
 	var fposts = rposts;
@@ -1207,39 +1024,7 @@ var change_username = new fulfill("change_username", function(req){
 	updateUsers(users[req.uid]);
 	return true;
 }, true, "once", true);
-/*
-function change_username(req, cb) {
-	console.log("func");
-	if (users[req.uid]) {
-		if (users[req.uid].original == true) {
-			jwt.verify(req.token, secret, function(err, decode) {
-				if (!err) {
-					if (decode.uid == req.uid) {
-						users[req.uid].username = req.new_u;
-						updateUsers();
-						alldir("update_users", users[req.uid]);
-						if (cb) {
-							console.log("callback");
-							cb(true);
-						} else {
-							onedir("changed_username_" + req.uid, true, flip(getDir(req.from)));
-						}
-					}
-				}
-			});
-		}
-	} else if (cb) {
-		alldir("change_username", req);
-		whenonce("changed_username_" + req.uid, cb);
-	} else {
-		if (adjacent[getDir(flip(req.from))]) {
-			passAlong("change_username", req);
-		} else {
-			onedir("changed_username_" + req.uid, false, flip(getDir(req.from)));
 
-		}
-	}
-}*/
 //Change email event function.
 function changeEmail(req, cb){
 	var kill = false;
@@ -1842,16 +1627,7 @@ var serv_handles = {
 			from: selfId,
 			posts: {}
 		}, function(postsR) {
-			/*Object.keys(users[logged[req.id]].favorites).forEach(function(fav) {
-				Object.keys(postsR.posts).forEach(function(key) {
-					if (postsR.posts[key].id == fav && users[logged[req.id]].favorites[postsR.posts[key].id] == true) {
-						console.log("UDPATEW");
-						postsR.posts[key].favorited = true;
-					}
-				});
-			});*/
 			postsR = checkFavs(users[logged[req.id]].favorites, postsR.posts);
-
 			io.to(req.id).emit("c_got_posts_" + req.data,{posts: postsR});
 		});
 
@@ -1865,15 +1641,6 @@ var serv_handles = {
 			posts: {},
 			from: selfId
 		}, function(postsR) {
-			//console.log(Object.keys(postsR.posts));
-			/*	Object.keys(users[logged[req.id]].favorites).forEach(function(fav) {
-				Object.keys(postsR.posts).forEach(function(key) {
-					if (postsR.posts[key].id == fav && users[logged[req.id]].favorites[postsR.posts[key].id] == true) {
-			//console.log("UDPATEW");
-						postsR.posts[key].favorited = true;
-					}
-				});
-			})*/
 			postsR = checkFavsArr(users[logged[req.id]].favorites, postsR.posts);
 			console.log("GOT OTP< COUNT:" + Object.keys(postsR).length);
 			console.log(postsR);
@@ -2079,16 +1846,6 @@ var serv_handles = {
 			toget.count = req.count;
 			console.log("getting");
 			get_feed(toget, function(postsR) {
-				/*	Object.keys(users[logged[req.cid]].favorites).forEach(function(fav) {
-
-					Object.keys(postsR).forEach(function(key) {
-						if (postsR[key].id == fav && users[logged[req.cid]].favorites[postsR[key].id] == true) {
-							console.log("UDPATEW");
-							postsR[key].favorited = true;
-						}
-					});
-				});*/
-
 				postsR = checkFavs(users[logged[req.cid]].favorites, postsR);
 
 				console.log("c_got_feed_" + logged[req.cid]);
@@ -2123,7 +1880,7 @@ var serv_handles = {
 	"c_unfollow_cur":function(req){
 		if(logged[req.cid]){
 			if(logged[req.cid] == req.uid){
-				unfollow_cur({from:selfId, original:selfId, uid:req.uid, cur:req.cur, token:req.token}, function(res){
+				unfollow_cur.easy({cur:req.cur, token:req.token}, function(res){
 					io.to(req.cid).emit("c_unfollow_cur_"+req.cur, res);
 				})
 
@@ -2179,10 +1936,7 @@ var serv_handles = {
 	"c_follow_tag": function(req) {
 		if (logged[req.cid]) {
 			if (logged[req.cid] == req.uid) {
-				follow_tag({
-					from: selfId,
-					original: selfId,
-					uid: req.uid,
+				follow_tag.easy({
 					tag: req.tag,
 					token: req.token
 				}, true, function(res) {
@@ -2241,7 +1995,6 @@ var serv_handles = {
 	},
 	"create_post": createPost,
 	"add_neighbor": function(toAdd) {
-		//console.log("from:" + toAdd.from)
 		if (adjacent.length < 2 && !isNeighbor(toAdd.id) && toAdd.id != selfId && !adjacent[flip(toAdd.dir)]) {
 			adjacent[flip(toAdd.dir)] = {
 				id: toAdd.original,
