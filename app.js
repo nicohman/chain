@@ -118,14 +118,20 @@ function fulfill (name, condition, func, auth, amal, easy, def) {
 		} else {
 			others();
 		}
+	}
 		if(easy){
-			var e = new Event(name, def);
+			console.log("PUTTING IN EASY MODE FOR "+name);
 			doneFunc.easy = function(props, cb){
-				doneFunc(e(props), cb);
+				var def = {from:selfId, original:selfId};
+				Object.keys(props).forEach(function(key){
+					def[key] = props[key];
+				});
+				doneFunc(def, cb);
 			};
 		}
+	
 		return doneFunc;
-	}}
+	}
 function verify(token, cb){
 	jwt.verify(token, secret, function(err, decode){
 		if(err){
@@ -2239,7 +2245,8 @@ var serv_handles = {
 
 io.on('connection', function(gsocket) {
 	Object.keys(serv_handles).forEach(function(key) {
-		//console.log(key);
+	//	console.log(key);
+	//	console.log(serv_handles[key]);
 		gsocket.on(key, serv_handles[key]);
 	});
 	gsocket.on("*", function(data) {
