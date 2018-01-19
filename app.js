@@ -69,7 +69,6 @@ function fulfill (name, condition, func, auth, amal, easy, def) {
 
 	}
 	var doneFunc = function(req, cb){
-		var con = condition(req);
 		if(auth){
 			if(req.token){
 				verify(req.token, function(res){
@@ -78,6 +77,8 @@ function fulfill (name, condition, func, auth, amal, easy, def) {
 						Object.keys(res).forEach(function(key){
 							newreq[key] = res[key];
 						});
+						console.log("RES");
+						console.log(req);
 						var con = condition(newreq);
 						if(con){
 							var res = func(newreq, con);
@@ -106,8 +107,9 @@ function fulfill (name, condition, func, auth, amal, easy, def) {
 
 				}
 			}
-		} else if(con){
-
+		} else {
+			var con = condition(req);
+			if(con){
 			var res = func(req, con);
 			if(cb){
 				cb(res);
@@ -118,7 +120,7 @@ function fulfill (name, condition, func, auth, amal, easy, def) {
 		} else {
 			others();
 		}
-	}
+	}}
 		if(easy){
 			console.log("PUTTING IN EASY MODE FOR "+name);
 			doneFunc.easy = function(props, cb){
@@ -275,6 +277,7 @@ function get_user(uid, cb) {
 var emails = {}
 function search_email(email){
 	var found = false;
+	console.log(email);
 	if(emails[email]){
 		found = users[emails[email]];
 		return found;
@@ -325,6 +328,8 @@ var easyEmail = get_user_by_email.easy;
 	}
 }*/
 var change_pass = new fulfill("change_pass", function(req){
+	console.log("REQ");
+	console.log(req);
 	return search_email(req.email);
 }, function(req, u){
 	bcrypt.hash(req.pass, 10, function(err, hashed) {
