@@ -26,49 +26,8 @@ function Event(name, properties){
 	}
 }
 function fulfill (name, condition, func, auth, amal, easy, def) {
-	var doneFunc = function(req, cb){
-		var con = condition(req);
-		if(con){
-			if(auth){
-				if(req.token){
-				
-				verify(req.token, function(res){
-					if(res){
-						var newreq = req;
-						Object.keys(res).forEach(function(key){
-							newreq[key] = res[key];
-						});
-						var done = func(newreq, con);
-						if(cb){
-							cb(done);
-						} else {
-							onedir(name+req.id, done, getDir(req.from))
-						}
-					} else {
-						if(cb){
-							cb(false);
-						} else {
-						
-						onedir(name+req.id, false, getDir(req.from));
-						}
-					}
-				});
-				} else {
-					if(cb){
-					cb(false)
-					} else {
-					onedir(name+req.id, false, getDir(req.from));
-					}
-				}
-			} else {
-			var res = func(req, con);
-			if(cb){
-				cb(res);
-			} else {
-				onedir(name+req.id, res, getDir(req.from));
-			}
-			}
-		} else if (cb){
+	function others (){
+		if (cb){
 			alldir(name, req);
 			var done = 0;
 			var posts = {};
@@ -87,7 +46,7 @@ function fulfill (name, condition, func, auth, amal, easy, def) {
 					case "posts":
 						if(res){
 							Object.keys(res.posts).forEach(function(key){
-								if!(posts[key]){
+								if(!posts[key]){
 									posts[key] = res.posts[key];
 								}
 							});
@@ -107,15 +66,66 @@ function fulfill (name, condition, func, auth, amal, easy, def) {
 		} else {
 			onedir(name+req.id, false, getDir(req.from));
 		}
+
 	}
-	if(easy){
-		var e = new Event(name, def);
-		doneFunc.easy = function(props, cb){
-			doneFunc(e(props), cb);
-		};
-	}
-	return doneFunc;
-}
+	var doneFunc = function(req, cb){
+		var con = condition(req);
+		if(auth){
+			if(req.token){
+				verify(req.token, function(res){
+					if(res){
+						var newreq = req;
+						Object.keys(res).forEach(function(key){
+							newreq[key] = res[key];
+						});
+						var con = condition(newreq);
+						if(con){
+							var res = func(newreq, con);
+							if(cb){
+								cb(res);
+							} else {
+								onedir(name+req.id, res, getDir(req.from));
+							}
+						} else {
+							others();
+						}
+
+					} else {
+						if(cb){
+							cb(false);
+						} else {
+							onedir(name+req.id, false, getDir(req.from));
+						}
+					}
+				});
+			} else {
+				if(cb) {
+					cb(false)
+				} else {
+					onedir(name+req.id, false, getDir(req.from));
+
+				}
+			}
+		} else if(con){
+
+			var res = func(req, con);
+			if(cb){
+				cb(res);
+			} else {
+				onedir(name+req.id, res, getDir(req.from));
+			}
+
+		} else {
+			others();
+		}
+		if(easy){
+			var e = new Event(name, def);
+			doneFunc.easy = function(props, cb){
+				doneFunc(e(props), cb);
+			};
+		}
+		return doneFunc;
+	}}
 function verify(token, cb){
 	jwt.verify(token, secret, function(err, decode){
 		if(err){
@@ -175,7 +185,7 @@ transporter.verify(function(err, suc) {
 });
 //Generates a Password reset link based on an user's email.
 function genRecLink(email, cb) {
-	easyEmail(email, function(u) {
+	easyEmail({email:email}, function(u) {
 		if (u) {
 			var token = jwt.sign({
 				uid: u.id,
@@ -272,7 +282,7 @@ function search_email(email){
 		}
 	});
 	if(!found){
-		cb(false);
+		return false;
 	} else {
 		return found;
 	}
@@ -308,69 +318,78 @@ var easyEmail = get_user_by_email.easy;
 		}
 	}
 }*/
-//Change password event function.
-function change_pass(req, cb) {
-	jwt.verify(req.token, secret, function(err, un) {
-		if (!err) {
-			var found = false;
-			Object.keys(users).forEach(function(key) {
-				if (users[key].email.trim() == un.email.trim()) {
-					found = key;
-				}
-			});
-			if (found) {
-				bcrypt.hash(un.pass, 10, function(err, hashed) {
-					users[found].pass = hashed;
-					alldir("update_users", users[found]);
-					updateUsers();
-				});
-			}
-			if (found && cb) {
-				cb(true);
-			} else if (found) {
-				onedir("changed_pass_" + un.email, true, flip(getDir(req.from)));
-			} else if (cb) {
-				when("changed_pass_" + un.email, cb);
-				alldir("change_pass", req);
-			} else {
-				if (adjacent[flip(getDir(req.from))]) {
-					passAlong("change_pass", req);
-				} else {
-					console.log("NOT FOUND");
-					onedir("changed_pass_" + un.email, false, getDir(req.from));
-				}
-
-			}
-		}
+var change_pass = new fulfill("change_pass", function(req){
+	return search_email(req.email);
+}, function(req, u){
+	bcrypt.hash(req.pass, 10, function(err, hashed) {
+		users[u.id].pass = hashed;
+		updateUsers(u);
 	});
-}
+
+}, true, "once", true);
+//Change password event function.
+/*function change_pass(req, cb) {
+		jwt.verify(req.token, secret, function(err, un) {
+			if (!err) {
+				var found = false;
+				Object.keys(users).forEach(function(key) {
+					if (users[key].email.trim() == un.email.trim()) {
+						found = key;
+					}
+				});
+				if (found) {
+					bcrypt.hash(un.pass, 10, function(err, hashed) {
+						users[found].pass = hashed;
+						alldir("update_users", users[found]);
+						updateUsers();
+					});
+				}
+				if (found && cb) {
+					cb(true);
+				} else if (found) {
+					onedir("changed_pass_" + un.email, true, flip(getDir(req.from)));
+				} else if (cb) {
+					when("changed_pass_" + un.email, cb);
+					alldir("change_pass", req);
+				} else {
+					if (adjacent[flip(getDir(req.from))]) {
+						passAlong("change_pass", req);
+					} else {
+						console.log("NOT FOUND");
+						onedir("changed_pass_" + un.email, false, getDir(req.from));
+					}
+
+				}
+			}
+		});
+	}
 
 
 //Easier shortcut to change password.
-function change_pass_e(email, pass, cb) {
-	var f = 0;
-	console.log("changing");
-	var tok = jwt.sign({
-		pass: pass,
-		email: email
-	}, secret);
-	change_pass({
-		token: tok,
-		from: selfId,
-		original: selfId
-	}, function(res) {
-		if (res == false) {
-			f++;
-			if (f >= 2) {
-				cb(false);
-			} else {}
-		} else {
-			cb(res);
-		}
+	function change_pass_e(email, pass, cb) {
+		var f = 0;
+		console.log("changing");
+		var tok = jwt.sign({
+			pass: pass,
+			email: email
+		}, secret);
+		change_pass({
+			token: tok,
+			from: selfId,
+			original: selfId
+		}, function(res) {
+			if (res == false) {
+				f++;
+				if (f >= 2) {
+					cb(false);
+				} else {}
+			} else {
+				cb(res);
+			}
 
 
-	});
-}
+		});
+	}*/
 //Easy shortcut to get a user by email hassle-free.
 /*function easyEmail(email, cb) {
 	var facount = 0;
@@ -777,7 +796,10 @@ function isNeighbor(id) {
 	return neighbor;
 }
 //Writes users to disk.
-function updateUsers() {
+function updateUsers(u) {
+	if(u){
+		alldir("update_users", u);
+	}
 	sem.take(function() {
 		var usersstring = JSON.stringify(users);
 		fs.writeFile(DEMPATH+'users_' + name + '.json', usersstring, function(err) {
@@ -1596,7 +1618,6 @@ var serv_handles = {
 	"update_users": function(u) {
 		users[u.id] = u;
 		updateUsers();
-
 	},
 	"update_curations":function(cur){
 		curations[cur.name] = cur;
@@ -1710,7 +1731,7 @@ var serv_handles = {
 			jwt.verify(req.token, secret, function(err, dec){
 				console.log("decoded");
 				if(!err){
-					easyEmail(req.email, function(u){
+					easyEmail({email:req.email}, function(u){
 						if(u){
 							io.to(req.cid).emit("c_changed_email", false);
 						} else
@@ -1769,7 +1790,7 @@ var serv_handles = {
 	"change_username": change_username,
 	"c_req_rec": function(req) {
 		if (!logged[req.cid]) {
-			easyEmail(req.email, function(u) {
+			easyEmail({email:req.email}, function(u) {
 				console.log(u);
 
 				if (u) {
@@ -1834,7 +1855,7 @@ var serv_handles = {
 	"find_user_by_email": get_user_by_email,
 	"c_find_user_by_email": function(req) {
 		if (!logged[req.cid]) {
-			easyEmail(req.email, function(res) {
+			easyEmail({email:req.email}, function(res) {
 				io.to(req.cid).emit("c_found_user_by_email_" + req.email, res);
 			});
 		}
@@ -1958,7 +1979,7 @@ var serv_handles = {
 
 	},
 	"c_login": function(req) {
-		easyEmail(req.email, function(user) {
+		easyEmail({email:req.email}, function(user) {
 			console.log(user);
 			bcrypt.compare(req.password, user.pass, function(err, res) {
 				if (res) {
@@ -2049,7 +2070,7 @@ var serv_handles = {
 	"d_change_pass": function(req) {
 		jwt.verify(req.token, emailSecret, function(err, un) {
 			if (!err && req.pass1 == req.pass2) {
-				change_pass_e(un.email, req.pass1, function(res) {
+				change_pass.easy({token:jwt.sign({email:un.email, pass:req.pass1}, secret)}, function(res) {
 					io.to(req.cid).emit("d_changed_pass_" + un.email, res);
 				});
 			}
@@ -2063,7 +2084,7 @@ var serv_handles = {
 	"c_follow_cur":function(req){
 		if(logged[req.cid]){
 			if(logged[req.cid] == req.uid) {
-				follow_cur.easy(uid:req.uid, cur:req.cur, token:req.token}, function(res){
+				follow_cur.easy({uid:req.uid, cur:req.cur, token:req.token}, function(res){
 					io.to(req.cid).emit("c_follow_cur_"+req.cur, res);
 				})
 			}
