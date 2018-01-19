@@ -472,7 +472,7 @@ function createPost(post) {
 	alldir("update_posts", posts[id]);
 }
 //Writes curations to disk.
-function updateCurs(){
+function updateCurs(cur){
 	sem.take(function(){
 		var curstring = JSON.stringify(curations);
 		fs.writeFile(DEMPATH+"curations_"+name+".json", curstring, function(err){
@@ -483,9 +483,12 @@ function updateCurs(){
 			sem.leave();
 		});
 	});
+	if(cur){
+		alldir("update_curs", cur);
+	}
 }
 //Writes posts to disk.
-function updatePosts() {
+function updatePosts(post) {
 	sem.take(function() {
 		Object.keys(posts).forEach(function(key) {
 			if (posts[key].favorited == true) {
@@ -503,7 +506,9 @@ function updatePosts() {
 			sem.leave();
 		});
 	})
-
+	if(post){
+		alldir("update_posts", post);
+	}
 
 };
 //Adds a comment.
@@ -1096,7 +1101,7 @@ function deletePost(req, cb){
 						passAlong("delete_post", req);
 					} else {
 						if(cb){
-							cb(req.deleted);
+							alldir('delete_post', req);
 						} else {
 							onedir("deleted_post_"+req.pid, req.deleted, flip(getDir(req.from)));
 						}
@@ -1150,7 +1155,7 @@ function easyDel(pid, token, cb){
 	});
 }
 //Easy way to change username.
-function change_username_e(uid, name, token, cb) {
+/*function change_username_e(uid, name, token, cb) {
 	change_username({
 		from: selfId,
 		original: selfId,
@@ -1158,7 +1163,7 @@ function change_username_e(uid, name, token, cb) {
 		token: token,
 		new_u: name
 	}, cb);
-}
+}*/
 //Iterates through posts, adding favorited to them where they match favs.
 function checkFavs(favs, rposts){
 	var fposts = rposts;
@@ -1190,6 +1195,19 @@ function checkFavsArr(favs, rposts){
 	return rposts
 }
 //Change username event function
+var change_username = new fulfill("change_username", function(req){
+	if(users[req.uid]){
+		if(users[req.uid].original === true){
+			return true;
+		}
+	} 
+	return false;
+}, function(req){
+	users[req.uid].username = req.new_u;
+	updateUsers(users[req.uid]);
+	return true;
+}, true, "once", true);
+/*
 function change_username(req, cb) {
 	console.log("func");
 	if (users[req.uid]) {
@@ -1221,7 +1239,7 @@ function change_username(req, cb) {
 
 		}
 	}
-}
+}*/
 //Change email event function.
 function changeEmail(req, cb){
 	var kill = false;
@@ -1779,7 +1797,7 @@ var serv_handles = {
 		if (logged[req.cid]) {
 			jwt.verify(req.token, secret, function(err, dec) {
 				if (!err) {
-					change_username_e(dec.uid, req.new_u, req.token, function(res) {
+					change_username.easy({token:req.token, new_u:req.new_u}, function(res) {
 						io.to(req.cid).emit("c_changed_username", res);
 					});
 				} else {
