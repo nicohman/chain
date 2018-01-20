@@ -810,110 +810,39 @@ var unfollow_cur = new fulfill("unfollow_cur", function(req){
 	updateUsers(users[req.uid]);
 	return true;
 }, true, "once", true);
-
+var unfollow = new fulfill("unfollow", function(req){
+	if(users[req.uid]){
+		return users[req.uid].original
+	}
+	return false
+}, function(req){
+	users[req.uid].tags[req.tag] = false;
+	updateUsers(users[req.uid]);
+	return true;
+}, true, "once", true);
 //Lets a user unfollow a tag. Event function.
-function unfollow(req, ifself, cb) {
-	console.log(req.uid);
-	if (users[req.uid]) {
-		if (users[req.uid].original == true) {
-			jwt.verify(req.token, secret, function(err, decode) {
-				if (err) {
-					console.log(err);
-				} else {
-					if (decode.uid == req.uid) {
-						console.log("updating");
-						users[req.uid].tags[req.tag] = false;
-						updateUsers();
-						alldir("update_users", users[req.uid]);
-						if (ifself) {
-							cb(true);
-						} else {
-							onedir("unfollowed_" + req.uid + "_" + req.tag, users[req.uid], flip(getDir(req.from)));
-						}
-					} else {
-						console.log("Fradulent request recieved!");
-					}
-				}
-			});
-		}
-	} else if (ifself) {
-		alldir("unfollow", req);
-	} else {
-		passAlong("unfollow", req);
-
-	}
-}
-
 //Lets a user favorite a post.
-function add_favorite(req, cb) {
-	if (users[req.uid]) {
-		console.log("have user");
-		if (users[req.uid].original == true) {
-			console.log("verifying");
-			jwt.verify(req.token, secret, function(err, decode) {
-				if (err) {
-
-					console.log(err);
-				} else {
-					if (decode.uid == req.uid) {
-						users[req.uid].favorites[req.pid] = true;
-						updateUsers();
-						updateFavs(req.pid, 1, cb);
-						alldir("update_users", users[req.uid]);
-						if (cb) {
-							//cb(users[req.uid]);
-						} else {
-							onedir("added_favorite_" + req.uid + "_" + req.pid, users[req.uid], flip(getDir(req.from)));
-						}
-
-					}
-				}
-			})
-		}
-	} else if (cb) {
-		alldir("add_favorite", req);
-		whenonce("added_favorite_" + req.uid + "_" + req.pid, cb);
-	} else {
-		passAlong("add_favorite", req);
-
+var add_favorite = new fulfill("add_favorite", function(req){
+	if(users[req.uid]){
+		return users[req.uid].original
 	}
-
-}
-//Easy way to update the number of favs for a post.
-function updateFavs(pid, num, cb) {
-	favsUpdate({
-		from: selfId,
-		original: selfId,
-		pid: pid,
-		num: num
-	}, function(res) {
-		if (cb) {
-			cb(res)
-		}
-		console.log(res);
-	});
-}
-//Favorite updating event function.
-function favsUpdate(req, cb) {
-	if (posts[req.pid]) {
-		posts[req.pid].favs += req.num;
-		console.log(posts[req.pid].favs + " " + req.num);
-		if (cb) {
-			alldir("update_favs", req);
-
-			cb([req.pid]);
-		} else {
-			onedir("updated_favs_" + req.pid + "_" + req.original, posts[req.pid], flip(getDir(req.from)));
-		}
-		updatePosts();
-
-	} else if (cb) {
+	return false
+}, function(req){
+	users[req.uid].favorites[req.pid] = true;
+	updateUsers(users[req.uid]);
+	favsUpdate.easy({pid:req.pid, num:1}, function(){});
+	return true;
+}, true, "once", true);
+var favsUpdate = new fulfill("update_favs", function(req){
+	return posts[req.pid]
+}, function(req){
+	posts[req.pid].favs += req.num;
+	updatePosts();
+	if(req.original == selfId){
 		alldir("update_favs", req);
-		whenonce("updated_favs_" + req.pid + "_" + req.original, cb);
-	} else {
-		passAlong("update_favs", req);
 	}
-}
+	return true;
+}, false, "once", true);
 //Delete post event function. Requires either author's jwt token or admin status.
 function deletePost(req, cb){
 	if(posts[req.pid]){
@@ -1024,100 +953,27 @@ var change_username = new fulfill("change_username", function(req){
 	updateUsers(users[req.uid]);
 	return true;
 }, true, "once", true);
-
-//Change email event function.
-function changeEmail(req, cb){
-	var kill = false;
-
+var changeEmail = new fulfill("change_email", function(req){
 	if(users[req.uid]){
-		if(users[req.uid].original == true){
-			jwt.verify(req.token,  secret, function(err, decode){
-				if(!err){
-					if(decode.uid ===  req.uid){
-						users[req.uid].email = req.email;
-						updateUsers();
-						alldir("update_users", users[req.uid]);
-						if(cb){
-							cb(true);
-						} else {
-							onedir("changed_email_" + req.uid, true, flip(getDir(req.from)));
-
-						}
-					} else {
-						onedir("changed_email_" + req.uid, false, flip(getDir(req.from)));
-
-					}
-				} else {
-					onedir("changed_email_" + req.uid, false, flip(getDir(req.from)));
-
-				}
-			});
-		}
-	} else if (cb) {
-		alldir("change_email", req);
-		var time = 0;
-		when("changed_email_"+req.uid, function(res){
-			time++;
-			if(res){
-				cb(true);
-				never("changed_email_"+req.uid)
-			} else if (time >= 2){
-				cb(true)
-				never("changed_email_"+req.uid)
-			}
-		});
-	}else {
-		if (adjacent[getDir(flip(req.from))]) {
-			passAlong("change_email", req);
-		} else {
-			onedir("changed_email_" + req.uid, false, flip(getDir(req.from)));
-
-		}
+		return users[req.uid].original
 	}
-
-
-}
-function unfavorite(req, cb) {
-	if (users[req.uid]) {
-		console.log("have user");
-		if (users[req.uid].original == true) {
-			console.log("verifying");
-			jwt.verify(req.token, secret, function(err, decode) {
-				if (err) {
-
-					console.log(err);
-				} else {
-					if (decode.uid == req.uid) {
-						users[req.uid].favorites[req.pid] = false;
-						updateFavs(req.pid, -1, cb);
-						updateUsers();
-						alldir("update_users", users[req.uid]);
-						if (cb) {
-							cb(users[req.uid]);
-						} else {
-							onedir("unfavorited_" + req.uid + "_" + req.pid, users[req.uid], flip(getDir(req.from)));
-						}
-
-					} else {
-						console.log("Not verified");
-					}
-				}
-			})
-		}
-	} else if (cb) {
-		alldir("unfavorite", req);
-		whenonce("unfavorited_" + req.uid + "_" + req.pid, cb);
-	} else {
-		passAlong("unfavorite", req);
-
+	return false
+}, function(req){
+	users[req.uid].email = req.email;
+	updateUsers(users[req.uid]);
+	return true;
+}, true, "once", true);
+var unfavorite = new fulfill("unfavorite", function(req){
+	if(users[req.uid]){
+		return users[req.uid].original
 	}
-
-
-
-
-
-}
-
+	return false
+}, function(req){
+	users[req.uid].favorites[req.pid] = false;
+	updateUsers(users[req.uid]);
+	favsUpdate.easy({pid:req.pid, num:-1}, function(){});
+	return true;	
+}, true, "once", true);
 function add_comment(comment, cb) {
 	if (posts[comment.id]) {
 		posts[comment.id].comments.push(comment);
@@ -1551,7 +1407,7 @@ var serv_handles = {
 						} else
 						{
 							console.log("Not already used!");
-							changeEmail({from:selfId, original:selfId, email:req.email ,token:req.token, uid:dec.uid}, function(res){
+							changeEmail.easy({email:req.email ,token:req.token}, function(res){
 								io.to(req.cid).emit("c_changed_email", res);
 							});
 						}
@@ -1712,14 +1568,10 @@ var serv_handles = {
 	"c_unfavorite": function(req) {
 		if (logged[req.cid]) {
 			if (logged[req.cid] == req.uid) {
-				unfavorite({
-					from: selfId,
-					original: selfId,
-					uid: req.uid,
+				unfavorite.easy({
 					pid: req.pid,
 					token: req.token
 				}, function(res) {
-					console.log("SENDING EVENT BITCH");
 					io.to(req.cid).emit("c_unfavorited_" + req.pid, true);
 				})
 			}
@@ -1729,13 +1581,9 @@ var serv_handles = {
 	"c_add_favorite": function(req) {
 		if (logged[req.cid]) {
 			if (logged[req.cid] == req.uid) {
-				add_favorite({
-					from: selfId,
-					original: selfId,
-					uid: req.uid,
+				add_favorite.easy({
 					pid: req.pid,
 					token: req.token
-
 				}, function(res) {
 					io.to(req.cid).emit("c_added_favorite_" + req.pid, true);
 				});
@@ -1952,14 +1800,11 @@ var serv_handles = {
 	"c_unfollow": function(req) {
 		if (logged[req.cid]) {
 			if (logged[req.cid] == req.uid) {
-				unfollow({
-					from: selfId,
-					original: selfId,
-					uid: req.uid,
+				unfollow.easy({
 					tag: req.tag,
 					token: req.token
 
-				}, true, function(res) {
+				}, function(res) {
 					io.to(req.cid).emit("c_unfollowed_" + req.tag, true);
 				});
 			}
