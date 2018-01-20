@@ -1939,7 +1939,7 @@ var serv_handles = {
 				follow_tag.easy({
 					tag: req.tag,
 					token: req.token
-				}, true, function(res) {
+				},  function(res) {
 					console.log("FsaJF");
 					console.log("c_followed_tag_" + req.tag + "\n " + req.cid);
 					io.to(req.cid).emit("c_followed_tag_" + req.tag, true);
