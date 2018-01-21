@@ -110,30 +110,30 @@ function fulfill (name, condition, func, auth, amal, easy, def) {
 		} else {
 			var con = condition(req);
 			if(con){
-			var res = func(req, con);
-			if(cb){
-				cb(res);
-			} else {
-				onedir(name+req.id, res, getDir(req.from));
-			}
+				var res = func(req, con);
+				if(cb){
+					cb(res);
+				} else {
+					onedir(name+req.id, res, getDir(req.from));
+				}
 
-		} else {
-			others();
-		}
-	}}
-		if(easy){
-			console.log("PUTTING IN EASY MODE FOR "+name);
-			doneFunc.easy = function(props, cb){
-				var def = {from:selfId, original:selfId};
-				Object.keys(props).forEach(function(key){
-					def[key] = props[key];
-				});
-				doneFunc(def, cb);
-			};
-		}
-	
-		return doneFunc;
+			} else {
+				others();
+			}
+		}}
+	if(easy){
+		console.log("PUTTING IN EASY MODE FOR "+name);
+		doneFunc.easy = function(props, cb){
+			var def = {from:selfId, original:selfId};
+			Object.keys(props).forEach(function(key){
+				def[key] = props[key];
+			});
+			doneFunc(def, cb);
+		};
 	}
+
+	return doneFunc;
+}
 function verify(token, cb){
 	jwt.verify(token, secret, function(err, decode){
 		if(err){
@@ -946,7 +946,7 @@ var change_username = new fulfill("change_username", function(req){
 		if(users[req.uid].original === true){
 			return true;
 		}
-	} 
+	}
 	return false;
 }, function(req){
 	users[req.uid].username = req.new_u;
@@ -972,30 +972,14 @@ var unfavorite = new fulfill("unfavorite", function(req){
 	users[req.uid].favorites[req.pid] = false;
 	updateUsers(users[req.uid]);
 	favsUpdate.easy({pid:req.pid, num:-1}, function(){});
-	return true;	
+	return true;
 }, true, "once", true);
-function add_comment(comment, cb) {
-	if (posts[comment.id]) {
+var add_comment = new fulfill("add_comment", function(req){
+	return posts[comment.id]}, function(req){
 		posts[comment.id].comments.push(comment);
-		alldir("update_posts", posts[comment.id]);
-		updatePosts();
-		if (cb) {
-			cb(true);
-		} else {
-			onedir("added_comment_" + comment.id + "_" + comment.auth, true, flip(getDir(comment.from)));
-		}
-	} else {
-		if (cb) {
-			alldir("add_comment", comment);
-			when("added_comment_" + comment.id + "_" + comment.auth, cb);
-		} else {
-			if (adjacent[flip(getDir(commment.from))]) {
-				passAlong(comment);
-			}
-		}
-	}
-}
-
+		updatePosts(posts[comment.id]);
+		return true;
+	}, false, "once", true);
 function getCurationById(id, cb) {
 	if (curations[id]) {
 		cb(curations[id]);
@@ -1013,93 +997,33 @@ function getCurationById(id, cb) {
 
 function get_curation_by_name(name, cb) {
 	count = 0;
-	console.log("GCBYN");
-	get_curation({
-		from: selfId,
+	get_curation.easy({
 		filter: "name",
-		filter_data: name,
-		original: selfId
+		filter_data: name
 	}, function(res) {
-		count++;
-		console.log(count+": GOT A CURATION OF NAME "+name+" WITH TAGS "+res.tags);
 		cb(res);
 	});
 }
-function easy_add_own(uid, cid, cb){
-	add_cur_own({from:selfId, original:selfId, uid:uid, cid:cid}, cb);
-}
-function add_cur_own(req, cb){
+var add_cur_own = new fulfill("add_cur_own", function(req){
 	if(users[req.uid]){
-		users[req.uid].curations_owned[req.cid] = true;
-		console.log("writing for curation");
-		console.log(users[req.uid]);
-		updateUsers();
-		alldir("update_users", users[req.uid]);
-		if(cb){
-			cb(true);
-		} else {
-			onedir("added_own_"+req.cid, true, flip(getDir(req.from)));
-		}
-
-	} else if (cb){
-		alldir("add_cur_own", req);
-		var got = 0;
-		when("added_cur_own_"+req.cid, function(res){
-			got++;
-			if(res){
-				cb(res);
-				never("added_cur_own_"+req.cid);
-			} else if(got>=2){
-				cb(false);
-				never("added_cur_own_"+req.cid);
-
-			}
-		});
-	} else if(adjacent[flip(getDir(req.from))]){
-		passAlong("add_cur_own", req);
-	} else {
-		onedir("added_cur_own_"+req.cid, false, getDir(req.from));
+		return users[req.uid]
 	}
-}
-function get_curation(req, cb) {
-	var found = false;
-	if (req.filter == "name") {
-		if (curations[req.filter_data]) {
-			found = true;
-			if (cb) {
-				cb(curations[req.filter_data]);
-				found = true;
-			} else {
-				onedir("got_curation_name_" + req.filter_data, curations[req.filter_data], flip(getDir(req.from)));
-				found = true;
-			}
+		return false;
+}, function(req){
+	users[req.uid].curations_owned[req.cid] = true;
+	updateUsers(users[req.uid]);
+	return true;
+}, true, "once", true);
+var get_curation = new fulfill('get_curation', function(req){
+	if(req.filter == "name"){
+		if(curations[req.filter_data]){
+			return req.filter_data;
 		}
 	}
-	if (!found && cb) {
-		var got = 0
-		console.log("Couldn't find here, passing on");;
-		alldir("get_curation", req);
-		when("got_curation_" + req.filter + "_" + req.filter_data, function(res) {
-			got++;
-			if (res) {
-				cb(res);
-				console.lgo("GOT CURATION");
-				never("got_curation_" + req.filter + "_" + req.filter_data);
-			} else if (got >= 2) {
-				console.log("CAANT FIND");
-				cb(false);
-
-				never("got_curation_" + req.filter + "_" + req.filter_data);
-			} else {
-				console.log("Sad res");
-			}
-		});
-	} else if (adjacent[flip(getDir(req.from))]) {
-		passAlong("get_curation", req)
-	} else {
-		onedir("got_curation_" + req.filter + "_" + req.filter_data, false, getDir(req.from));
-	}
-}
+	return false;
+}, function(req, s){
+	return curations[s];
+}, false, "once", true);
 function create_curation(req, cb){
 	jwt.verify(req.token, secret, function(err, decode){
 		if(decode.uid == req.uid){
@@ -1123,7 +1047,6 @@ function updateRec(id) {
 		}
 	});
 }
-
 function get_curation_posts(cur, cb, count){
 	if(!count){
 
@@ -1204,53 +1127,22 @@ function get_curation_posts(cur, cb, count){
 	});
 
 }
-function edit_cur_mod(req, cb){
+var edit_cur_mod = new fulfill("edit_cur_mod", function(req){
 	if(curations[req.cur]){
-		jwt.verify(req.token, secret, function(err, decode){
-			if(err){
-				if(cb){
-					cb(false);
-				} else {
-					onedir("edited_cur_mod_"+req.cur, false, getDir(req.from));
-				}
-			} else {
-				if(curations[req.cur].own !== decode.uid){
-					if(cb){
-						cb(false)
-					} else {
-						onedir("edited_cur_mod_"+req.cur, false, getDir(req.from));
-					}
-				} else {
-					Object.keys(req.changes).forEach(function(change){
-						if(curations[req.cur][change]){
-							curations[req.cur][change] = req.changes[change];
-						} else {
-							console.log("Invalid change");
-						}
-					});
-					updateCurs();
-					alldir("update_curations", curations[req.cur]);
-					if (cb){
-						cb(true);
-					} else {
-						onedir("edited_cur_mod_"+req.cur, true, getDir(req.from));
-
-					}
-				}
-			}
-		});
-	} else if(cb){
-		alldir("edit_cur_mod", req);
-		when("edited_cur_mod_"+req.cur, twice(cb));
-	} else {
-		if(adjacent[flip(getDir(req.from))]){
-			passAlong("edit_cur_mod_"+req.cur, req);
-		} else {
-			onedir("edited_cur_mod_"+req.cur, false, getDir(req.from));
-
+		if(curations[req.cur].own == req.uid){
+			return true;
 		}
 	}
-}
+	return false;
+}, function(req){
+	Object.keys(req.changes).forEach(function(change){
+		if(curations[req.cur][change]){
+			curations[req.cur][change]  = req.changes[change];
+		}
+	});
+	updateCurs(curations[req.cur]);
+	return true;
+}, true, "once", true);
 function twice(fn){
 	var count = 0;
 	return function(res){
@@ -1380,14 +1272,10 @@ var serv_handles = {
 				token: req.token
 			}
 			get_curation_by_name(req.name, function(res) {
-				console.log(res);
-				console.log("RES");
 				if (res) {
 					io.to(req.cid).emit("already");
 				} else {
-					easy_add_own(logged[req.cid], to_create.title, function(res){
-
-
+					add_cur_own.easy({token:req.token, cid:req.name}, function(res){
 						create_curation(to_create, function(res) {
 							io.to(req.cid).emit("c_created_curation", res);
 						});
@@ -1767,9 +1655,7 @@ var serv_handles = {
 				if(err || (decode.uid !== logged[req.cid])){
 					io.to(req.cid).emit("c_edited_cur_mod_"+req.cur, false);
 				} else {
-					edit_cur_mod({
-						from:selfId,
-						original:selfId,
+					edit_cur_mod.easy({
 						cur:req.cur,
 						token:req.token,
 						changes:req.changes
@@ -1866,8 +1752,8 @@ var serv_handles = {
 
 io.on('connection', function(gsocket) {
 	Object.keys(serv_handles).forEach(function(key) {
-	//	console.log(key);
-	//	console.log(serv_handles[key]);
+		//	console.log(key);
+		//	console.log(serv_handles[key]);
 		gsocket.on(key, serv_handles[key]);
 	});
 	gsocket.on("*", function(data) {
