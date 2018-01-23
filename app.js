@@ -151,6 +151,7 @@ var follow_cur = new fulfill("follow_cur",function(req){
 	}
 	return false;
 }, function(req){
+	favsCur.easy({cid:req.cur, num:1}, function(){});
 	users[req.uid].curs[req.cur] = true;
 	updateUsers(users[req.uid]);
 	return true;
@@ -806,6 +807,7 @@ var unfollow_cur = new fulfill("unfollow_cur", function(req){
 	}
 	return false;
 }, function(req){
+	favsCur.easy({num:-1, cid:req.cur}, function(){})
 	users[req.uid].curs[req.cur] = false;
 	updateUsers(users[req.uid]);
 	return true;
@@ -837,9 +839,22 @@ var favsUpdate = new fulfill("update_favs", function(req){
 	return posts[req.pid]
 }, function(req){
 	posts[req.pid].favs += req.num;
-	updatePosts();
+	updatePosts(posts[req.pid]);
 	if(req.original == selfId){
 		alldir("update_favs", req);
+	}
+	return true;
+}, false, "once", true);
+var favsCur = new fulfill("update_cur_favs", function(req){
+	return curations[req.cid]
+}, function(req){
+	if(!curations[req.cid].favs){
+		curations[req.cid].favs = 0;
+	}
+	curations[req.cid].favs += req.num;
+	updatePosts(curations[req.cid]);
+	if(req.original == selfId){
+		alldir("update_cur_favs", req);
 	}
 	return true;
 }, false, "once", true);
@@ -994,7 +1009,6 @@ function getCurationById(id, cb) {
 		});
 	}
 }
-
 function get_curation_by_name(name, cb) {
 	count = 0;
 	get_curation.easy({
