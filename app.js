@@ -128,11 +128,94 @@ function fulfill (name, condition, func, auth, amal, easy, def) {
 			Object.keys(props).forEach(function(key){
 				def[key] = props[key];
 			});
+			def.id = hash(Date.now()+selfId+name);
 			doneFunc(def, cb);
 		};
 	}
 
 	return doneFunc;
+}
+var get_posts_top = new indefinite("get_curs_top", function(req){
+			var check = Object.keys(posts).map(function(m) {
+				return posts[m];
+			}).sort(cmpfavs).splice(0, req.count);
+			check.forEach(function(check2, index) {
+				if (req.posts[check2.id]) {
+					check = check.splice(index, 1);
+				}
+			});
+			console.log("CHECK: ");
+			console.log(check);
+
+			check = check.map(function(m) {
+				m.favs = posts[m.id].favs;
+				return m;
+			});
+			req.posts = check.concat(req.posts).sort(cmpfavs).splice(0, req.count);
+	return req;
+}, function(req){}, false, function(req, cb, acc, t){
+	if(!acc){
+		acc = [];
+	}
+	acc.push(req.posts);
+	acc.sort(cmpfavs).splice(0, req.count);
+	if(t >= 3){
+		cb(acc);
+		return "fin";
+	} else {
+		return acc;
+	}
+}, true, {posts:[]});
+
+function indefinite (name, exec, cond, auth, amal, easy, def) {
+	var t = 0;
+	var acc = undefined;
+	function done (req, cb){
+		if(cb){
+			t++;
+			acc = amal(req, cb, acc, t);
+			if(acc === "fin"){
+				never(name+req.id);
+			}
+		} else {
+			onedir(name+req.id, req, flip(getDir(req.from)));
+		}
+	}
+	var doneFunc = function(req, cb){
+			req = exec(req);
+			var con = cond(req);
+			if(cb){
+				done(req, cb);
+				alldir(name, req);
+				when(name+req.id, function(res){
+					done(res, cb);
+				});
+			} else {
+
+			if(con){
+				done(req, cb);
+			} else {
+				if(adjacent[flip(getDir(req.from))]){
+				passAlong(name, req);
+				} else {
+					onedir(name+req.id, req, flip(getDir(req.from)));
+				}
+			}
+			}
+	}
+	if(easy){
+		doneFunc.easy = function(props, cb){
+			var def = {from:selfId, original:selfId};
+			Object.keys(props).forEach(function(key){
+				def[key] = props[key];
+			});
+			def.id = hash(Date.now()+selfId+name);
+			doneFunc(def, cb);
+		};
+	}
+
+	return doneFunc;
+
 }
 function verify(token, cb){
 	jwt.verify(token, secret, function(err, decode){
@@ -1022,7 +1105,7 @@ var add_cur_own = new fulfill("add_cur_own", function(req){
 	if(users[req.uid]){
 		return users[req.uid]
 	}
-		return false;
+	return false;
 }, function(req){
 	users[req.uid].curations_owned[req.cid] = true;
 	updateUsers(users[req.uid]);
