@@ -1,8 +1,7 @@
 #!/bin/bash
 DEMENSES_DIR=~/chain
-cd $DEMENESE_DIR
+cd $DEMENSES_DIR
 node $DEMENSES_DIR/app.js 0 &
 node $DEMENSES_DIR/app.js 1 &
 node $DEMENSES_DIR/app.js 2 &
 node $DEMENSES_DIR/demenses.js &
-
