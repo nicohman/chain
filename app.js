@@ -26,6 +26,7 @@ function Event(name, properties){
 	}
 }
 function fulfill (name, condition, func, auth, amal, easy, def) {
+	var doneFunc = function(req, cb){
 	function others (){
 		if (cb){
 			alldir(name, req);
@@ -68,7 +69,7 @@ function fulfill (name, condition, func, auth, amal, easy, def) {
 		}
 
 	}
-	var doneFunc = function(req, cb){
+
 		if(auth){
 			if(req.token){
 				verify(req.token, function(res){
@@ -975,9 +976,9 @@ var unfavorite = new fulfill("unfavorite", function(req){
 	return true;
 }, true, "once", true);
 var add_comment = new fulfill("add_comment", function(req){
-	return posts[comment.id]}, function(req){
-		posts[comment.id].comments.push(comment);
-		updatePosts(posts[comment.id]);
+	return posts[req.id]}, function(req){
+		posts[req.id].comments.push(req);
+		updatePosts(posts[req.id]);
 		return true;
 	}, false, "once", true);
 function getCurationById(id, cb) {
@@ -1225,9 +1226,7 @@ var serv_handles = {
 	"add_comment": add_comment,
 	"c_add_comment": function(req) {
 		if (logged[req.cid]) {
-			add_comment({
-				from: selfId,
-				original: selfId,
+			add_comment.easy({
 				uid: req.uid,
 				id: req.id,
 				content: req.content,
