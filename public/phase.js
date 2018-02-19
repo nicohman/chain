@@ -1200,7 +1200,9 @@ console.log("GOT FEED");
 				prevent(e);
 				var content = e.target.elements.content.value;
 				e.target.reset();
+				console.log(cur_com);
 				chain.add_comment(content, cur_com, function(res) {
+					
 					chain.get_by_id(cur_com, function(post) {
 						console.log(post);
 						show_comments(post);

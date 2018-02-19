@@ -1086,9 +1086,16 @@ var unfavorite = new fulfill("unfavorite", function(req){
 	return true;
 }, true, "once", true);
 var add_comment = new fulfill("add_comment", function(req){
-	return posts[req.id]}, function(req){
-		posts[req.id].comments.push(req);
-		updatePosts(posts[req.id]);
+		if (posts[req.pid]){
+			return posts[req.pid];
+		}else {
+			console.log("It is not here"+req.pid);
+		}
+	return false;
+}, function(req){
+		posts[req.pid].comments.push(req);
+		console.log("Added comment");
+		updatePosts(posts[req.pid]);
 		return true;
 	}, false, "once", true);
 function getCurationById(id, cb) {
@@ -1345,7 +1352,7 @@ var serv_handles = {
 		if (logged[req.cid]) {
 			add_comment.easy({
 				uid: req.uid,
-				id: req.id,
+				pid: req.id,
 				content: req.content,
 				auth: req.auth,
 				date: Date.now()

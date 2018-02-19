@@ -634,7 +634,8 @@ body {
         height: 30%;
         top: 30%;
         left: 30%;
-	overflow:scroll;
+	overflow-y:scroll;
+	overflow-x:hidden;
         background: var(--sec-bg);
         display: flex;
         flex-direction: column;
