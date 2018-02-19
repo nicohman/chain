@@ -652,7 +652,6 @@ function get_posts(criterion, cb) {
 			criterion.posts = check.concat(criterion.posts).sort(cmpfavs).splice(0, criterion.count);
 
 		}
-
 	}
 	if (cb && Object.keys(criterion.posts).length >= criterion.count) {
 		cb(criterion);
@@ -666,9 +665,10 @@ function get_posts(criterion, cb) {
 		var cbe = function(postse) {
 			count++;
 			if(count >=2){
+				console.log("NEVERING");
 				never(eventname);
-			}			cb(postse);
-
+						cb(postse);
+			}
 		};
 		when(eventname, cbe);
 	} else if (Object.keys(criterion.posts).length < criterion.count && adjacent[flip(getDir(criterion.from))]) {
@@ -808,17 +808,21 @@ function get_feed(toget, cb) {
 	var need = toget.length;
 	var posts = {};
 	var called = false;
-
+	var called_tag = false;
+	console.log("NEED:");
+		console.log(toget);
 	function check() {
 		console.log("MIDAY:" + gotten + ":" + need);
 		if (gotten >= need && !called) {
-
+		console.log("Calling to get feed."+gotten+need);
+			console.log(posts);
 			cb(posts);
 			called = true;
 		}
 
 	}
 	toget.forEach(function(get) {
+		console.log(get);
 		switch (get.type) {
 			case 'tag':
 				var pro;
@@ -838,7 +842,8 @@ function get_feed(toget, cb) {
 					original: selfId,
 					posts: {}
 				}, function(gposts) {
-					console.log("respost");
+					if (!called_tag){
+					console.log("respost "+gotten);
 					gotten++;
 					Object.keys(gposts.posts).forEach(function(key) {
 						console.log("I GOT ONE" + key)
@@ -846,6 +851,8 @@ function get_feed(toget, cb) {
 						posts[key] = gposts.posts[key];
 					});
 					check();
+						called_tag = true;
+					}
 				});
 				break
 			case "cur":
@@ -859,10 +866,14 @@ function get_feed(toget, cb) {
 				var amount = pro * toget.count;
 				console.log(amount + ":amount");
 				get_curation_posts(get.cur, function(gposts){
-					gotten++;
+					console.log("GOT CURATUION PSOTS");
 					Object.keys(gposts).forEach(function(key){
 						posts[key] = gposts[key];
 					});
+				
+					console.log(posts);
+					console.log("THOSE WERE C POSTS");
+					gotten++;
 					check();
 				}, amount);
 
@@ -1155,6 +1166,8 @@ function get_curation_posts(cur, cb, count){
 	var posts = {};
 	get_curation_by_name(cur, function(cur){
 		if(cur){
+
+			var need = cur.tags.length
 			var rec = function(gotposts){
 				if(gotposts.posts){
 					console.log("GET EVEN CALLED")
@@ -1173,7 +1186,6 @@ function get_curation_posts(cur, cb, count){
 				}
 
 			}
-			var need = cur.tags.length
 			Object.keys(cur.rules).forEach(function(key){
 				var rule = cur.rules[key];
 				switch(rule.type){
@@ -1675,13 +1687,15 @@ var serv_handles = {
 			toget.push.apply(toget, to2);
 			console.log(toget);
 			console.log(users[logged[req.cid]]);
-			toget.count = req.count;
+			toget.count = req.count * 2;
 			console.log("getting");
 			get_feed(toget, function(postsR) {
+				
 				postsR = checkFavs(users[logged[req.cid]].favorites, postsR);
 
 				console.log("c_got_feed_" + logged[req.cid]);
 				io.to(req.cid).emit("c_got_feed_" + logged[req.cid], postsR);
+				
 			});
 		}
 	},

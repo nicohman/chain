@@ -263,9 +263,14 @@ window.onload = function() {
 				cid: client.id,
 				count: count
 			});
+			client.emit("c_get_feed",
+				{
+					cid:client.id,
+					count:count
+				});
 			console.log("c_got_feed_" + loggedin.uid);
 			client.once("c_got_feed_" + loggedin.uid, function(posts) {
-
+console.log("GOT FEED");
 				console.log(posts);
 				cb(posts);
 			});
@@ -824,6 +829,7 @@ window.onload = function() {
 			postI.appendChild(makeFake("No found posts!"));
 			//	setTimeout(function() {
 			chain.get_feed(function(posts) {
+				console.log("GOT FEED POSTS");
 				removeFrom(postI);
 				Object.keys(posts).forEach(function(key) {
 					coll[key] = true;
