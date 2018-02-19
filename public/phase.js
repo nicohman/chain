@@ -654,7 +654,7 @@ console.log("GOT FEED");
 				max = sorted.length
 				if (sorted.length >= 10) {
 					makeLoad(document.getElementById("home"), function(load) {
-						console.log("LOADING MORE OF " + home_num)
+						console.log("LOADING MORE OF " + home_num +"|"+max+"|"+sorted.length)
 						chain.get_top(function(posts) {
 							console.log(posts);
 							var sorted = Object.keys(posts).sort(function(post1, post2) {
