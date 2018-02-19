@@ -667,8 +667,9 @@ function get_posts(criterion, cb) {
 			if(count >=2){
 				console.log("NEVERING");
 				never(eventname);
-						cb(postse);
 			}
+						cb(postse);
+			
 		};
 		when(eventname, cbe);
 	} else if (Object.keys(criterion.posts).length < criterion.count && adjacent[flip(getDir(criterion.from))]) {
@@ -804,7 +805,8 @@ function createUser(username, password, email, cb) {
 }
 //Gets all posts based on an array of rules/needs.
 function get_feed(toget, cb) {
-	var gotten = 0;
+	var gotten = 0
+	var got = {};
 	var need = toget.length;
 	var posts = {};
 	var called = false;
@@ -812,8 +814,8 @@ function get_feed(toget, cb) {
 	console.log("NEED:");
 		console.log(toget);
 	function check() {
-		console.log("MIDAY:" + gotten + ":" + need);
-		if (gotten >= need && !called) {
+		console.log("MIDAY:" + Object.keys(got).length + ":" + need);
+		if (Object.keys(got).length >= need && !called) {
 		console.log("Calling to get feed."+gotten+need);
 			console.log(posts);
 			cb(posts);
@@ -842,17 +844,15 @@ function get_feed(toget, cb) {
 					original: selfId,
 					posts: {}
 				}, function(gposts) {
-					if (!called_tag){
 					console.log("respost "+gotten);
-					gotten++;
+						got[get.tag] = true;
 					Object.keys(gposts.posts).forEach(function(key) {
 						console.log("I GOT ONE" + key)
 
 						posts[key] = gposts.posts[key];
 					});
 					check();
-						called_tag = true;
-					}
+			
 				});
 				break
 			case "cur":
@@ -865,6 +865,7 @@ function get_feed(toget, cb) {
 
 				var amount = pro * toget.count;
 				console.log(amount + ":amount");
+
 				get_curation_posts(get.cur, function(gposts){
 					console.log("GOT CURATUION PSOTS");
 					Object.keys(gposts).forEach(function(key){
@@ -873,7 +874,7 @@ function get_feed(toget, cb) {
 				
 					console.log(posts);
 					console.log("THOSE WERE C POSTS");
-					gotten++;
+					got[get.cur.name] = true;
 					check();
 				}, amount);
 
@@ -1164,27 +1165,34 @@ function get_curation_posts(cur, cb, count){
 	var got = 0
 	var called = false;
 	var posts = {};
+	var got = {};
 	get_curation_by_name(cur, function(cur){
 		if(cur){
 
 			var need = cur.tags.length
-			var rec = function(gotposts){
+			var rec = function(name) {
+				return function(gotposts){
 				if(gotposts.posts){
 					console.log("GET EVEN CALLED")
 					gotposts = gotposts.posts;
-					got++;
 					Object.keys(gotposts).forEach(function(key){
 						posts[key] = gotposts[key];
 					});
-					if(got >= need && !called){
+					got[name] = true;
+					if(Object.keys(got).length >= need && !called){
 						called = true;
 						console.log("GOT ALL POSTS : ");
 						console.log(posts);
-						cb(posts)
+						cb(posts);
+						cb(posts);
 						posts = {};
+					} else {
+						console.log(got);
+						console.log(need);
+						console.log(Object.keys(got).length);
 					}
 				}
-
+				}
 			}
 			Object.keys(cur.rules).forEach(function(key){
 				var rule = cur.rules[key];
@@ -1199,7 +1207,7 @@ function get_curation_posts(cur, cb, count){
 							rules:cur.rules,
 							original: selfId,
 							posts: {}
-						}, rec);
+						}, rec("yes_s"));
 						break;
 					case "yes_u":
 						need++;
@@ -1211,7 +1219,7 @@ function get_curation_posts(cur, cb, count){
 							rules:cur.rules,
 							original: selfId,
 							posts: {}
-						}, rec);
+						}, rec("yes_y"));
 						break;
 
 				}
@@ -1229,7 +1237,7 @@ function get_curation_posts(cur, cb, count){
 					rules:cur.rules,
 					original: selfId,
 					posts: {}
-				}, rec);
+				}, rec(tag));
 			});
 		}else {
 			cb(false);
