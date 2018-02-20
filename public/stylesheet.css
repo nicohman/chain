@@ -42,9 +42,31 @@
         padding-left: 10px;
 }
 
-@media only screen and (max-width: 768px) {
-    [class*="post"] {
-        width: 100%;
+@media only screen and (max-device-width: 768px) {
+   div .post {
+        width: 70%;
+	margin-left: 15%;
+    }
+    #navbar ul {
+	    font-size:40px;
+    	height:10%;
+	flex-wrap:wrap;
+    }
+    #navbar li {
+	    
+    	border:2px var(--border) solid;
+    }
+    #main {
+    	margin-top: 15%;
+    }
+    #navbar .loggedin {
+    	margin-left:0;
+	justify-content:flex-start;
+    }
+    #navbar .loggedout {
+    	margin-left:0;
+	display:none;
+	justify-content:flex-start;
     }
 }
 #notifications {
@@ -53,6 +75,7 @@
 .post-title {
         padding-top: 15px;
         font-size: large;
+
 
 }
 .main-con {

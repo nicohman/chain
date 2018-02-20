@@ -1,13 +1,16 @@
 var express = require('express');
 var app = express();
+var fs = require("fs");
+var https =  require("https");
 var path = require("path");
 var jwt = require("jsonwebtoken");
 var bodyParser = require('body-parser');
-
+var privKey = fs.readFileSync("/etc/letsencrypt/live/demenses.net/privkey.pem", "utf8");
+var cert = fs.readFileSync("/etc/letsencrypt/live/demenses.net/fullchain.pem","utf8");
 var config = require("./config.json");
 var client = require("socket.io-client");
 
-client = client("http://localhost:3000");
+client = client("https://demenses.net:3000");
 client.on("connect", function() {
     //  Install middleware
     app.use(bodyParser.urlencoded({
@@ -25,8 +28,10 @@ client.on("connect", function() {
 
     //  Start server
     console.log("Listening on 80");
-    app.listen(80);
-});
+https.createServer({key:privKey,cert:cert}, app).listen(443);  
+//app.listen(80);
+
+})
 
 
 //  PRIVATE FUNCTIONS
