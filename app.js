@@ -703,6 +703,7 @@ function get_post_by_id(id, cb) {
 	if (posts[id]) {
 		cb(posts[id]);
 	} else {
+		/*
 		alldir("get_posts", {
 			filter: "id",
 			filter_data: id,
@@ -713,7 +714,8 @@ function get_post_by_id(id, cb) {
 		});
 		whenonce("got_posts_id_" + id, function(post) {
 			cb(post.posts);
-		})
+		})*/
+		cb(false);
 	}
 }
 //Gets an even amount of posts from both directions.

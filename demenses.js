@@ -1,7 +1,9 @@
 var express = require('express');
 var app = express();
+var htt = express();
 var fs = require("fs");
 var https =  require("https");
+var request = require("request");
 var path = require("path");
 var jwt = require("jsonwebtoken");
 var bodyParser = require('body-parser');
@@ -25,11 +27,16 @@ client.on("connect", function() {
     //  Install routes
     app.get("/reset/:token", initiateResetPassword);
     app.post("/reset/:token", resetPassword);
-
     //  Start server
     console.log("Listening on 80");
-https.createServer({key:privKey,cert:cert}, app).listen(443);  
-//app.listen(80);
+var serv = https.createServer({key:privKey,cert:cert}, app);
+	serv.listen(443);
+	htt.all("*", function(req, res){
+		return res.redirect("https://"+req.headers['host']+req.url);
+
+	});
+	htt.listen(80);
+	//app.listen(80);
 
 })
 

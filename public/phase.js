@@ -572,7 +572,10 @@ console.log("GOT FEED");
 		var id = document.createElement("div");
 		id.className = "post-id";
 		var date = new Date(post.date);
-		id.innerHTML = post.id+"<br>"+date.toDateString();
+		id.innerHTML = post.id;
+		var dI = document.createElement("div");
+		dI.innerHTML = ""+date.toDateString();
+		dI.className = "post-date";
 		postt.appendChild(title);
 		postt.appendChild(auth);
 		if (post.content) {
@@ -580,6 +583,7 @@ console.log("GOT FEED");
 		}
 		postt.appendChild(bar);
 		postt.appendChild(id);
+		postt.appendChild(dI);
 		return postt;
 	}
 
