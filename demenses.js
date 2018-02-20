@@ -24,8 +24,8 @@ client.on("connect", function() {
     app.post("/reset/:token", resetPassword);
 
     //  Start server
-    console.log("Listening on 3953");
-    app.listen(3953);
+    console.log("Listening on 80");
+    app.listen(80);
 });
 
 
