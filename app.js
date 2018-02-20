@@ -259,7 +259,7 @@ function genRecLink(email, cb) {
 			}, emailSecret, {
 				expiresIn: 2700
 			});
-			var link = "http://24.113.235.229:3953/reset/" + token;
+			var link = "http://demenses.net/reset/" + token;
 			cb(link);
 		} else {
 			cb(false);

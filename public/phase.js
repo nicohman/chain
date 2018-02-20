@@ -1,5 +1,5 @@
 window.onload = function() {
-	var client = io("http://24.113.235.229:3000");
+	var client = io("http://demenses.net:3000");
 	var loggedin = {};
 	var resultsTag;
 	var home_num = 10;
