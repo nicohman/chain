@@ -1517,7 +1517,7 @@ var serv_handles = {
 						io.to(req.cid).emit("c_stickied_"+req.pid, false);
 					}
 				} else {
-					io.to(req.cid).emit("c_sticked_"+req.pid, false);
+					io.to(req.cid).emit("c_stickied_"+req.pid, false);
 				}
 			});
 		}

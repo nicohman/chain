@@ -282,6 +282,22 @@ console.log("GOT FEED");
 			});
 			client.once("c_got_post_by_id", cb);
 		},
+		sticky: function(pid, cb){
+			client.emit("c_sticky", {
+				cid:client.id,
+				token:token,
+				pid:pid
+			});
+			client.once("c_stickied_"+pid, cb);
+		},
+		unsticky: function(pid, cb){
+			client.emit("c_unsticky", {
+				token:token,
+				cid:client.id,
+				pid:pid
+			});
+			client.once("c_unsticked_"+pid, cb);
+		},
 		attempt_token: function attempt_token(token, cb) {
 			client.emit("c_token_login", {
 				token: token,
@@ -565,6 +581,38 @@ console.log("GOT FEED");
 				});
 			})
 			buttons.appendChild(deleteBut);
+		}
+		if (loggedin.admin === true) {
+			var stickyBut = document.createElement("button");
+			stickyBut.className = "sticky-post";
+			stickyBut.type = "button";
+			if (post.stickied) {
+				stickyBut.innerHTML = "Unsticky";
+			} else {
+				stickyBut.innerHTML = "Sticky";
+			}
+			stickyBut.addEventListener("click", function(e){
+				if(post.stickied){
+					chain.unsticky(post.id, function(res){
+						if(res){
+							notify("Post unstickied!");
+							reloadCur();
+						} else {
+							notify("Couldn't unsticky post");
+						}
+					});
+				} else {
+					chain.sticky(post.id, function(res){
+						if(res){
+							notify("Post stickied!");
+							reloadCur();
+						} else {
+							notify("Couldn't sticky post");
+						}
+					});
+				}
+			
+			});
 		}
 		buttons.appendChild(comments);
 		buttons.appendChild(fav);
