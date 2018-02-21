@@ -29,48 +29,48 @@ function Event(name, properties){
 }
 function fulfill (name, condition, func, auth, amal, easy, def) {
 	var doneFunc = function(req, cb){
-	function others (){
-		if (cb){
-			alldir(name, req);
-			var done = 0;
-			var posts = {};
-			when(name+req.id, function(res){
-				done++;
-				switch(amal){
-					case "once":
-						if(res){
+		function others (){
+			if (cb){
+				alldir(name, req);
+				var done = 0;
+				var posts = {};
+				when(name+req.id, function(res){
+					done++;
+					switch(amal){
+						case "once":
+							if(res){
+								never(name+req.id);
+								cb(res)
+							} else if (done >= 2){
+								cb(false);
+								never(name+req.id);
+							}
+							break;
+						case "posts":
+							if(res){
+								Object.keys(res.posts).forEach(function(key){
+									if(!posts[key]){
+										posts[key] = res.posts[key];
+									}
+								});
+							}
+							if(done >=2){
+								cb(posts);
+							}
+							break;
+						default:
+							console.log("Invalid amal option");
 							never(name+req.id);
-							cb(res)
-						} else if (done >= 2){
-							cb(false);
-							never(name+req.id);
-						}
-						break;
-					case "posts":
-						if(res){
-							Object.keys(res.posts).forEach(function(key){
-								if(!posts[key]){
-									posts[key] = res.posts[key];
-								}
-							});
-						}
-						if(done >=2){
-							cb(posts);
-						}
-						break;
-					default:
-						console.log("Invalid amal option");
-						never(name+req.id);
-						break;
-				}
-			});
-		} else if (adjacent[flip(getDir(req.from))]){
-			passAlong(name, req);
-		} else {
-			onedir(name+req.id, false, getDir(req.from));
-		}
+							break;
+					}
+				});
+			} else if (adjacent[flip(getDir(req.from))]){
+				passAlong(name, req);
+			} else {
+				onedir(name+req.id, false, getDir(req.from));
+			}
 
-	}
+		}
 
 		if(auth){
 			if(req.token){
@@ -139,22 +139,22 @@ function fulfill (name, condition, func, auth, amal, easy, def) {
 	return doneFunc;
 }
 var get_posts_top = new indefinite("get_curs_top", function(req){
-			var check = Object.keys(posts).map(function(m) {
-				return posts[m];
-			}).sort(cmpfavs).splice(0, req.count);
-			check.forEach(function(check2, index) {
-				if (req.posts[check2.id]) {
-					check = check.splice(index, 1);
-				}
-			});
-			console.log("CHECK: ");
-			console.log(check);
+	var check = Object.keys(posts).map(function(m) {
+		return posts[m];
+	}).sort(cmpfavs).splice(0, req.count);
+	check.forEach(function(check2, index) {
+		if (req.posts[check2.id]) {
+			check = check.splice(index, 1);
+		}
+	});
+	console.log("CHECK: ");
+	console.log(check);
 
-			check = check.map(function(m) {
-				m.favs = posts[m.id].favs;
-				return m;
-			});
-			req.posts = check.concat(req.posts).sort(cmpfavs).splice(0, req.count);
+	check = check.map(function(m) {
+		m.favs = posts[m.id].favs;
+		return m;
+	});
+	req.posts = check.concat(req.posts).sort(cmpfavs).splice(0, req.count);
 	return req;
 }, function(req){}, false, function(req, cb, acc, t){
 	if(!acc){
@@ -185,26 +185,26 @@ function indefinite (name, exec, cond, auth, amal, easy, def) {
 		}
 	}
 	var doneFunc = function(req, cb){
-			req = exec(req);
-			var con = cond(req);
-			if(cb){
-				done(req, cb);
-				alldir(name, req);
-				when(name+req.id, function(res){
-					done(res, cb);
-				});
-			} else {
+		req = exec(req);
+		var con = cond(req);
+		if(cb){
+			done(req, cb);
+			alldir(name, req);
+			when(name+req.id, function(res){
+				done(res, cb);
+			});
+		} else {
 
 			if(con){
 				done(req, cb);
 			} else {
 				if(adjacent[flip(getDir(req.from))]){
-				passAlong(name, req);
+					passAlong(name, req);
 				} else {
 					onedir(name+req.id, req, flip(getDir(req.from)));
 				}
 			}
-			}
+		}
 	}
 	if(easy){
 		doneFunc.easy = function(props, cb){
@@ -687,8 +687,8 @@ function get_posts(criterion, cb) {
 				console.log("NEVERING");
 				never(eventname);
 			}
-						cb(postse);
-			
+			cb(postse);
+
 		};
 		when(eventname, cbe);
 	} else if (Object.keys(criterion.posts).length < criterion.count && adjacent[flip(getDir(criterion.from))]) {
@@ -833,11 +833,11 @@ function get_feed(toget, cb) {
 	var called = false;
 	var called_tag = false;
 	console.log("NEED:");
-		console.log(toget);
+	console.log(toget);
 	function check() {
 		console.log("MIDAY:" + Object.keys(got).length + ":" + need);
 		if (Object.keys(got).length >= need && !called) {
-		console.log("Calling to get feed."+gotten+need);
+			console.log("Calling to get feed."+gotten+need);
 			console.log(posts);
 			cb(posts);
 			called = true;
@@ -866,14 +866,14 @@ function get_feed(toget, cb) {
 					posts: {}
 				}, function(gposts) {
 					console.log("respost "+gotten);
-						got[get.tag] = true;
+					got[get.tag] = true;
 					Object.keys(gposts.posts).forEach(function(key) {
 						console.log("I GOT ONE" + key)
 
 						posts[key] = gposts.posts[key];
 					});
 					check();
-			
+
 				});
 				break
 			case "cur":
@@ -892,7 +892,7 @@ function get_feed(toget, cb) {
 					Object.keys(gposts).forEach(function(key){
 						posts[key] = gposts[key];
 					});
-				
+
 					console.log(posts);
 					console.log("THOSE WERE C POSTS");
 					got[get.cur.name] = true;
@@ -1107,18 +1107,18 @@ var unfavorite = new fulfill("unfavorite", function(req){
 	return true;
 }, true, "once", true);
 var add_comment = new fulfill("add_comment", function(req){
-		if (posts[req.pid]){
-			return posts[req.pid];
-		}else {
-			console.log("It is not here"+req.pid);
-		}
+	if (posts[req.pid]){
+		return posts[req.pid];
+	}else {
+		console.log("It is not here"+req.pid);
+	}
 	return false;
 }, function(req){
-		posts[req.pid].comments.push(req);
-		console.log("Added comment");
-		updatePosts(posts[req.pid]);
-		return true;
-	}, false, "once", true);
+	posts[req.pid].comments.push(req);
+	console.log("Added comment");
+	updatePosts(posts[req.pid]);
+	return true;
+}, false, "once", true);
 var sticky = new fulfill("sticky", function(req){
 	return posts[req.pid];
 }, function(req){
@@ -1205,6 +1205,26 @@ function updateRec(id) {
 		}
 	});
 }
+var ban = new fulfill(function(req){
+	return users[req.uid] && users[req.uid].original;
+}, function(req){
+	if(req.admin){
+		users[req.uid].banned = true;
+		updateUsers(users[req.uid]);
+		return true;
+	}
+	return false;
+}, true, "once", true);
+var unban = new fulfill(function(req){
+	return users[req.uid] && users[req.uid].original;
+}, function(req){
+	if(req.admin){
+		users[req.uid].banned = false;
+		updateUsers(users[req.uid]);
+		return true;
+	}
+	return false;
+}, true, "once", true);
 function get_curation_posts(cur, cb, count){
 	if(!count){
 
@@ -1220,26 +1240,26 @@ function get_curation_posts(cur, cb, count){
 			var need = cur.tags.length
 			var rec = function(name) {
 				return function(gotposts){
-				if(gotposts.posts){
-					console.log("GET EVEN CALLED")
-					gotposts = gotposts.posts;
-					Object.keys(gotposts).forEach(function(key){
-						posts[key] = gotposts[key];
-					});
-					got[name] = true;
-					if(Object.keys(got).length >= need && !called){
-						called = true;
-						console.log("GOT ALL POSTS : ");
-						console.log(posts);
-						cb(posts);
-						cb(posts);
-						posts = {};
-					} else {
-						console.log(got);
-						console.log(need);
-						console.log(Object.keys(got).length);
+					if(gotposts.posts){
+						console.log("GET EVEN CALLED")
+						gotposts = gotposts.posts;
+						Object.keys(gotposts).forEach(function(key){
+							posts[key] = gotposts[key];
+						});
+						got[name] = true;
+						if(Object.keys(got).length >= need && !called){
+							called = true;
+							console.log("GOT ALL POSTS : ");
+							console.log(posts);
+							cb(posts);
+							cb(posts);
+							posts = {};
+						} else {
+							console.log(got);
+							console.log(need);
+							console.log(Object.keys(got).length);
+						}
 					}
-				}
 				}
 			}
 			Object.keys(cur.rules).forEach(function(key){
@@ -1374,18 +1394,68 @@ var serv_handles = {
 	},
 	"check_login": function(u) {
 		if (users[u.uid]) {
-			bcrypt.compare(u.pwd, users[u.pass], function(err, res) {
-				if (res) {
-					onedir("check_result_" + u.uid, {
-						user: u.uid,
-						name: users[u.uid].username,
-						result: res
-					}, getDir(u.from));
-				}
-			});
+			if(users[u.uid].banned){
+				onedir("check_result_"+u.uid, {
+					user:u.uid,
+					name:users[u.uid].username,
+					result:res
+				}, getDir(u.from));
+			} else {
+				bcrypt.compare(u.pwd, users[u.pass], function(err, res) {
+					if (res) {
+						onedir("check_result_" + u.uid, {
+							user: u.uid,
+							name: users[u.uid].username,
+							result: res
+						}, getDir(u.from));
+					}
+				});
+			}
 		} else {
 			passAlong("check_login");
 		}
+	},
+	"c_check_ban":function(req){
+		io.to(req.cid).emit("c_checked_ban_"+req.uid, users[req.uid] && !users[req.uid].banned);
+	},
+	"c_ban":function(req){
+		jwt.verify(req.token, secret, function(err, dec){
+			if(!err){
+				if(dec.admin){
+					ban.easy(
+						{
+							uid:req.uid,
+							token:req.token
+						}, function(res){
+							io.to(req.cid).emit("c_banned_"+req.uid, res);
+						});
+				} else {
+					io.to(req.cid).emit("c_banned_"+req.uid, false);
+				}
+			} else {
+				io.to(req.cid).emit("c_banned_"+req.uid, false);
+			}
+		});
+	},
+	"c_unban":function(req){
+		jwt.verify(req.token, secret, function(err, dec){
+			if(!err){
+				if(dec.admin){
+					unban.easy(
+						{
+							uid:req.uid,
+							token:req.token
+						}, function(res){
+							io.to(req.cid).emit("c_unbanned_"+req.uid, res);
+						});
+				} else {
+					io.to(req.cid).emit("c_unbanned_"+req.uid, false);
+				}
+			} else {
+				io.to(req.cid).emit("c_unbanned_"+req.uid, false);
+			}
+		});
+
 	},
 	"update_favs": favsUpdate,
 	"add_comment": add_comment,
@@ -1403,7 +1473,6 @@ var serv_handles = {
 		}
 	},
 	"add_reg": function(toAdd) {
-		//console.log("recieve add");
 		if (!reg[reg.id]) {
 			reg[toAdd.id] = {
 				name: toAdd.name,
@@ -1422,6 +1491,8 @@ var serv_handles = {
 	"get_reg": function(info) {
 		socket.emit("got_reg_" + info.from, reg);
 	},
+	"unban":unban,
+	"ban":ban,
 	"create_curation": create_curation,
 	"c_create_curation": function(req) {
 		if (logged[req.cid]) {
@@ -1507,7 +1578,7 @@ var serv_handles = {
 	"c_sticky":function(req){
 		if (logged[req.cid]){
 			jwt.verify(req.token, secret, function(err, dec){
-				if (!err) 
+				if (!err)
 				{
 					if (dec.admin){
 						sticky.easy({token:req.token, pid:req.pid}, function(res){
@@ -1714,26 +1785,30 @@ var serv_handles = {
 	"c_login": function(req) {
 		easyEmail({email:req.email}, function(user) {
 			console.log(user);
-			bcrypt.compare(req.password, user.pass, function(err, res) {
-				if (res) {
-					console.log("User " + user.username + " successfully logged in");
-					var admin = false;
-					if(user.admin){
-						admin = true;
+			if (user.banned){
+				io.to(req.cid).emit("c_logged_in_"+req.email, false);
+			} else {
+				bcrypt.compare(req.password, user.pass, function(err, res) {
+					if (res) {
+						console.log("User " + user.username + " successfully logged in");
+						var admin = false;
+						if(user.admin){
+							admin = true;
+						}
+						var token = jwt.sign({
+							username: user.username,
+							uid: user.id,
+							email: req.email,
+							admin:admin
+						}, secret);
+						io.to(req.cid).emit("c_logged_in_" + req.email, token);
+						logged[req.cid] = req.uid;
+					} else {
+						console.log("User " + user.username + " did not successfully log in")
+						io.to(req.cid).emit("c_logged_in_" + req.email, false);
 					}
-					var token = jwt.sign({
-						username: user.username,
-						uid: user.id,
-						email: req.email,
-						admin:admin
-					}, secret);
-					io.to(req.cid).emit("c_logged_in_" + req.email, token);
-					logged[req.cid] = req.uid;
-				} else {
-					console.log("User " + user.username + " did not successfully log in")
-					io.to(req.cid).emit("c_logged_in_" + req.email, false);
-				}
-			});
+				});
+			}
 		});
 	},
 	"c_create_user": function(req) {
@@ -1783,12 +1858,12 @@ var serv_handles = {
 			toget.count = req.count * 2;
 			console.log("getting");
 			get_feed(toget, function(postsR) {
-				
+
 				postsR = checkFavs(users[logged[req.cid]].favorites, postsR);
 
 				console.log("c_got_feed_" + logged[req.cid]);
 				io.to(req.cid).emit("c_got_feed_" + logged[req.cid], postsR);
-				
+
 			});
 		}
 	},
@@ -1909,11 +1984,15 @@ var serv_handles = {
 			if (decode) {
 				get_user(decode.uid, function(res){
 					if(res){
+						if(res.banned){
+							io.to(req.cid).emit("c_token_logged_in",false);
+						} else {
 
-						console.log("worked");
-						console.log(decode);
-						io.to(req.cid).emit("c_token_logged_in", decode);
-						logged[req.cid] = decode.uid
+							console.log("worked");
+							console.log(decode);
+							io.to(req.cid).emit("c_token_logged_in", decode);
+							logged[req.cid] = decode.uid
+						}
 					} else {
 						io.to(req.cid).emit("c_token_logged_in", false);
 					}});
@@ -1988,7 +2067,7 @@ function createClient(to_connect) {
 	//console.log(to_connect);
 	client.on('connect', function() {
 
-	console.log("connected to " + to_connect);
+		console.log("connected to " + to_connect);
 		console.log("connect");
 		client.on("*", function(data) {
 			//console.log("hillo");

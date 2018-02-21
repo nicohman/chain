@@ -354,6 +354,29 @@ console.log("GOT FEED");
 			});
 			client.once("c_changed_username", cb);
 		},
+		check_banned: function(uid, cb){
+			client.emit("c_check_ban", {
+				cid:client.id,
+				uid:uid
+			});
+			client.once("c_checked_ban_"+uid, cb);
+		},
+		ban:function(uid, cb){
+			client.emit("c_ban", {
+				uid:uid,
+				token:token,
+				cid:client.id
+			});
+			client.once("c_banned_"+uid, cb);
+		},
+		unban:function(uid, cb){
+			client.emit("c_unban", {
+				uid:uid,
+				token:token,
+				cid:client.id
+			});
+			client.once("c_unbanned_"+uid, cb);
+		},
 		get_posts: function get_posts(filter, data, cb, count) {
 			if (!count) {
 				count = 10;
@@ -394,7 +417,6 @@ console.log("GOT FEED");
 			});
 		}
 	}
-
 	function show_comments(post) {
 		var overlay = document.getElementById("overlay");
 		overlay.style.display = "block";
@@ -611,8 +633,38 @@ console.log("GOT FEED");
 						}
 					});
 				}
-			
 			});
+			buttons.appendChild(stickyBut);
+			var banBut = document.createElement("button");
+			banBut.className = "ban-post";
+			banBut.type = "button";
+			chain.check_banned(post.uid, function(res){
+				if(!res.banned){
+					banBut.innerHTML = "Ban User";
+				} else {
+					banBut.innerHTML = "Unban User";
+				}
+				banBut.addEventListener("click", function(e){
+					if(!res.banned){
+						chain.ban(post.uid, function(res){
+							if(res){
+								notify("User banned!");
+							} else {
+								notify("Couldn't ban user");
+							}
+						});
+					} else {
+						chain.unban(post.uid, function(res){
+							if(res) {
+								notify("User unbanned!");
+							} else {
+								notify("Couldn't unban user");
+							}
+						});
+					}
+				});
+			});
+			buttons.appendChild(banBut);
 		}
 		buttons.appendChild(comments);
 		buttons.appendChild(fav);
