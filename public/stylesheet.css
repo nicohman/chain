@@ -48,6 +48,7 @@
         padding-top: 15px;
         font-size: large;
 
+
 }
 .main-con {
 	font-size:large;
@@ -110,12 +111,17 @@
         display: flex;
         justify-content: space-between;
 }
-
 .post-id {
         padding-left: 10px;
         font-size: small;
+	margin-bottom:0px;
 }
-
+.post-date {
+	margin-top:0px;
+	top:0;
+padding-left:10px;
+font-size:small;
+}
 .post div {}
 
 .post-botttom {
@@ -634,7 +640,8 @@ body {
         height: 30%;
         top: 30%;
         left: 30%;
-	overflow:scroll;
+	overflow-y:scroll;
+	overflow-x:hidden;
         background: var(--sec-bg);
         display: flex;
         flex-direction: column;
@@ -685,6 +692,9 @@ body {
 	background-color:var(--sec-bg);
 	border:2px var(--border) solid;
 }
+#hid-br-tag {
+	display:none;
+}
 #cur-mod h2 {
 	margin-top:4%;
 	margin-left:1%;
@@ -692,5 +702,79 @@ body {
 #cur-mod div {
 	margin-left:1.5%;
 	margin-top:4%;
+}
+
+@media only screen and (max-device-width: 768px) {
+	div  {
+		font-size:x-large !important;
+	}
+   div .post {
+        width: 90%;
+	margin-left: 2%;
+    }
+    #navbar ul {
+	    font-size:xx-large;
+    	height:10%;
+	flex-wrap:wrap;
+	display:flex;
+	justify-content:flex-start !important;
+	top:90%;
+	bottom:0px;
+	left:0px;
+    }
+    .load {
+    	width:90%;
+    }
+    #navbar li {
+    	border:2px var(--border) solid;
+    }
+    #main {
+    margin-bottom:20%;
+    }
+    #navbar .loggedin {
+    	margin-left:0 !important;
+	justify-self:inherit !important;
+    }
+    #navbar .loggedout {
+    	margin-left:0 !important;
+	display:none;
+	justify-content:flex-start;
+    }
+     #manage-curs-nav {
+    	display:none;
+
+    }
+    #about {
+    	top:0;
+	bottom:auto;
+	right:0;
+	left:auto;
+    }
+    div .centered {
+    	top:15%;
+	left:0%;
+	width:90%;
+	margin-left:2.5%;
+	height:75%;
+	height:60%;
+	text-align:center;
+	transform:none !important;
+    }
+    #hide-br-tag {
+    	display:block !important;
+    }
+    #tags-seperator {
+    	height:400px !important;
+	font-size: 50px !important;
+    }
+    #search {
+    	font-size:75px;
+    }
+    #create-post #create-title{
+    	font-size:large;
+    }
+    #tags-find {
+    	margin-top:20% !important;
+    }
 }
 

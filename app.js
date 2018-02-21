@@ -1,5 +1,7 @@
 //Initialize basic variables and require modules.
 var io = require('socket.io'),socketclient = require('socket.io-client'),ip = require('ip'),format = require('biguint-format'),FlakeId = require('flake-idgen'),bcrypt = require('bcrypt'),ports = ["2000", "3000", "4000", "5000", "6000"],middleware = require("socketio-wildcard")(),patch = require("socketio-wildcard")(socketclient.Manager), fs = require("fs"), names = ["dragon", "defiant", "dragon's teeth", "saint", "weaver"], semaphore = require('semaphore'),sem = semaphore(1), DEMPATH = "/home/nicohman/.demenses/",san = require("sanitizer"), events = require('events'), nodemailer = require('nodemailer'), selfEmitter = new events.EventEmitter(), server = new events.EventEmitter(), shahash = require('crypto'),  clients = [], selfId = format(new FlakeId({datacenter: 1,worker: parseInt(process.argv[2])}).next(), "dec"),config = require(DEMPATH+"config.json"),jwt = require("jsonwebtoken"), name = names[parseInt(process.argv[2])], posts = require(DEMPATH+'posts_' + name + '.json'),users = require(DEMPATH+"users_" + name + ".json"),port = ports[parseInt(process.argv[2]) - 1],curations = require(DEMPATH+"curations_"+name+".json"),secret = config.secret,emailSecret = config.emailSecret,moment = require('moment'),reg = {},smtpConf = {host: 'smtp.gmail.com',port: 465,secure: true,pool: true,auth: {user: 'nico.hickman@gmail.com',pass: config.emailpass}},rec = {}, logged = {};
+var https = require("https");
+var express= require("express");
 //Startup logs.
 console.log("________                                                     \n\______ \   ____   _____   ____   ____   ______ ____   ______\n |    |  \_/ __ \ /     \_/ __ \ /    \ /  ___// __ \ /  ___/\n |    `   \  ___/|  Y Y  \  ___/|   |  \\___ \\  ___/ \___ \ \n/_______  /\___  >__|_|  /\___  >___|  /____  >\___  >____  >\n        \/     \/      \/     \/     \/     \/     \/     \/ ");
 console.log("I am the node "+name+", with an id of "+selfId, " at the ip address "+ip.address());
@@ -259,7 +261,7 @@ function genRecLink(email, cb) {
 			}, emailSecret, {
 				expiresIn: 2700
 			});
-			var link = "http://24.113.235.229:3953/reset/" + token;
+			var link = "https://demenses.net/reset/" + token;
 			cb(link);
 		} else {
 			cb(false);
@@ -294,18 +296,26 @@ function hash(data) {
 }
 var globsocket;
 //Temporary code while I'm keeping all the nodes on one machine that lets them connect to each other.
+var sslopts = {
+	key: fs.readFileSync("/etc/letsencrypt/live/demenses.net/privkey.pem"),
+	cert:fs.readFileSync("/etc/letsencrypt/live/demenses.net/fullchain.pem"),
+};
+//Setup socketio server connection.
+var to_open = ports[parseInt(process.argv[2])];
+
+var htt = https.Server(sslopts);
+io = io(htt);
+htt.listen(to_open);
+io.use(middleware);
+var adjacent = [];
 if (port != undefined) {
-	var to_connect = 'http://localhost:' + port;
+	var to_connect = 'https://demenses.net:' + port;
+	console.log("TOCONNECT"+to_connect);
 	createClient(to_connect);
 } else {
 	console.log("First!");
 }
-//Setup socketio server connection.
-var to_open = ports[parseInt(process.argv[2])];
-io = io(to_open);
-io.use(middleware);
-var adjacent = [];
-io.set('log level', false)
+
 //Takes a link id and finds which direction[1-0] it is connected in.
 function getDir(id) {
 	var index = -1;
@@ -702,6 +712,7 @@ function get_post_by_id(id, cb) {
 	if (posts[id]) {
 		cb(posts[id]);
 	} else {
+		/*
 		alldir("get_posts", {
 			filter: "id",
 			filter_data: id,
@@ -712,7 +723,8 @@ function get_post_by_id(id, cb) {
 		});
 		whenonce("got_posts_id_" + id, function(post) {
 			cb(post.posts);
-		})
+		})*/
+		cb(false);
 	}
 }
 //Gets an even amount of posts from both directions.
@@ -1095,9 +1107,16 @@ var unfavorite = new fulfill("unfavorite", function(req){
 	return true;
 }, true, "once", true);
 var add_comment = new fulfill("add_comment", function(req){
-	return posts[req.id]}, function(req){
-		posts[req.id].comments.push(req);
-		updatePosts(posts[req.id]);
+		if (posts[req.pid]){
+			return posts[req.pid];
+		}else {
+			console.log("It is not here"+req.pid);
+		}
+	return false;
+}, function(req){
+		posts[req.pid].comments.push(req);
+		console.log("Added comment");
+		updatePosts(posts[req.pid]);
 		return true;
 	}, false, "once", true);
 var sticky = new fulfill("sticky", function(req){
@@ -1374,7 +1393,7 @@ var serv_handles = {
 		if (logged[req.cid]) {
 			add_comment.easy({
 				uid: req.uid,
-				id: req.id,
+				pid: req.id,
 				content: req.content,
 				auth: req.auth,
 				date: Date.now()
@@ -1956,7 +1975,7 @@ io.on('connection', function(gsocket) {
 });
 
 function createClient(to_connect) {
-	var client = socketclient(to_connect);
+	var client = socketclient(to_connect, {secure:true});
 	patch(client);
 	var client_handles = {
 		"update_users": function(u) {
@@ -1968,7 +1987,9 @@ function createClient(to_connect) {
 	}
 	//console.log(to_connect);
 	client.on('connect', function() {
-		//console.log("connect");
+
+	console.log("connected to " + to_connect);
+		console.log("connect");
 		client.on("*", function(data) {
 			//console.log("hillo");
 			console.log(data.data[0]);
@@ -2040,5 +2061,4 @@ function createClient(to_connect) {
 		console.log('discoonnect');
 	});
 	clients.push(client);
-	console.log("connected to " + to_connect);
 }

@@ -1,5 +1,5 @@
 window.onload = function() {
-	var client = io("http://24.113.235.229:3000");
+	var client = io("https://demenses.net:3000", {secure:true});
 	var loggedin = {};
 	var resultsTag;
 	var home_num = 10;
@@ -572,7 +572,10 @@ console.log("GOT FEED");
 		var id = document.createElement("div");
 		id.className = "post-id";
 		var date = new Date(post.date);
-		id.innerHTML = post.id+"<br>"+date.toDateString();
+		id.innerHTML = post.id;
+		var dI = document.createElement("div");
+		dI.innerHTML = ""+date.toDateString();
+		dI.className = "post-date";
 		postt.appendChild(title);
 		postt.appendChild(auth);
 		if (post.content) {
@@ -580,6 +583,7 @@ console.log("GOT FEED");
 		}
 		postt.appendChild(bar);
 		postt.appendChild(id);
+		postt.appendChild(dI);
 		return postt;
 	}
 
@@ -1200,7 +1204,9 @@ console.log("GOT FEED");
 				prevent(e);
 				var content = e.target.elements.content.value;
 				e.target.reset();
+				console.log(cur_com);
 				chain.add_comment(content, cur_com, function(res) {
+					
 					chain.get_by_id(cur_com, function(post) {
 						console.log(post);
 						show_comments(post);

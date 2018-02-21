@@ -1,5 +1,5 @@
 window.onload = function() {
-	var client = io("http://24.113.235.229:3000");
+	var client = io("https://demenses.net:3000");
 
 	var chain = {
 		attempt_login: function attempt_login(email, password, cb) {
