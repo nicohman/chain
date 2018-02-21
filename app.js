@@ -531,6 +531,15 @@ function never(eventname) {
 }
 //Compares favorite numbers of two posts. Intended for use with Array.sort().
 function cmpfavs(post1, post2) {
+	if (post1.stickied === true) {
+		if(post2.stickied === true) {
+			return 0;
+		} else {
+			return 1;
+		}
+	} else if (post2.stickied === true) {
+		return -1;
+	}
 	if (post1.favs < post2.favs) {
 		return 1;
 	} else if (post1.favs > post2.favs) {
@@ -1091,6 +1100,26 @@ var add_comment = new fulfill("add_comment", function(req){
 		updatePosts(posts[req.id]);
 		return true;
 	}, false, "once", true);
+var sticky = new fulfill("sticky", function(req){
+	return posts[req.pid];
+}, function(req){
+	if(req.admin) {
+		posts[req.pid].stickied = true;
+		updatePosts(posts[req.pid]);
+		return true;
+	}
+	return false;
+}, true, "once", true);
+var unsticky = new fulfill("unsticky", function(req){
+	return posts[req.pid];
+}, function (req) {
+	if (req.admin) {
+		posts[req.pid].stickied = false;
+		updatePosts(posts[req.pid]);
+		return true;
+	}
+	return false;
+}, true, "once", true);
 function getCurationById(id, cb) {
 	if (curations[id]) {
 		cb(curations[id]);
@@ -1436,6 +1465,43 @@ var serv_handles = {
 				io.to(req.cid).emit("c_got_self_posts", false);
 			}
 		});
+	},
+	"unsticky":unsticky,
+	"sticky":sticky,
+	"c_unsticky":function(req){
+		if (logged[req.cid]){
+			jwt.verfy(req.token, secret, function(err, dec){
+				if (!err) {
+					if(dec.admin){
+						unsticky.easy({token:req.token, pid:req.pid}, function(res){
+							io.to(req.cid).emit("c_unstickied_"+req.pid, res);
+						});
+					} else {
+						io.to(req.cid).emit("c_unstickied_"+req.pid, false);
+					}
+				} else {
+					io.to(req.cid).emit("c_unstickied_"+req.pid, false);
+				}
+			});
+		}
+	},
+	"c_sticky":function(req){
+		if (logged[req.cid]){
+			jwt.verify(req.token, secret, function(err, dec){
+				if (!err) 
+				{
+					if (dec.admin){
+						sticky.easy({token:req.token, pid:req.pid}, function(res){
+							io.to(req.cid).emit("c_stickied_"+req.pid, res);
+						});
+					} else {
+						io.to(req.cid).emit("c_stickied_"+req.pid, false);
+					}
+				} else {
+					io.to(req.cid).emit("c_sticked_"+req.pid, false);
+				}
+			});
+		}
 	},
 	"change_email":changeEmail,
 	"c_change_username": function(req) {
