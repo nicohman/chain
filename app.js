@@ -1017,6 +1017,8 @@ function deletePost(req, cb){
 		passAlong("delete_post", req);
 	} else if(!cb){
 		onedir("deleted_post_"+req.pid, req.deleted, flip(getDir(req.from)));
+	} else if (cb){
+		alldir("delete_post", req);
 	}
 	if(cb){
 		var had = 0;
