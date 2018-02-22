@@ -296,7 +296,7 @@ console.log("GOT FEED");
 				cid:client.id,
 				pid:pid
 			});
-			client.once("c_unsticked_"+pid, cb);
+			client.once("c_unstickied_"+pid, cb);
 		},
 		attempt_token: function attempt_token(token, cb) {
 			client.emit("c_token_login", {
@@ -505,6 +505,7 @@ console.log("GOT FEED");
 		var auth = document.createElement("div");
 		auth.className = "post-auth";
 		auth.innerHTML = "by " + post.auth;
+		var dot = false;
 		if (post.content) {
 			var e = checkUrl(post.content.trim());
 			var res = e.res;
@@ -533,9 +534,17 @@ console.log("GOT FEED");
 			content.className = "post-content";
 			content.innerHTML = links;
 			if(img){
+				img.onload = function(){
 				content.appendChild(img);
+					finnish()
+				}
+			} else {
+				finnish();
 			}
+		} else {
+			finnish()
 		}
+		var finnish = function(){
 		var bar = document.createElement("div");
 		bar.className = "post-bar";
 		var tags = document.createElement("div");
@@ -686,7 +695,7 @@ console.log("GOT FEED");
 		postt.appendChild(dI);
 		return postt;
 	}
-
+	}
 	function show_post(post, toAppend) {
 		var made = makePost(post);
 		if (made) {

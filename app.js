@@ -365,8 +365,14 @@ function search_email(email){
 	}
 }
 var get_user_by_email = new fulfill("find_user_by_email", function(req){
-	return search_email(req.email);
-}, function(req, u){return u}, false, "once", true);
+	if( search_email(req.email)){
+		return true;
+	} else{
+		return false;
+	}
+}, function(req, u){
+		console.log("Found");
+	return search_email(req.email)}, false, "once", true);
 var easyEmail = get_user_by_email.easy;
 //Get a user by email.
 
@@ -541,21 +547,21 @@ function never(eventname) {
 }
 //Compares favorite numbers of two posts. Intended for use with Array.sort().
 function cmpfavs(post1, post2) {
-	if (post1.stickied === true) {
-		if(post2.stickied === true) {
+	if (post1.stickied === true && post2.stickied === true) {
 			return 0;
-		} else {
-			return 1;
-		}
 	} else if (post2.stickied === true) {
+		return 1;
+	} else if (post1.stickied === true) {
 		return -1;
 	}
+	else {
 	if (post1.favs < post2.favs) {
 		return 1;
 	} else if (post1.favs > post2.favs) {
 		return -1;
 	} else {
 		return 0;
+	}
 	}
 }
 //Checks a post against a given set of curation rules to see whether it is allowed in.
@@ -817,10 +823,8 @@ function createUser(username, password, email, cb) {
 			curations_owned:{},
 			favorites: {}
 		}
-
-		alldir("update_users", users[id]);
 		users[id].original = true;
-		updateUsers();
+		updateUsers(users[id]);
 		cb(id);
 	});
 }
@@ -1560,7 +1564,7 @@ var serv_handles = {
 	"sticky":sticky,
 	"c_unsticky":function(req){
 		if (logged[req.cid]){
-			jwt.verfy(req.token, secret, function(err, dec){
+			jwt.verify(req.token, secret, function(err, dec){
 				if (!err) {
 					if(dec.admin){
 						unsticky.easy({token:req.token, pid:req.pid}, function(res){
@@ -1667,9 +1671,10 @@ var serv_handles = {
 	"find_user_by_email": get_user_by_email,
 	"c_find_user_by_email": function(req) {
 		if (!logged[req.cid]) {
-			easyEmail({email:req.email}, function(res) {
-				io.to(req.cid).emit("c_found_user_by_email_" + req.email, res);
-			});
+		//	easyEmail({email:req.email}, function(res) {
+				io.to(req.cid).emit("c_found_user_by_email_" + req.email, search_email(req.email));
+				console.log("Found!");
+		//	});
 		}
 	},
 	"delete_post":deletePost,

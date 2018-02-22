@@ -439,6 +439,18 @@ body {
 	border:none;
 	color: inherit;
 }
+.ban-post {
+		background:none;
+	border:none;
+	color: inherit;
+
+}
+.sticky-post {
+	background:none;
+	border:none;
+	color: inherit;
+
+}
 .tag {
 
         background: none;
@@ -448,7 +460,10 @@ body {
 
 
 }
-
+ #info-container {
+	 top:10%;
+transform: translate(-50%, 0%) !important;
+}
 #reset-con {
         font-size: large;
         border: 5px var(--border) solid;
@@ -711,6 +726,15 @@ body {
    div .post {
         width: 90%;
 	margin-left: 2%;
+    }
+    #login-container {
+    	transform:none;
+	width:90%;
+	margin-left:2.5%;
+	top:15%;
+	left:2.5%;
+	height:40%;
+	padding-top:10%;
     }
     #navbar ul {
 	    font-size:xx-large;
