@@ -23,17 +23,25 @@ var schemes = {
 
 	}
 }
+var logos = {
+	"monokai":"logo-monokai.png"
+}
 if(localStorage.getItem("colorscheme")){
 	changeColorscheme(localStorage.getItem("colorscheme"));
 } else {
 	changeColorscheme("solarized");
 }
 function changeColorscheme(scheme){
+	var logo = "logo.png";
 	if(!schemes[scheme]){
 		scheme = "solarized";
+	}
+	if(logos[scheme]){
+		logo = logos[scheme];
 	}
 	Object.keys(schemes[scheme]).forEach(function(key){
 		document.getElementsByTagName("html")[0].style.setProperty("--"+key, schemes[scheme][key]);
 	});
+	document.getElementsByClassName("large-logo")[0].src = "https://demenses.net/"+logo;
 }
 
