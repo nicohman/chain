@@ -1219,8 +1219,7 @@ function create_curation(req, cb){
 				own:req.uid,
 				name:req.title
 			}
-			alldir("update_curations", curations[req.title]);
-			updateCurs();
+			updateCurs(curations[req.title]);
 			cb(true);
 		}
 
@@ -1570,9 +1569,10 @@ var serv_handles = {
 			}
 			get_curation_by_name(req.name, function(res) {
 				if (res) {
-					io.to(req.cid).emit("already");
+					io.to(req.cid).emit("c_created_curation", "already");
 				} else {
 					add_cur_own.easy({token:req.token, cid:req.name}, function(res){
+						console.log("added ownership");
 						create_curation(to_create, function(res) {
 							io.to(req.cid).emit("c_created_curation", res);
 						});

@@ -953,7 +953,7 @@ console.log("GOT FEED");
 		},
 		"settings": function() {
 			document.getElementById('username-form').value = loggedin.username;
-
+			removeFrom(document.getElementById("resu");
 		},
 		"pop": function() {},
 		"manage": function() {
@@ -1509,6 +1509,8 @@ console.log("GOT FEED");
 						} else {
 							if(res === "already"){
 								alert("There's already a curation named that!");
+							} else {
+								alert("Couldn't create curation!");
 							}
 						}
 					});
