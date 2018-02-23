@@ -510,12 +510,14 @@ console.log("GOT FEED");
 			var e = checkUrl(post.content.trim());
 			var res = e.res;
 			var img;
+			var  ilink;
 			if (res) {
 				console.log("URLRL");
 				var imgC = checkImage(res[0]);
 				if(imgC){
 					img = document.createElement("img");
-					img.src = res[0];
+
+					ilink = "https://images.weserv.nl/?url="+res[0].replace("https://", "").replace("http://", "");
 					console.log("IT'S A MEME");
 					img.className = "post-image";
 					res.shift();
@@ -534,17 +536,15 @@ console.log("GOT FEED");
 			content.className = "post-content";
 			content.innerHTML = links;
 			if(img){
-				img.onload = function(){
+				
 				content.appendChild(img);
-					finnish()
+				img.src = ilink
+				img.onload = function(){
 				}
 			} else {
-				finnish();
 			}
 		} else {
-			finnish()
 		}
-		var finnish = function(){
 		var bar = document.createElement("div");
 		bar.className = "post-bar";
 		var tags = document.createElement("div");
@@ -648,8 +648,10 @@ console.log("GOT FEED");
 			banBut.className = "ban-post";
 			banBut.type = "button";
 			chain.check_banned(post.uid, function(res){
-				if(!res.banned){
+				if(res && !res.banned){
 					banBut.innerHTML = "Ban User";
+				} else if (!res){
+					
 				} else {
 					banBut.innerHTML = "Unban User";
 				}
@@ -694,7 +696,7 @@ console.log("GOT FEED");
 		postt.appendChild(id);
 		postt.appendChild(dI);
 		return postt;
-	}
+
 	}
 	function show_post(post, toAppend) {
 		var made = makePost(post);
@@ -1340,6 +1342,7 @@ console.log("GOT FEED");
 						return false;
 					}
 				});
+				if(title.length < 140 && content.length < 1000){
 				removeFrom(document.getElementById("create-already-tags"));
 				chain.create_post(title, content, tags, function(res) {
 					if (res) {
@@ -1349,8 +1352,9 @@ console.log("GOT FEED");
 						alert("You've been making too many posts recently. Cut it out for a while!");
 					}
 				});
-				e.target.reset();
 
+				e.target.reset();
+				}
 
 			});
 			document.getElementById("add-rules").type.addEventListener("change", function(e){
