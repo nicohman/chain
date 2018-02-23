@@ -8,18 +8,18 @@ var schemes = {
 		"follow":"#657b83"
 	},
 	"jackson":{
-		"main-bg":"#D15000",
-		"sec-bg":"#3F88C5",
+		"main-bg":"#C6CAD1",
+		"sec-bg":"#D15000",
 		"border":"#C6CAD1",
-		"text":"#AEB2B7",
-		"follow":"#F7F5FA"
+		"text":"#F7F5FA",
+		"follow":"#3F88C5"
 	},
 	"monokai":{
 		"main-bg":"#272822",
-		"sec-bg":"#A6E22E",
-		"border":"#66D9EF",
-		"text":"#A6E22E",
-		"follow":"#F92672"
+		"sec-bg":"#272822",
+		"border":"#FD971F",
+		"text":"#FFFFFF",
+		"follow":"#66D9EF"
 
 	}
 }
