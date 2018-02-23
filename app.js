@@ -34,6 +34,7 @@ function fulfill (name, condition, func, auth, amal, easy, def) {
 				alldir(name, req);
 				var done = 0;
 				var posts = {};
+				var curs = [];
 				when(name+req.id, function(res){
 					done++;
 					switch(amal){
@@ -58,6 +59,15 @@ function fulfill (name, condition, func, auth, amal, easy, def) {
 								cb(posts);
 							}
 							break;
+						case "curs":
+							if(res){
+								curs = curs.concat(res.curs);
+								curs = curs.sort(cmpcurfavs);
+								curs.splice(0,res.count);
+							}
+							if (done >= 2){
+								cb(curs);
+							}
 						default:
 							console.log("Invalid amal option");
 							never(name+req.id);
@@ -141,7 +151,7 @@ function fulfill (name, condition, func, auth, amal, easy, def) {
 var get_posts_top = new indefinite("get_curs_top", function(req){
 	var check = Object.keys(posts).map(function(m) {
 		return posts[m];
-	}).sort(cmpfavs).splice(0, req.count);
+	}).sort(cmpfavs).sort(cmpstickied).splice(0, req.count);
 	check.forEach(function(check2, index) {
 		if (req.posts[check2.id]) {
 			check = check.splice(index, 1);
@@ -154,14 +164,14 @@ var get_posts_top = new indefinite("get_curs_top", function(req){
 		m.favs = posts[m.id].favs;
 		return m;
 	});
-	req.posts = check.concat(req.posts).sort(cmpfavs).splice(0, req.count);
+	req.posts = check.concat(req.posts).sort(cmpfavs).sort(cmpstickied).splice(0, req.count);
 	return req;
 }, function(req){}, false, function(req, cb, acc, t){
 	if(!acc){
 		acc = [];
 	}
 	acc.push(req.posts);
-	acc.sort(cmpfavs).splice(0, req.count);
+	acc.sort(cmpfavs).sort(cmpstickied).splice(0, req.count);
 	if(t >= 3){
 		cb(acc);
 		return "fin";
@@ -547,22 +557,33 @@ function never(eventname) {
 }
 //Compares favorite numbers of two posts. Intended for use with Array.sort().
 function cmpfavs(post1, post2) {
-	if (post1.stickied === true && post2.stickied === true) {
-			return 0;
-	} else if (post2.stickied === true) {
-		return 1;
-	} else if (post1.stickied === true) {
-		return -1;
+	var a2bo = 0;
+	var a1bo = 0;
+	if (post1.stickied){
+		a1bo += 2000;
+	} 
+	if (post2.stickied){
+		a2bo += 2000;
 	}
-	else {
-	if (post1.favs < post2.favs) {
+	if (post1.favs + a1bo < post2.favs + a2bo) {
 		return 1;
-	} else if (post1.favs > post2.favs) {
+	} else if (post1.favs +a1bo > post2.favs + a2bo) {
 		return -1;
 	} else {
 		return 0;
 	}
-	}
+	
+}
+function cmpstickied(post1, post2){
+/*	if(post1.stickied && post2.stickied){
+		return 0;
+	} else if (post1.stickied){
+		return -1;
+	} else if (post2.stickied){
+		retur*n 1;
+	} else {*/
+		return 0;
+//	}
 }
 //Checks a post against a given set of curation rules to see whether it is allowed in.
 function checkRules(post, rules){
@@ -660,7 +681,7 @@ function get_posts(criterion, cb) {
 		if (Object.keys(criterion.posts).length < criterion.count) {
 			var check = Object.keys(posts).map(function(m) {
 				return posts[m];
-			}).sort(cmpfavs).splice(0, criterion.count);
+			}).sort(cmpfavs).sort(cmpstickied).splice(0, criterion.count);
 			check.forEach(function(check2, index) {
 				if (criterion.posts[check2.id]) {
 					check = check.splice(index, 1);
@@ -674,7 +695,7 @@ function get_posts(criterion, cb) {
 				return m;
 			});
 
-			criterion.posts = check.concat(criterion.posts).sort(cmpfavs).splice(0, criterion.count);
+			criterion.posts = check.concat(criterion.posts).sort(cmpfavs).sort(cmpstickied).splice(0, criterion.count);
 
 		}
 	}
@@ -755,7 +776,7 @@ function get_even(criterion, cb) {
 				//console.log(fin);
 				fin = Object.keys(fin).map(function(p) {
 					return fin[p];
-				}).sort(cmpfavs);
+				}).sort(cmpfavs).sort(cmpstickied);
 				posts.posts = fin;
 			}
 
@@ -966,6 +987,7 @@ var favsUpdate = new fulfill("update_favs", function(req){
 	}
 	return true;
 }, false, "once", true);
+
 var favsCur = new fulfill("update_cur_favs", function(req){
 	return curations[req.cid]
 }, function(req){
@@ -973,7 +995,7 @@ var favsCur = new fulfill("update_cur_favs", function(req){
 		curations[req.cid].favs = 0;
 	}
 	curations[req.cid].favs += req.num;
-	updatePosts(curations[req.cid]);
+	updateCurs(curations[req.cid]);
 	if(req.original == selfId){
 		alldir("update_cur_favs", req);
 	}
@@ -1204,6 +1226,34 @@ function create_curation(req, cb){
 
 	});
 }
+function cmpcurfavs (cur1, cur2){
+	if (curations[cur1].favs && curations[cur2].favs){
+		if(curations[cur1].favs > curations[cur2].favs){
+			return -1;
+		} else if (curations[cur1].favs < curations[cur2].favs){
+			return 1;
+		} else {
+			return 0;
+		}
+	} else {
+		if(curations[cur1].favs){
+			return -1; 
+		} else if(curations[cur2].favs){
+			return 1;
+		} else {
+			return 0;
+		}
+	}
+}
+var get_curs_top = new fulfill("get_curs_top", function(req){
+	req.curs = req.curs.concat(Object.keys(curations).sort(cmpcurfavs).splice(0, req.count));
+	req.curs = req.curs.sort(cmpcurfavs).filter(function(elem, index, self){
+		return index === self.indexOf(elem);
+	}).splice(0,req.count);
+	return !adjacent[flip(getDir(req.from))];
+}, function(req){
+	return req;	
+}, false, "curs", true, {curs:[]});
 function updateRec(id) {
 	Object.keys(rec[id]).forEach(function(key) {
 		if (moment(rec[id][key]).isAfter(moment().subtract(1, 'days'))) {} else {
@@ -1462,6 +1512,12 @@ var serv_handles = {
 			}
 		});
 
+	},
+	"get_curs_top":get_curs_top,
+	"c_get_curs_top":function(req){
+		get_curs_top.easy({count:5,curs:[]}, function(res){
+			io.to(req.cid).emit("c_got_curs_top",res.curs); 
+		});
 	},
 	"update_favs": favsUpdate,
 	"add_comment": add_comment,

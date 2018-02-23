@@ -5,6 +5,7 @@ window.onload = function() {
 	var home_num = 10;
 	var cur_show = "home";
 	var resCur = false;
+	var useYt = false;
 	function prevent(e){
 		if(e.preventDefault){
 			e.preventDefault();
@@ -23,6 +24,30 @@ window.onload = function() {
 		localStorage.setItem("colorscheme", e.target["cs-select"].value)
 		changeColorscheme(e.target["cs-select"].value);
 	});
+	document.getElementById("yt-button").addEventListener("click", function(e){
+		localStorage.setItem("yt", !useYt);
+		useYt = !useYt;
+		checkYt();
+	});
+	function checkYt(){
+		if(useYt){
+			document.getElementById("yt-button").innerHTML = "Disable youtube embeds";
+		} else {
+			document.getElementById("yt-button").innerHTML = "Enable youtube embeds";
+		}
+	}
+	if (localStorage.getItem("yt")){
+		var got = localStorage.getItem("yt");
+		switch(got){
+			case "false":useYt = false;
+
+				break;
+			case"true":useYt = true;
+				break;
+		}
+	}
+
+		checkYt();
 	var cur_com = "";
 	var token = localStorage.getItem("auth_token");
 	var chain = {
@@ -251,6 +276,18 @@ window.onload = function() {
 			client.once("c_got_cur_posts_"+cur+"_"+time,function(posts){
 				console.log("RES FROM SERVER");
 				cb(posts)
+			});
+		},
+		get_curs_top:function(cb, count){
+			if(!count){
+				count = 10;
+			}
+			client.emit("c_get_curs_top", {
+				cid:client.id,
+				count:count
+			});
+			client.once("c_got_curs_top", function(res){
+					cb(res);
 			});
 		},
 		get_feed: function get_feed(cb, count) {
@@ -482,10 +519,10 @@ console.log("GOT FEED");
 				return "";
 			} else {
 				var ytT = match.match(yt);
-				if (ytT){
-					return "<iframe class='ytplayer' type='text/html' width='640' height='360' src='https://www.youtube.com/embed/"+ytT[1]+"</iframe";
+				if (ytT && useYt){
+					return "<iframe class='ytplayer' type='text/html' width='320' height='180' src='https://www.youtube.com/embed/"+ytT[1]+"'></iframe>";
 					} else {
-					return "<a href='"+match+"'>"+match+"</a>"
+					return "<a target='_blank' href='"+match+"'>"+match+"</a>"
 				}
 			}
 		});
@@ -815,7 +852,19 @@ console.log("GOT FEED");
 			var li = document.createElement("li");
 			li.innerHTML = "Couldn't fetch your followed curations";
 			document.getElementById("fol-curs").appendChild(li);
+			chain.get_curs_top(function(ctop){
+				removeFrom(document.getElementById("pop-curs"));
+				ctop.forEach(function(cur){
+					var li = document.createElement("li");
+					li.innerHTML = cur;
+					li.addEventListener("click", function(e){
+						findByCuration(cur);
+					});
+					document.getElementById("pop-curs").appendChild(li);
 
+				
+				});
+			});
 			chain.get_self(function(me){
 				removeFrom(document.getElementById("fol-curs"));
 				var arr = Object.keys(me.curs);
