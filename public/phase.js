@@ -475,13 +475,18 @@ console.log("GOT FEED");
 	function replLinks(cont, rmfirst){
 		var done = 0;
 		var res = /(https*:\/\/\S+\.\S+)/
-
+		var yt = /(?:https:\/\/(?:www\.)*youtube\.com\/watch\?v=(\S+))|(?:https*:\/\/youtu\.be\/(\S+))/
 		var is = cont.replace(res, function(match){
 			if(rmfirst && done === 0){
 				done = 1;
 				return "";
 			} else {
-				return "<a href='"+match+"'>"+match+"</a>"
+				var ytT = match.match(yt);
+				if (ytT){
+					return "<iframe class='ytplayer' type='text/html' width='640' height='360' src='https://www.youtube.com/embed/"+ytT[1]+"</iframe";
+					} else {
+					return "<a href='"+match+"'>"+match+"</a>"
+				}
 			}
 		});
 		if(is){
