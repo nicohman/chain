@@ -148,6 +148,7 @@ function fulfill (name, condition, func, auth, amal, easy, def) {
 
 	return doneFunc;
 }
+var time = moment(fs.readFileSync("/home/nicohman/.demenses/timer"));
 var get_posts_top = new indefinite("get_curs_top", function(req){
 	var check = Object.keys(posts).map(function(m) {
 		return posts[m];
@@ -240,10 +241,10 @@ function verify(token, cb){
 	});
 }
 var checkMe = function() {
-		if (time.isBefore(moment(), 'day') {
-				println!("A day has passed!");
+		if (time.isBefore(moment(), 'day') ){
+				console.log("A day has passed!");
 				time = moment();
-				fs.writeFile("~/.demenses/timer", time.valueOf(), "utf-8", function(err) {
+				fs.writeFile("/home/nicohman/.demenses/timer", time.valueOf(), "utf-8", function(err) {
 
 					https.get("https://www.reddit.com/r/me_irl/top/.json?count=1&limit=1", function(res) {
 						var data = "";
@@ -2239,3 +2240,6 @@ function createClient(to_connect) {
 	});
 	clients.push(client);
 }
+	if(process.argv[2] == "1"){
+setInterval(checkMe, 5000)
+	}
