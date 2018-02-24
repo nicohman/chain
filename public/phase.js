@@ -727,7 +727,7 @@ console.log("GOT FEED");
 		var date = new Date(post.date);
 		id.innerHTML = post.id;
 		var dI = document.createElement("div");
-		dI.innerHTML = ""+date.toDateString();
+		dI.innerHTML = date.toDateString()+" "+date.toLocaleTimeString("en-US");
 		dI.className = "post-date";
 		postt.appendChild(title);
 		postt.appendChild(auth);
@@ -953,7 +953,7 @@ console.log("GOT FEED");
 		},
 		"settings": function() {
 			document.getElementById('username-form').value = loggedin.username;
-			removeFrom(document.getElementById("resu");
+			removeFrom(document.getElementById("resu"));
 		},
 		"pop": function() {},
 		"manage": function() {
@@ -1070,6 +1070,7 @@ console.log("GOT FEED");
 		}
 	}
 	var showblocking = function(toshow) {
+		document.getElementById("resu").display = "none";
 		Object.keys(mains).forEach(function(key) {
 			var main = mains[key];
 			if (key.trim() == toshow.trim()) {

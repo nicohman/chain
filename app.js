@@ -1204,11 +1204,12 @@ var get_curation = new fulfill('get_curation', function(req){
 	if(req.filter == "name"){
 		if(curations[req.filter_data]){
 			return req.filter_data;
+		} else {
+			return false;
 		}
 	}
-	return false;
 }, function(req, s){
-	return curations[s];
+	return curations[req.filter_data];
 }, false, "once", true);
 function create_curation(req, cb){
 	jwt.verify(req.token, secret, function(err, decode){
@@ -1567,7 +1568,8 @@ var serv_handles = {
 				tags: req.tags,
 				token: req.token
 			}
-			get_curation_by_name(req.name, function(res) {
+			//get_curation_by_name(req.name, function(res) {
+			var res = curations[req.name];
 				if (res) {
 					io.to(req.cid).emit("c_created_curation", "already");
 				} else {
@@ -1578,7 +1580,7 @@ var serv_handles = {
 						});
 					});
 				}
-			});
+		//	});
 		}
 	},
 	"c_change_email":function(req){

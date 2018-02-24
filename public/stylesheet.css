@@ -140,7 +140,9 @@ font-size:small;
 button {
         cursor: pointer;
 }
-
+#owned-curs li {
+	cursor:pointer;
+}
 #main>div {
         display: none;
 }
