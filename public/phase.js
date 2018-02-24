@@ -6,6 +6,18 @@ window.onload = function() {
 	var cur_show = "home";
 	var resCur = false;
 	var useYt = false;
+	var pdate =function(posts){ 
+		
+		return function(p1,p2){
+								if(posts[p1].date > posts[p2].date ){
+									return -1;	
+								} else if (posts[p1].date < posts[p2].date ){
+									return 1;
+								} else {
+									return 0;
+								}
+							}
+	}
 	function prevent(e){
 		if(e.preventDefault){
 			e.preventDefault();
@@ -380,6 +392,7 @@ console.log("GOT FEED");
 				id: client.id
 			});
 			client.once("c_got_top", function(posts) {
+				console.log("TOP RES");
 				cb(posts.posts);
 			});
 		},
@@ -782,50 +795,79 @@ console.log("GOT FEED");
 			show_post(post, document.getElementById("resu"));
 		});
 	}
+
 	var mains = {
 		"home": function() {
 			home_num = 20;
 			var max = 0;
+
+			var gotter = {};
 			removeFrom(document.getElementById("home"));
 			chain.get_top(function(posts) {
 				console.log(posts);
 				var sorted = Object.keys(posts).sort(function(post1, post2) {
-					if (posts[post1].favs > posts[post2].favs) {
-						return -1;
-					} else if (posts[post1].favs < posts[post2].favs) {
-						return 1;
-					} else {
-						return 0;
-					}
 
-				})
+								var b1 = 0;
+								var b2 = 0;
+								if(posts[post1].stickied){
+									b1+= posts[post1].date;
+									console.log("b1!:"+b1);
+								}
+								if(posts[post2].stickied){
+									b2+=posts[post2].date;
+								}
+								if (posts[post1].favs +b1 > posts[post2].favs+ b2) {
+									return -1;
+								} else if (posts[post1].favs +b1 < posts[post2].favs+ b2) {
+									return 1;
+								} else {
+									return 0;
+								}
+				});
+				var inc = 0;
 				sorted.forEach(function(key) {
+					if(inc < 10){
 					var post = posts[key];
-
+					gotter[post.id] = true;
 					console.log(post);
 					if (post.title) {
 						show_post(post, document.getElementById("home"));
 					}
+					}
+					inc++
 
-				});
-				max = sorted.length
+				});	
 				if (sorted.length >= 10) {
+			
+				max = 10;	
 					makeLoad(document.getElementById("home"), function(load) {
 						console.log("LOADING MORE OF " + home_num +"|"+max+"|"+sorted.length)
 						chain.get_top(function(posts) {
 							console.log(posts);
 							var sorted = Object.keys(posts).sort(function(post1, post2) {
-								if (posts[post1].favs > posts[post2].favs) {
+								var b1 = 0;
+								var b2 = 0;
+								if(posts[post1].stickied){
+									b1+= posts[post1].date;
+									console.log("b1!:"+b1);
+								}
+								if(posts[post2].stickied){
+									b2+=posts[post2].date;
+								}
+								if (posts[post1].favs +b1 > posts[post2].favs+ b2) {
 									return -1;
-								} else if (posts[post1].favs < posts[post2].favs) {
+								} else if (posts[post1].favs +b1 < posts[post2].favs+ b2) {
 									return 1;
 								} else {
 									return 0;
 								}
 
 							});
+							sorted = sorted.filter(function(x){
+								return !gotter[posts[x].id];
+							});
+							sorted.splice(10, 1000);
 							console.log(sorted);
-							sorted.splice(0, max)
 							console.log("SPLICED:");
 							console.log(sorted);
 
@@ -833,13 +875,14 @@ console.log("GOT FEED");
 								var post = posts[key];
 								console.log(key);
 								console.log(post);
+								gotter[post.id] = true;
 								if (post.title) {
 									document.getElementById("home").insertBefore(makePost(post), load);
 								}
 
 							});
 							max += sorted.length;
-							home_num += 20;
+							home_num += 100;
 
 
 						}, home_num + 20);
@@ -1000,7 +1043,7 @@ console.log("GOT FEED");
 			chain.get_feed(function(posts) {
 				console.log("GOT FEED POSTS");
 				removeFrom(postI);
-				Object.keys(posts).forEach(function(key) {
+				Object.keys(posts).sort(pdate(posts)).forEach(function(key) {
 					coll[key] = true;
 					show_post(posts[key], postI);
 				});
@@ -1017,6 +1060,7 @@ console.log("GOT FEED");
 							console.log(posts2);
 							console.log("_");
 							console.log(posts);
+							arr.sort(pdate(posts));
 							arr.forEach(function(key) {
 								if (coll[key]) {
 									console.log(key);
@@ -1369,6 +1413,8 @@ console.log("GOT FEED");
 			document.getElementById("comment").addEventListener("submit", function(e) {
 				prevent(e);
 				var content = e.target.elements.content.value;
+				if(content.length > 0){
+					if(content.length < 256){
 				e.target.reset();
 				console.log(cur_com);
 				chain.add_comment(content, cur_com, function(res) {
@@ -1378,6 +1424,12 @@ console.log("GOT FEED");
 						show_comments(post);
 					});
 				});
+					} else {
+						alert("A comment must be less than 256 characters!");
+					}
+				} else {
+					alert("A comment must not be empty!");
+				}
 			});
 			document.getElementById("create-post").addEventListener("submit", function(e) {
 				prevent(e);

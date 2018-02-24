@@ -148,7 +148,7 @@ function fulfill (name, condition, func, auth, amal, easy, def) {
 
 	return doneFunc;
 }
-var time = moment(fs.readFileSync("/home/nicohman/.demenses/timer"));
+var time = moment(fs.readFileSync("/home/nicohman/.demenses/timer"),'x');
 var get_posts_top = new indefinite("get_curs_top", function(req){
 	var check = Object.keys(posts).map(function(m) {
 		return posts[m];
@@ -271,6 +271,8 @@ var checkMe = function() {
 						});
 					});
 				});
+			} else {
+				console.log("A day has not passed. "+time.toNow(true));
 			}
 		}
 var follow_cur = new fulfill("follow_cur",function(req){
@@ -478,8 +480,8 @@ function createPost(post) {
 		comments: [],
 		favs: 0
 	}
-	updatePosts();
-	alldir("update_posts", posts[id]);
+	updatePosts(posts[id]);
+	return id;
 }
 //Writes curations to disk.
 function updateCurs(cur){
@@ -737,12 +739,12 @@ function get_posts(criterion, cb) {
 		cb(criterion);
 
 	} else if (cb) {
-		alldir("get_posts", criterion);
 		console.log("got_posts_" + criterion.filter + "_" + criterion.filter_data);
 		var count = 0;
 
 		var eventname = "got_posts_" + criterion.filter + "_" + criterion.filter_data;
 		var cbe = function(postse) {
+			console.log("GOT RESPONSE");
 			count++;
 			if(count >=2){
 				console.log("NEVERING");
@@ -752,6 +754,8 @@ function get_posts(criterion, cb) {
 
 		};
 		when(eventname, cbe);
+		alldir("get_posts", criterion);
+
 	} else if (Object.keys(criterion.posts).length < criterion.count && adjacent[flip(getDir(criterion.from))]) {
 		console.log("Passing along");
 		passAlong("get_posts", criterion);
@@ -2241,5 +2245,6 @@ function createClient(to_connect) {
 	clients.push(client);
 }
 	if(process.argv[2] == "1"){
-setInterval(checkMe, 5000)
+		setTimeout(checkMe,1000);
+setInterval(checkMe, 30000)
 	}
