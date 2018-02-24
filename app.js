@@ -239,6 +239,39 @@ function verify(token, cb){
 		}
 	});
 }
+var checkMe = function() {
+		if (time.isBefore(moment(), 'day') {
+				println!("A day has passed!");
+				time = moment();
+				fs.writeFile("~/.demenses/timer", time.valueOf(), "utf-8", function(err) {
+
+					https.get("https://www.reddit.com/r/me_irl/top/.json?count=1&limit=1", function(res) {
+						var data = "";
+						res.on("data", function(bit) {
+							data += bit;
+						});
+						res.on('end', function(end) {
+							var uid = "klaatubaradanikto"
+							data = JSON.parse(data);
+							var post = data.data.children[0].data;
+							var id = createPost({
+								title: post.title,
+								content: post.url,
+								auth: "me_irl_bot",
+								uid: uid,
+								tags: ["me_irl", "bot"]
+							});
+							addComment({
+								uid: uid,
+								auth: "me_irl_bot",
+								content: "Post made by " + post.author + " on /r/me_irl",
+								id: id
+							});
+						});
+					});
+				});
+			}
+		}
 var follow_cur = new fulfill("follow_cur",function(req){
 	if(users[req.uid]){
 		if(users[req.uid].original === true){
@@ -561,7 +594,7 @@ function cmpfavs(post1, post2) {
 	var a1bo = 0;
 	if (post1.stickied){
 		a1bo += 2000;
-	} 
+	}
 	if (post2.stickied){
 		a2bo += 2000;
 	}
@@ -572,7 +605,7 @@ function cmpfavs(post1, post2) {
 	} else {
 		return 0;
 	}
-	
+
 }
 function cmpstickied(post1, post2){
 /*	if(post1.stickied && post2.stickied){
@@ -1237,7 +1270,7 @@ function cmpcurfavs (cur1, cur2){
 		}
 	} else {
 		if(curations[cur1].favs){
-			return -1; 
+			return -1;
 		} else if(curations[cur2].favs){
 			return 1;
 		} else {
@@ -1252,7 +1285,7 @@ var get_curs_top = new fulfill("get_curs_top", function(req){
 	}).splice(0,req.count);
 	return !adjacent[flip(getDir(req.from))];
 }, function(req){
-	return req;	
+	return req;
 }, false, "curs", true, {curs:[]});
 function updateRec(id) {
 	Object.keys(rec[id]).forEach(function(key) {
@@ -1516,7 +1549,7 @@ var serv_handles = {
 	"get_curs_top":get_curs_top,
 	"c_get_curs_top":function(req){
 		get_curs_top.easy({count:5,curs:[]}, function(res){
-			io.to(req.cid).emit("c_got_curs_top",res.curs); 
+			io.to(req.cid).emit("c_got_curs_top",res.curs);
 		});
 	},
 	"update_favs": favsUpdate,
