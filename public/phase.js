@@ -147,6 +147,18 @@ window.onload = function() {
 				cb(res);
 			});
 		},
+		change_color:function(email, color, cb){
+			client.emit("c_change_color", {
+				uid:loggedin.uid,
+				cid:client.id,
+				color:color,
+				email:email,
+				token:token
+			});
+			client.once("c_changed_color", function(res){
+				cb(res);
+			});
+		},
 		get_self_posts: function(cb){
 			client.emit("c_get_self_posts", {
 				cid:client.id,
@@ -1406,6 +1418,22 @@ console.log("GOT FEED");
 					loggedin.admin = res.admin;
 					loggedin.email = res.email;
 					console.log(res);
+					if(loggedin.admin){
+						document.getElementById("color-admin").style.display = "block";
+						document.getelementById("color-form").addEventListener("submit", function(e){
+							prevent(e);
+							var info = e.target.elements;
+							var email = info.email.value;
+							var color = info.color.value;
+							chain.change_color(email, color, function(res){
+								if(res){
+									notify("Changed user "+email+"'s color to "+color);
+								} else {
+									notify("Couldn't change user's color");
+								}
+							});
+						});
+					}
 				} else {
 					window.location.href = "./login.html";
 				}
