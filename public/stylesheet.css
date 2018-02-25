@@ -17,6 +17,11 @@
         list-style-type: none;
 	color:var(--text);
 }
+#home {
+	flex-wrap:wrap;
+	display:flex;
+	margin-left:15%;
+}
 .curbutx {
 	background:none;
 	border:none;
@@ -47,7 +52,7 @@
 .post-title {
         padding-top: 15px;
         font-size: large;
-
+	font-weight:bold;
 
 }
 .main-con {
@@ -177,6 +182,8 @@ a {
 }
 
 #navbar li a {
+	font-weight:bold;
+
         padding: 14px 16px;
 }
 

@@ -559,7 +559,12 @@ console.log("GOT FEED");
 		title.innerHTML = post.title + " - " + post.favs;
 		var auth = document.createElement("div");
 		auth.className = "post-auth";
-		auth.innerHTML = "by " + post.auth;
+		var name = post.auth;
+		if(post.color){
+	
+			name = "<span style='color:"+post.color+"' >"+name+"</span>";
+		}
+		auth.innerHTML = "by " + name;
 		var dot = false;
 		if (post.content) {
 			var e = checkUrl(post.content.trim());
@@ -800,7 +805,7 @@ console.log("GOT FEED");
 		"home": function() {
 			home_num = 20;
 			var max = 0;
-
+			document.getElementById("home").style.display = "flex"
 			var gotter = {};
 			removeFrom(document.getElementById("home"));
 			chain.get_top(function(posts) {
@@ -1115,13 +1120,15 @@ console.log("GOT FEED");
 	}
 	var showblocking = function(toshow) {
 		document.getElementById("resu").display = "none";
+		removeFrom(document.getElementById("resu"));
 		Object.keys(mains).forEach(function(key) {
 			var main = mains[key];
 			if (key.trim() == toshow.trim()) {
+
+				main.el.style.display = "block";
 				if (main.ref) {
 					main.ref(main);
 				}
-				main.el.style.display = "block";
 				console.log("Shown");
 			} else {
 				main.el.style.display = "none";

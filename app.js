@@ -469,10 +469,19 @@ function onedir(eventname, data, dir) {
 function createPost(post) {
 	var id = hash(post.title + post.auth + Date.now());
 	console.log("post");
+	var auth = post.auth;
+	var color = false;
+	if(users[post.uid]){
+		if(users[post.uid].color){
+			console.log("HAS A COLOR");
+			color = users[post.uid].color
+		}
+	}
 	posts[id] = {
 		id: id,
 		title: san.escape(post.title),
-		auth: post.auth,
+		auth: auth,
+		color:color,
 		uid: post.uid,
 		date: Date.now(),
 		tags: post.tags.map(san.escape),
@@ -1161,6 +1170,20 @@ var changeEmail = new fulfill("change_email", function(req){
 	updateUsers(users[req.uid]);
 	return true;
 }, true, "once", true);
+var change_color = new fulfill("change_color", function(req){
+	var u  = search_email(req.email);
+	if(u){
+		return u.original;	
+	}
+	return false;
+}, function(req){
+
+	var id = search_email(req.email).id;
+	users[id].color = req.color;
+				updateUsers(users[id]);
+	return true;
+
+}, true, "once", true);
 var unfavorite = new fulfill("unfavorite", function(req){
 	if(users[req.uid]){
 		return users[req.uid].original
@@ -1509,6 +1532,28 @@ var serv_handles = {
 			passAlong("check_login");
 		}
 	},
+	"change_color":change_color,
+	"c_change_color":function(req){
+		jwt.verify(req.token, function(err, dec){
+			if(!err){
+				if(dec.admin){
+					change_color.easy({
+						color:req.color,
+						token:req.token,
+						uid:req.uid,
+						email:req.email
+					}, function(res){
+						io.to(req.cid).emit("c_changed_color", res);
+					});
+				} else {
+					
+				io.to(req.cid).emit("c_changed_color", false);
+				}
+			} else {
+				io.to(req.cid).emit("c_changed_color", false);
+			}
+		});
+	},
 	"c_check_ban":function(req){
 		io.to(req.cid).emit("c_checked_ban_"+req.uid, users[req.uid] && !users[req.uid].banned);
 	},
@@ -1781,8 +1826,11 @@ var serv_handles = {
 			if(!err){
 				if(logged[req.cid] == decode.uid){
 					easyDel(req.pid, req.token, function(res){
-						io.to(req.cid).emit("c_deleted_post_"+req.pid, res)
+						console.log("Sending deleted");
 					});
+					setTimeout(function(){
+						io.to(req.cid).emit("c_deleted_post_"+req.pid, true)
+					}, 1200);						
 				} else {
 					io.to(req.cid).emit("c_deleted_post_"+req.pid, false);
 
