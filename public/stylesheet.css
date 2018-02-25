@@ -826,6 +826,9 @@ transform: translate(-50%, 0%) !important;
     #create-post #create-title{
     	font-size:large;
     }
+    #home {
+    	margin-left:0;
+    }
     #tags-find {
     	margin-top:20% !important;
     }

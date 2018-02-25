@@ -6,17 +6,18 @@ window.onload = function() {
 	var cur_show = "home";
 	var resCur = false;
 	var useYt = false;
-	var pdate =function(posts){ 
-		
+	var enDub = false;
+	var pdate =function(posts){
+
 		return function(p1,p2){
-								if(posts[p1].date > posts[p2].date ){
-									return -1;	
-								} else if (posts[p1].date < posts[p2].date ){
-									return 1;
-								} else {
-									return 0;
-								}
-							}
+			if(posts[p1].date > posts[p2].date ){
+				return -1;
+			} else if (posts[p1].date < posts[p2].date ){
+				return 1;
+			} else {
+				return 0;
+			}
+		}
 	}
 	function prevent(e){
 		if(e.preventDefault){
@@ -41,6 +42,19 @@ window.onload = function() {
 		useYt = !useYt;
 		checkYt();
 	});
+	document.getElementById("dub-button").addEventListener("click", function(e){
+		localStorage.setItem("dub", !enDub);
+		enDub = !enDub;
+		checkDub();
+	});
+	function checkDub(){
+		if(enDub){
+			document.getElementById("dub-button").innerHTML = "Show one column of posts on the home page";
+		} else {
+			document.getElementById("dub-button").innerHTML = "Show two columns of posts on the home page";
+		}
+
+	}
 	function checkYt(){
 		if(useYt){
 			document.getElementById("yt-button").innerHTML = "Disable youtube embeds";
@@ -58,8 +72,17 @@ window.onload = function() {
 				break;
 		}
 	}
-
-		checkYt();
+	if (localStorage.getItem("dub")){
+		var got = localStorage.getItem("dub");
+		switch(got){
+			case "false":enDub=false;
+				break;
+			case "true":enDub = true;
+				break;
+		}
+	}
+	checkDub();
+	checkYt();
 	var cur_com = "";
 	var token = localStorage.getItem("auth_token");
 	var chain = {
@@ -311,7 +334,7 @@ window.onload = function() {
 				count:count
 			});
 			client.once("c_got_curs_top", function(res){
-					cb(res);
+				cb(res);
 			});
 		},
 		get_feed: function get_feed(cb, count) {
@@ -331,7 +354,7 @@ window.onload = function() {
 				});
 			console.log("c_got_feed_" + loggedin.uid);
 			client.once("c_got_feed_" + loggedin.uid, function(posts) {
-console.log("GOT FEED");
+				console.log("GOT FEED");
 				console.log(posts);
 				cb(posts);
 			});
@@ -546,7 +569,7 @@ console.log("GOT FEED");
 				var ytT = match.match(yt);
 				if (ytT && useYt){
 					return "<iframe class='ytplayer' type='text/html' width='320' height='180' src='https://www.youtube.com/embed/"+ytT[1]+"'></iframe>";
-					} else {
+				} else {
 					return "<a target='_blank' href='"+match+"'>"+match+"</a>"
 				}
 			}
@@ -573,7 +596,7 @@ console.log("GOT FEED");
 		auth.className = "post-auth";
 		var name = post.auth;
 		if(post.color){
-	
+
 			name = "<span style='color:"+post.color+"' >"+name+"</span>";
 		}
 		auth.innerHTML = "by " + name;
@@ -608,7 +631,7 @@ console.log("GOT FEED");
 			content.className = "post-content";
 			content.innerHTML = links;
 			if(img){
-				
+
 				content.appendChild(img);
 				img.src = ilink
 				img.onload = function(){
@@ -723,7 +746,7 @@ console.log("GOT FEED");
 				if(res && !res.banned){
 					banBut.innerHTML = "Ban User";
 				} else if (!res){
-					
+
 				} else {
 					banBut.innerHTML = "Unban User";
 				}
@@ -817,46 +840,48 @@ console.log("GOT FEED");
 		"home": function() {
 			home_num = 20;
 			var max = 0;
-			document.getElementById("home").style.display = "flex"
+			if(enDub){
+				document.getElementById("home").style.display = "flex";
+			}
 			var gotter = {};
 			removeFrom(document.getElementById("home"));
 			chain.get_top(function(posts) {
 				console.log(posts);
 				var sorted = Object.keys(posts).sort(function(post1, post2) {
 
-								var b1 = 0;
-								var b2 = 0;
-								if(posts[post1].stickied){
-									b1+= posts[post1].date;
-									console.log("b1!:"+b1);
-								}
-								if(posts[post2].stickied){
-									b2+=posts[post2].date;
-								}
-								if (posts[post1].favs +b1 > posts[post2].favs+ b2) {
-									return -1;
-								} else if (posts[post1].favs +b1 < posts[post2].favs+ b2) {
-									return 1;
-								} else {
-									return 0;
-								}
+					var b1 = 0;
+					var b2 = 0;
+					if(posts[post1].stickied){
+						b1+= posts[post1].date;
+						console.log("b1!:"+b1);
+					}
+					if(posts[post2].stickied){
+						b2+=posts[post2].date;
+					}
+					if (posts[post1].favs +b1 > posts[post2].favs+ b2) {
+						return -1;
+					} else if (posts[post1].favs +b1 < posts[post2].favs+ b2) {
+						return 1;
+					} else {
+						return 0;
+					}
 				});
 				var inc = 0;
 				sorted.forEach(function(key) {
 					if(inc < 10){
-					var post = posts[key];
-					gotter[post.id] = true;
-					console.log(post);
-					if (post.title) {
-						show_post(post, document.getElementById("home"));
-					}
+						var post = posts[key];
+						gotter[post.id] = true;
+						console.log(post);
+						if (post.title) {
+							show_post(post, document.getElementById("home"));
+						}
 					}
 					inc++
 
-				});	
+				});
 				if (sorted.length >= 10) {
-			
-				max = 10;	
+
+					max = 10;
 					makeLoad(document.getElementById("home"), function(load) {
 						console.log("LOADING MORE OF " + home_num +"|"+max+"|"+sorted.length)
 						chain.get_top(function(posts) {
@@ -922,7 +947,7 @@ console.log("GOT FEED");
 					});
 					document.getElementById("pop-curs").appendChild(li);
 
-				
+
 				});
 			});
 			chain.get_self(function(me){
@@ -1450,15 +1475,15 @@ console.log("GOT FEED");
 				var content = e.target.elements.content.value;
 				if(content.length > 0){
 					if(content.length < 256){
-				e.target.reset();
-				console.log(cur_com);
-				chain.add_comment(content, cur_com, function(res) {
-					
-					chain.get_by_id(cur_com, function(post) {
-						console.log(post);
-						show_comments(post);
-					});
-				});
+						e.target.reset();
+						console.log(cur_com);
+						chain.add_comment(content, cur_com, function(res) {
+
+							chain.get_by_id(cur_com, function(post) {
+								console.log(post);
+								show_comments(post);
+							});
+						});
 					} else {
 						alert("A comment must be less than 256 characters!");
 					}
@@ -1485,17 +1510,17 @@ console.log("GOT FEED");
 					}
 				});
 				if(title.length < 140 && content.length < 1000){
-				removeFrom(document.getElementById("create-already-tags"));
-				chain.create_post(title, content, tags, function(res) {
-					if (res) {
-						window.location.hash = "#home";
-						showblocking('home');
-					} else {
-						alert("You've been making too many posts recently. Cut it out for a while!");
-					}
-				});
+					removeFrom(document.getElementById("create-already-tags"));
+					chain.create_post(title, content, tags, function(res) {
+						if (res) {
+							window.location.hash = "#home";
+							showblocking('home');
+						} else {
+							alert("You've been making too many posts recently. Cut it out for a while!");
+						}
+					});
 
-				e.target.reset();
+					e.target.reset();
 				}
 
 			});
