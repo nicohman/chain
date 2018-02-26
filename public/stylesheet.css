@@ -28,6 +28,11 @@
 	margin:none;
 	padding:0;
 }
+#back-div {
+	background:none;
+	border:none;
+	font-weight:bold;
+}
 #fol-curs li {
 	cursor:pointer;
 }
