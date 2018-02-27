@@ -298,34 +298,48 @@ transporter.verify(function(err, suc) {
 	}
 });
 var m_info = function(req, cb){
-
+	console.log(parseInt(process.argv[2]));
+	console.log(req);
 	req.active[parseInt(process.argv[2])] = true;
-	req.users[parseInt(process.argv[2])] = io.engine.clientsCount ;
+	req.users[parseInt(process.argv[2])] = io.engine.clientsCount -1 ;
+	if(parseInt(process.argv[2]) ==2){
+		req.users[parseInt(process.argv[2])] +=1;
+	} else if (process.argv[2] == "1"){
+		req.users[parseInt(process.argv[2])] -= 2;
+	}
 	console.log("USERS CONNECTED: "+io.engine.clientsCount);
 	if(cb){
 		var dne = {
 			active:req.active,
 			users:req.users,
+			accounts:Object.keys(users).length
 		}
 		var got = 0;
 		when("m_infoed", function(res){
+			console.log("infoed");
 			got++;
 			res.active.forEach(function(val, ind){
+				if(val !== null){
 				dne.active[ind] = val;
+				}
 			});
 			res.users.forEach(function(val, ind){
+				if(val != null){
 				dne.users[ind] = val;
+				}
 			});
-			if(got >= 2){
+			if(got >= adjacent.filter(function(x){return x !== null}).length){
+				console.log("DONE");
 				never("m_infoed");
 				cb(dne);
 			}
 		});
-		alldir	
+		alldir("m_info", req);
 	} else if (adjacent[flip(getDir(req.from))]){
-		passAlong("m_infoed", req)
+		passAlong("m_info", req)
 	} else {
-		onedir("m_infoed", req, flip(getDir(req.from)));
+		console.log("returning");
+		onedir("m_infoed", req, getDir(req.from));
 	}
 }
 //Generates a Password reset link based on an user's email.
@@ -386,13 +400,15 @@ htt.listen(to_open);
 io.use(middleware);
 var adjacent = [];
 if (port != undefined) {
+} else {
+	port = "1000";
+	console.log("First!"+port+to_open);
+}
 	var to_connect = 'https://demenses.net:' + port;
 	console.log("TOCONNECT"+to_connect);
+setTimeout(function(){
 	createClient(to_connect);
-} else {
-	console.log("First!");
-}
-
+}, 1500);
 //Takes a link id and finds which direction[1-0] it is connected in.
 function getDir(id) {
 	var index = -1;
@@ -483,7 +499,9 @@ function passAlong(eventname, data) {
 }
 //Sends an event in all directions down the chain.
 function alldir(eventname, data) {
+	console.log(reg);
 	clients.forEach(function(client) {
+		console.log("emitting");
 		client.emit(eventname, data);
 	});
 	io.emit(eventname, data);
@@ -788,8 +806,9 @@ function get_posts(criterion, cb) {
 			count++;
 			if(count >=2){
 				console.log("NEVERING");
-				never(eventname);
 			}
+
+				never(eventname);
 			cb(postse);
 
 		};
@@ -1566,6 +1585,7 @@ var serv_handles = {
 	"m_info":m_info,
 	"m_get_info":function(req){
 		m_info({from:selfId, active:[], users:[], original:selfId}, function(res){
+			console.log("ressing for m"+process.argv[2])
 			io.to(req.cid).emit("m_got_info", res);
 		});
 	},
@@ -2201,6 +2221,7 @@ var serv_handles = {
 	},
 	"create_post": createPost,
 	"add_neighbor": function(toAdd) {
+		console.log("NEIGHBOR ADDING");
 		if (adjacent.length < 2 && !isNeighbor(toAdd.id) && toAdd.id != selfId && !adjacent[flip(toAdd.dir)]) {
 			adjacent[flip(toAdd.dir)] = {
 				id: toAdd.original,
@@ -2226,12 +2247,25 @@ var serv_handles = {
 }
 
 io.on('connection', function(gsocket) {
+	console.log("CONNECTED TO"+process.argv[2]);
 	Object.keys(serv_handles).forEach(function(key) {
 		//	console.log(key);
 		//	console.log(serv_handles[key]);
-		gsocket.on(key, serv_handles[key]);
+	//	gsocket.on(key, serv_handles[key]);
+	});
+	gsocket.on("add_neighbor", function(res){
+		gsocket.on("disconnect", function(){
+			delete adjacent[flip(res.dir)];
+			console.log("removing");
+		});
 	});
 	gsocket.on("*", function(data) {
+		if(serv_handles[data.data[0]]){
+			serv_handles[data.data[0]](data.data[1]);
+		}
+		if(data.data[0] === "m_info"){
+			console.log("M INFO OTHER");
+		}
 		server.emit(data.data[0], data.data[1]);
 		console.log(io.listenerCount(data.data[0]) + ": " + data.data[0]);
 		if ((!serv_handles[data.data[0]]) && io.listenerCount(data.data[0]) < 1) {
@@ -2247,6 +2281,7 @@ io.on('connection', function(gsocket) {
 });
 
 function createClient(to_connect) {
+	console.log("attempting a connec tto "+to_connect);
 	var client = socketclient(to_connect, {secure:true});
 	patch(client);
 	var client_handles = {
@@ -2261,9 +2296,11 @@ function createClient(to_connect) {
 	client.on('connect', function() {
 
 		console.log("connected to " + to_connect);
-		console.log("connect");
 		client.on("*", function(data) {
 			//console.log("hillo");
+			if(data.data[0] == "m_info"){
+				console.log("M INFO BITCH" + parseInt(process.argv[2]));
+			}
 			console.log(data.data[0]);
 			if (serv_handles[data.data[0]]) {
 				serv_handles[data.data[0]](data.data[1]);
@@ -2303,6 +2340,10 @@ function createClient(to_connect) {
 					port: toAdd.port
 				};
 				console.log("New neighbor, named " + toAdd.name + " from the direction of " + dirToString(getDir(toAdd.from)));
+	client.on("disconnect", function() {
+		delete adjacent[flip(toAdd.dir)];
+	});
+
 			}
 		});
 		client.emit("add_reg", {
@@ -2323,14 +2364,12 @@ function createClient(to_connect) {
 			});
 			console.log(reg);
 		});
+
 	});
 	Object.keys(client_handles).forEach(function(key) {
 		console.log(key);
 
 		client.on(key, client_handles[key]);
-	});
-	client.on("disconnect", function() {
-		console.log('discoonnect');
 	});
 	clients.push(client);
 }
