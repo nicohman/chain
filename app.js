@@ -297,6 +297,37 @@ transporter.verify(function(err, suc) {
 		process.exit(0);
 	}
 });
+var m_info = function(req, cb){
+
+	req.active[parseInt(process.argv[2])] = true;
+	req.users[parseInt(process.argv[2])] = io.engine.clientsCount ;
+	console.log("USERS CONNECTED: "+io.engine.clientsCount);
+	if(cb){
+		var dne = {
+			active:req.active,
+			users:req.users,
+		}
+		var got = 0;
+		when("m_infoed", function(res){
+			got++;
+			res.active.forEach(function(val, ind){
+				dne.active[ind] = val;
+			});
+			res.users.forEach(function(val, ind){
+				dne.users[ind] = val;
+			});
+			if(got >= 2){
+				never("m_infoed");
+				cb(dne);
+			}
+		});
+		alldir	
+	} else if (adjacent[flip(getDir(req.from))]){
+		passAlong("m_infoed", req)
+	} else {
+		onedir("m_infoed", req, flip(getDir(req.from)));
+	}
+}
 //Generates a Password reset link based on an user's email.
 function genRecLink(email, cb) {
 	easyEmail({email:email}, function(u) {
@@ -1531,6 +1562,12 @@ var serv_handles = {
 		} else {
 			passAlong("check_login");
 		}
+	},
+	"m_info":m_info,
+	"m_get_info":function(req){
+		m_info({from:selfId, active:[], users:[], original:selfId}, function(res){
+			io.to(req.cid).emit("m_got_info", res);
+		});
 	},
 	"change_color":change_color,
 	"c_change_color":function(req){
