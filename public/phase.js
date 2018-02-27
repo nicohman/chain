@@ -513,10 +513,16 @@ window.onload = function() {
 		post.comments.forEach(function(comment) {
 			var el = document.createElement("li");
 			el.className = "comment";
-			el.innerHTML = comment.content;
+			el.innerHTML =  comment.content;
 			var au = document.createElement("span");
 			au.className = "comment-author";
-			au.innerHTML = comment.auth;
+			var auT = comment.auth;
+			if(comment.color){
+				auT = "<span style='color:"+comment.color+"'>"+comment.auth+"</span>";
+			}
+			var date = new Date(comment.date);
+			auT += " | "+ date.toDateString()+" "+date.toLocaleTimeString("en-US");
+			au.innerHTML = auT;
 			el.appendChild(au);
 			commentsCon.appendChild(el);
 
@@ -842,6 +848,8 @@ window.onload = function() {
 			var max = 0;
 			if(enDub){
 				document.getElementById("home").style.display = "flex";
+			} else {
+				document.getElementById("home").style["margin-left"] = "0";
 			}
 			var gotter = {};
 			removeFrom(document.getElementById("home"));
@@ -1445,7 +1453,7 @@ window.onload = function() {
 					console.log(res);
 					if(loggedin.admin){
 						document.getElementById("color-admin").style.display = "block";
-						document.getelementById("color-form").addEventListener("submit", function(e){
+						document.getElementById("color-form").addEventListener("submit", function(e){
 							prevent(e);
 							var info = e.target.elements;
 							var email = info.email.value;

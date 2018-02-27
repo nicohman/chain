@@ -1534,7 +1534,7 @@ var serv_handles = {
 	},
 	"change_color":change_color,
 	"c_change_color":function(req){
-		jwt.verify(req.token, function(err, dec){
+		jwt.verify(req.token, secret, function(err, dec){
 			if(!err){
 				if(dec.admin){
 					change_color.easy({
@@ -1606,10 +1606,15 @@ var serv_handles = {
 	"add_comment": add_comment,
 	"c_add_comment": function(req) {
 		if (logged[req.cid]) {
+			var color = false;
+			if(users[logged[req.cid]] && users[logged[req.cid]].color){
+				color = users[logged[req.cid]].color;
+			}
 			add_comment.easy({
 				uid: req.uid,
 				pid: req.id,
 				content: req.content,
+				color:color,
 				auth: req.auth,
 				date: Date.now()
 			}, function(res) {
@@ -1804,7 +1809,7 @@ var serv_handles = {
 			posts: {},
 			from: selfId
 		}, function(postsR) {
-			postsR = checkFavsArr(users[logged[req.id]].favorites, postsR.posts);
+			postsR = checkFavsArr(users[logged[req.id || req.cid]].favorites, postsR.posts);
 			console.log("GOT OTP< COUNT:" + Object.keys(postsR).length);
 			console.log(postsR);
 			io.to(req.id).emit("c_got_top", {posts:postsR})
@@ -2294,5 +2299,5 @@ function createClient(to_connect) {
 }
 	if(process.argv[2] == "1"){
 		setTimeout(checkMe,1000);
-setInterval(checkMe, 30000)
+		setInterval(checkMe, 30000)
 	}
