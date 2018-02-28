@@ -1,0 +1,7 @@
+#!/bin/bash
+rm -rf ~/.demenses
+mkdir ~/.demenses
+~/chain/scripts/reset_posts
+~/chain/scripts/reset_users
+~/chain/scripts/reset_curs
+echo 0 > ~/.demenses/timer

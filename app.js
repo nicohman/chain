@@ -90,8 +90,7 @@ function fulfill (name, condition, func, auth, amal, easy, def) {
 						Object.keys(res).forEach(function(key){
 							newreq[key] = res[key];
 						});
-						console.log("RES");
-						console.log(req);
+						
 						var con = condition(newreq);
 						if(con){
 							var res = func(newreq, con);
@@ -135,7 +134,6 @@ function fulfill (name, condition, func, auth, amal, easy, def) {
 			}
 		}}
 	if(easy){
-		console.log("PUTTING IN EASY MODE FOR "+name);
 		doneFunc.easy = function(props, cb){
 			var def = {from:selfId, original:selfId};
 			Object.keys(props).forEach(function(key){
@@ -158,8 +156,7 @@ var get_posts_top = new indefinite("get_curs_top", function(req){
 			check = check.splice(index, 1);
 		}
 	});
-	console.log("CHECK: ");
-	console.log(check);
+
 
 	check = check.map(function(m) {
 		m.favs = posts[m.id].favs;

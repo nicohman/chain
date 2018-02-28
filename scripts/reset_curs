@@ -1,0 +1,5 @@
+#!/bin/bash
+
+echo '{}' > ~/.demenses/curations_defiant.json
+echo '{}' > ~/.demenses/curations_dragon.json
+echo '{}' > ~/.demenses/curations_dragon\'s\ teeth.json

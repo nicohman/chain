@@ -1047,6 +1047,11 @@ window.onload = function() {
 		"settings": function() {
 			document.getElementById('username-form').value = loggedin.username;
 			removeFrom(document.getElementById("resu"));
+			if(loggedin.admin){
+				document.getElementById("color-admin").style.display = "block";
+			} else {
+				document.getElementById("color-admin").style.display = "none";
+			}
 		},
 		"pop": function() {},
 		"manage": function() {
@@ -1497,6 +1502,15 @@ window.onload = function() {
 					}
 				} else {
 					alert("A comment must not be empty!");
+				}
+			});
+			var mC = document.getElementById("mob-click");
+			var nB = document.getElementById("navbar");
+			mC.addEventListener("click", function(e){
+				if(nB.style.display == "none"){
+					nB.style.display = "fixed";
+				} else if (nB.style.display == "fixed"){
+					nB.style.display = "none";
 				}
 			});
 			document.getElementById("create-post").addEventListener("submit", function(e) {
