@@ -325,6 +325,14 @@ window.onload = function() {
 				cb(posts)
 			});
 		},
+		delete_comment:function(pid,cpos, cb){
+			client.emit("c_delete_comment", {
+				token:token,
+				pid:pid,
+				cpos:cpos
+			});
+			client.once("c_deleted_comment_"+pid, cb);
+		},
 		get_curs_top:function(cb, count){
 			if(!count){
 				count = 10;
@@ -510,7 +518,7 @@ window.onload = function() {
 		removeFrom(commentsCon);
 		cur_com = post.id;
 		console.log(post);
-		post.comments.forEach(function(comment) {
+		post.comments.forEach(function(comment, ind) {
 			var el = document.createElement("li");
 			el.className = "comment";
 			el.innerHTML =  comment.content;
@@ -521,8 +529,23 @@ window.onload = function() {
 				auT = "<span style='color:"+comment.color+"'>"+comment.auth+"</span>";
 			}
 			var date = new Date(comment.date);
-			auT += " | "+ date.toDateString()+" "+date.toLocaleTimeString("en-US");
+			auT += " | "+ date.toDateString()+" "+date.toLocaleTimeString("en-US") + " | ";
 			au.innerHTML = auT;
+			var del_com = document.createElement("button");
+			del_com.className = "del-com";
+			del_com.addEventListener("click", function(e){
+				chain.delete_comment(post.id, ind, function(res){
+					if(res){
+						notify("Comment deleted!");
+						chain.get_by_id(cur_com, function(post) {
+							show_comments(post);
+						});
+
+					} else {
+						notify("Couldn't delete comment");
+					}
+				});
+			});
 			el.appendChild(au);
 			commentsCon.appendChild(el);
 
@@ -1301,7 +1324,6 @@ window.onload = function() {
 								document.getElementById("cur-mod-tags-list").appendChild(createTagDiv(tag, function(v){
 									res.tags.splice(index, 1);
 									chain.edit_cur_mod(cur, res, function(res){
-
 										findByCuration(cur);
 										notify("That tag is no longer in the curation "+cur+" !");
 									});

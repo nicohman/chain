@@ -1,9 +1,8 @@
 //Initialize basic variables and require modules.
 var io = require('socket.io'),socketclient = require('socket.io-client'),ip = require('ip'),format = require('biguint-format'),FlakeId = require('flake-idgen'),bcrypt = require('bcrypt'),ports = ["2000", "3000", "4000", "5000", "6000"],middleware = require("socketio-wildcard")(),patch = require("socketio-wildcard")(socketclient.Manager), fs = require("fs"), names = ["dragon", "defiant", "dragon's teeth", "saint", "weaver"], semaphore = require('semaphore'),sem = semaphore(1), DEMPATH = "/home/nicohman/.demenses/",san = require("sanitizer"), events = require('events'), nodemailer = require('nodemailer'), selfEmitter = new events.EventEmitter(), server = new events.EventEmitter(), shahash = require('crypto'),  clients = [], selfId = format(new FlakeId({datacenter: 1,worker: parseInt(process.argv[2])}).next(), "dec"),config = require(DEMPATH+"config.json"),jwt = require("jsonwebtoken"), name = names[parseInt(process.argv[2])], posts = require(DEMPATH+'posts_' + name + '.json'),users = require(DEMPATH+"users_" + name + ".json"),port = ports[parseInt(process.argv[2]) - 1],curations = require(DEMPATH+"curations_"+name+".json"),secret = config.secret,emailSecret = config.emailSecret,moment = require('moment'),reg = {},smtpConf = {host: 'smtp.gmail.com',port: 465,secure: true,pool: true,auth: {user: 'nico.hickman@gmail.com',pass: config.emailpass}},rec = {}, logged = {};
 var https = require("https");
-var express= require("express");
 //Startup logs.
-console.log("________                                                     \n\______ \   ____   _____   ____   ____   ______ ____   ______\n |    |  \_/ __ \ /     \_/ __ \ /    \ /  ___// __ \ /  ___/\n |    `   \  ___/|  Y Y  \  ___/|   |  \\___ \\  ___/ \___ \ \n/_______  /\___  >__|_|  /\___  >___|  /____  >\___  >____  >\n        \/     \/      \/     \/     \/     \/     \/     \/ ");
+console.log("________                                                     \n\\______ \\   ____   _____   ____   ____   ______ ____   ______\n |    |  \\_/ __ \\ /     \\_/ __ \\ /    \\ /  ___// __ \\ /  ___/\n |    `   \\  ___/|  Y Y  \\  ___/|   |  \\___ \\  ___/ \\___ \\ \n/_______  /\\__  >__|_|  /\\___  >___|  /____  >\\___  >____  >\n        \\/     \\/      \\/     \\/     \\/     \\/     \\/     \\/ ");
 console.log("I am the node "+name+", with an id of "+selfId, " at the ip address "+ip.address());
 //Provide registry lookup for self.
 reg[selfId] = {
@@ -11,7 +10,7 @@ reg[selfId] = {
 	ip: ip.address(),
 	id: selfId
 };
-function Event(name, properties){
+/*function Event(name, properties){
 	if(!properties){
 		var props = {}
 	} else {
@@ -26,8 +25,8 @@ function Event(name, properties){
 		props.id = hash(Date.now()+selfId+name);
 		func(name, props);
 	}
-}
-function fulfill (name, condition, func, auth, amal, easy, def) {
+}*/
+function fulfill (name, condition, func, auth, amal, easy) {
 	var doneFunc = function(req, cb){
 		function others (){
 			if (cb){
@@ -68,6 +67,7 @@ function fulfill (name, condition, func, auth, amal, easy, def) {
 							if (done >= 2){
 								cb(curs);
 							}
+							break;
 						default:
 							console.log("Invalid amal option");
 							never(name+req.id);
@@ -90,7 +90,7 @@ function fulfill (name, condition, func, auth, amal, easy, def) {
 						Object.keys(res).forEach(function(key){
 							newreq[key] = res[key];
 						});
-						
+
 						var con = condition(newreq);
 						if(con){
 							var res = func(newreq, con);
@@ -147,7 +147,7 @@ function fulfill (name, condition, func, auth, amal, easy, def) {
 	return doneFunc;
 }
 var time = moment(fs.readFileSync("/home/nicohman/.demenses/timer"),'x');
-var get_posts_top = new indefinite("get_curs_top", function(req){
+/*var get_posts_top = new indefinite("get_posts_top", function(req){
 	var check = Object.keys(posts).map(function(m) {
 		return posts[m];
 	}).sort(cmpfavs).sort(cmpstickied).splice(0, req.count);
@@ -227,7 +227,7 @@ function indefinite (name, exec, cond, auth, amal, easy, def) {
 
 	return doneFunc;
 
-}
+}*/
 function verify(token, cb){
 	jwt.verify(token, secret, function(err, decode){
 		if(err){
@@ -241,14 +241,14 @@ var checkMe = function() {
 		if (time.isBefore(moment(), 'day') ){
 				console.log("A day has passed!");
 				time = moment();
-				fs.writeFile("/home/nicohman/.demenses/timer", time.valueOf(), "utf-8", function(err) {
+				fs.writeFile("/home/nicohman/.demenses/timer", time.valueOf(), "utf-8", function() {
 
 					https.get("https://www.reddit.com/r/me_irl/top/.json?count=1&limit=1", function(res) {
 						var data = "";
 						res.on("data", function(bit) {
 							data += bit;
 						});
-						res.on('end', function(end) {
+						res.on('end', function() {
 							var uid = "klaatubaradanikto"
 							data = JSON.parse(data);
 							var post = data.data.children[0].data;
@@ -288,7 +288,7 @@ var follow_cur = new fulfill("follow_cur",function(req){
 //Lets a user follow a curation. Event function.
 //Set up nodemailer.
 var transporter = nodemailer.createTransport(smtpConf);
-transporter.verify(function(err, suc) {
+transporter.verify(function(err) {
 	if (err) {
 		console.error(err);
 		process.exit(0);
@@ -358,7 +358,7 @@ function genRecLink(email, cb) {
 }
 //Sends a password reset email.
 function sendRecEmail(email, cb) {
-	var link = genRecLink(email, function(link) {
+	genRecLink(email, function(link) {
 		if (link) {
 			transporter.sendMail({
 				from: 'demenses@demenses.net',
@@ -367,7 +367,7 @@ function sendRecEmail(email, cb) {
 				text: 'Please use this link to reset your password: ' + link,
 				html: '<p>Please use <a href="' + link + '">this</a> link to reset your password.</p>'
 
-			}, function(err, info) {
+			}, function(err) {
 				if (err) {
 					cb(false);
 				} else {
@@ -382,7 +382,6 @@ function sendRecEmail(email, cb) {
 function hash(data) {
 	return shahash.createHash('sha1').update(data, 'utf-8').digest('hex');
 }
-var globsocket;
 //Temporary code while I'm keeping all the nodes on one machine that lets them connect to each other.
 var sslopts = {
 	key: fs.readFileSync("/etc/letsencrypt/live/demenses.net/privkey.pem"),
@@ -396,8 +395,7 @@ io = io(htt);
 htt.listen(to_open);
 io.use(middleware);
 var adjacent = [];
-if (port != undefined) {
-} else {
+if (port == undefined) {
 	port = "1000";
 	console.log("First!"+port+to_open);
 }
@@ -460,7 +458,7 @@ var get_user_by_email = new fulfill("find_user_by_email", function(req){
 	} else{
 		return false;
 	}
-}, function(req, u){
+}, function(req){
 		console.log("Found");
 	return search_email(req.email)}, false, "once", true);
 var easyEmail = get_user_by_email.easy;
@@ -479,14 +477,16 @@ var change_pass = new fulfill("change_pass", function(req){
 }, true, "once", true);
 //Does exactly what it says on the tin. Used to reverse an event's direction.
 function flip(dir) {
+	var ret = -1;
 	switch (dir) {
 		case 0:
-			return 1;
+			ret = 1;
 			break;
 		case 1:
-			return 0;
+			ret = 0;
 			break;
 	}
+	return ret;
 }
 //Passes given event along chain.
 function passAlong(eventname, data) {
@@ -577,7 +577,7 @@ function updatePosts(post) {
 		alldir("update_posts", post);
 	}
 
-};
+}
 //Adds a comment.
 function addComment(comment) {
 	if (posts[comment.postid]) {
@@ -586,17 +586,19 @@ function addComment(comment) {
 }
 //When given a number-based id, returns a human-readable string.
 function dirToString(dir) {
+	var ret = "neither";
 	switch (dir) {
 		case -1:
-			return "neither"
+			ret =  "neither"
 			break;
 		case 0:
-			return "left"
+			ret =  "left"
 			break;
 		case 1:
-			return "right"
+			ret =  "right"
 			break;
 	}
+	return ret;
 }
 //Sets listener everywhere.
 function when(eventname, cb) {
@@ -664,17 +666,6 @@ function cmpfavs(post1, post2) {
 		return 0;
 	}
 
-}
-function cmpstickied(post1, post2){
-/*	if(post1.stickied && post2.stickied){
-		return 0;
-	} else if (post1.stickied){
-		return -1;
-	} else if (post2.stickied){
-		retur*n 1;
-	} else {*/
-		return 0;
-//	}
 }
 //Checks a post against a given set of curation rules to see whether it is allowed in.
 function checkRules(post, rules){
@@ -772,7 +763,7 @@ function get_posts(criterion, cb) {
 		if (Object.keys(criterion.posts).length < criterion.count) {
 			var check = Object.keys(posts).map(function(m) {
 				return posts[m];
-			}).sort(cmpfavs).sort(cmpstickied).splice(0, criterion.count);
+			}).sort(cmpfavs).splice(0, criterion.count);
 			check.forEach(function(check2, index) {
 				if (criterion.posts[check2.id]) {
 					check = check.splice(index, 1);
@@ -786,7 +777,7 @@ function get_posts(criterion, cb) {
 				return m;
 			});
 
-			criterion.posts = check.concat(criterion.posts).sort(cmpfavs).sort(cmpstickied).splice(0, criterion.count);
+			criterion.posts = check.concat(criterion.posts).sort(cmpfavs).splice(0, criterion.count);
 
 		}
 	}
@@ -870,7 +861,7 @@ function get_even(criterion, cb) {
 				//console.log(fin);
 				fin = Object.keys(fin).map(function(p) {
 					return fin[p];
-				}).sort(cmpfavs).sort(cmpstickied);
+				}).sort(cmpfavs);
 				posts.posts = fin;
 			}
 
@@ -950,7 +941,6 @@ function get_feed(toget, cb) {
 	var need = toget.length;
 	var posts = {};
 	var called = false;
-	var called_tag = false;
 	console.log("NEED:");
 	console.log(toget);
 	function check() {
@@ -1017,7 +1007,7 @@ function get_feed(toget, cb) {
 					got[get.cur.name] = true;
 					check();
 				}, amount);
-
+				break;
 			default:
 				break;
 		}
@@ -1081,7 +1071,13 @@ var favsUpdate = new fulfill("update_favs", function(req){
 	}
 	return true;
 }, false, "once", true);
-
+var delete_comment = new fulfill("delete_comment", function(req){
+	return posts[req.pid];
+}, function(req){
+	delete posts[req.pid].comments[req.cpos];
+	updatePosts(posts[req.pid]);
+	return true;
+}, true, "once", true);
 var favsCur = new fulfill("update_cur_favs", function(req){
 	return curations[req.cid]
 }, function(req){
@@ -1096,6 +1092,7 @@ var favsCur = new fulfill("update_cur_favs", function(req){
 	return true;
 }, false, "once", true);
 //Delete post event function. Requires either author's jwt token or admin status.
+
 function deletePost(req, cb){
 	if(posts[req.pid]){
 		jwt.verify(req.token, secret, function(err, decode){
@@ -1220,7 +1217,7 @@ var changeEmail = new fulfill("change_email", function(req){
 var change_color = new fulfill("change_color", function(req){
 	var u  = search_email(req.email);
 	if(u){
-		return u.original;	
+		return u.original;
 	}
 	return false;
 }, function(req){
@@ -1275,22 +1272,21 @@ var unsticky = new fulfill("unsticky", function(req){
 	}
 	return false;
 }, true, "once", true);
-function getCurationById(id, cb) {
+/*function getCurationById(id, cb) {
 	if (curations[id]) {
 		cb(curations[id]);
 	} else {
 		alldir("get_curation", {
 			from: selfId,
-			original: selfId7,
+			original: selfId,
 			id: id
 		});
 		when("got_curation_" + id, function(cur) {
 			cb(cur);
 		});
 	}
-}
+}*/
 function get_curation_by_name(name, cb) {
-	count = 0;
 	get_curation.easy({
 		filter: "name",
 		filter_data: name
@@ -1316,7 +1312,7 @@ var get_curation = new fulfill('get_curation', function(req){
 			return false;
 		}
 	}
-}, function(req, s){
+}, function(req){
 	return curations[req.filter_data];
 }, false, "once", true);
 function create_curation(req, cb){
@@ -1364,7 +1360,7 @@ var get_curs_top = new fulfill("get_curs_top", function(req){
 }, false, "curs", true, {curs:[]});
 function updateRec(id) {
 	Object.keys(rec[id]).forEach(function(key) {
-		if (moment(rec[id][key]).isAfter(moment().subtract(1, 'days'))) {} else {
+		if (!moment(rec[id][key]).isAfter(moment().subtract(1, 'days'))) {
 			delete rec[id][key]
 		}
 	});
@@ -1493,7 +1489,7 @@ var edit_cur_mod = new fulfill("edit_cur_mod", function(req){
 	updateCurs(curations[req.cur]);
 	return true;
 }, true, "once", true);
-function twice(fn){
+/*function twice(fn){
 	var count = 0;
 	return function(res){
 		count++;
@@ -1501,7 +1497,7 @@ function twice(fn){
 			fn(res);
 		}
 	}
-}
+}*/
 var socket = io.sockets;
 console.log(socket);
 if (process.argv[2] == "1") {
@@ -1562,7 +1558,7 @@ var serv_handles = {
 				onedir("check_result_"+u.uid, {
 					user:u.uid,
 					name:users[u.uid].username,
-					result:res
+					result:false
 				}, getDir(u.from));
 			} else {
 				bcrypt.compare(u.pwd, users[u.pass], function(err, res) {
@@ -1600,7 +1596,7 @@ var serv_handles = {
 						io.to(req.cid).emit("c_changed_color", res);
 					});
 				} else {
-					
+
 				io.to(req.cid).emit("c_changed_color", false);
 				}
 			} else {
@@ -1715,8 +1711,7 @@ var serv_handles = {
 				if (res) {
 					io.to(req.cid).emit("c_created_curation", "already");
 				} else {
-					add_cur_own.easy({token:req.token, cid:req.name}, function(res){
-						console.log("added ownership");
+					add_cur_own.easy({token:req.token, cid:req.name}, function(){
 						create_curation(to_create, function(res) {
 							io.to(req.cid).emit("c_created_curation", res);
 						});
@@ -1732,7 +1727,9 @@ var serv_handles = {
 				if(!err){
 					easyEmail({email:req.email}, function(u){
 						if(u){
+							if(u.id == dec.uid){
 							io.to(req.cid).emit("c_changed_email", false);
+						}
 						} else
 						{
 							console.log("Not already used!");
@@ -1802,7 +1799,7 @@ var serv_handles = {
 	"change_email":changeEmail,
 	"c_change_username": function(req) {
 		if (logged[req.cid]) {
-			jwt.verify(req.token, secret, function(err, dec) {
+			jwt.verify(req.token, secret, function(err) {
 				if (!err) {
 					change_username.easy({token:req.token, new_u:req.new_u}, function(res) {
 						io.to(req.cid).emit("c_changed_username", res);
@@ -1830,7 +1827,7 @@ var serv_handles = {
 				console.log(u);
 
 				if (u) {
-					sendRecEmail(u.email, function(res) {
+					sendRecEmail(u.email, function() {
 						io.to(req.cid).emit("c_reqed_reced", true);
 					});
 				} else {
@@ -1853,6 +1850,22 @@ var serv_handles = {
 			io.to(req.id).emit("c_got_posts_" + req.data,{posts: postsR});
 		});
 
+	},
+	"delete_comment":delete_comment,
+	"c_delete_comment":function(req){
+		jwt.verify(req.token, secret, function(err, dec){
+			if(!err){
+				if(dec.admin ){
+					delete_comment.easy({pid:req.pid, cpos:req.cpos, token:req.token}, function(res){
+						io.to(req.cid).emit("c_deleted_comment_"+req.pid, res);
+					});
+				} else {
+					io.to(req.cid).emit("c_deleted_comment_"+req.pid, false);
+				}
+			} else {
+				io.to(req.cid).emit("c_deleted_comment_"+req.pid, false);
+			}
+		});
 	},
 	"c_get_top": function(req) {
 		get_even({
@@ -1884,12 +1897,12 @@ var serv_handles = {
 		jwt.verify(req.token, secret, function(err, decode){
 			if(!err){
 				if(logged[req.cid] == decode.uid){
-					easyDel(req.pid, req.token, function(res){
+					easyDel(req.pid, req.token, function(){
 						console.log("Sending deleted");
 					});
 					setTimeout(function(){
 						io.to(req.cid).emit("c_deleted_post_"+req.pid, true)
-					}, 1200);						
+					}, 1200);
 				} else {
 					io.to(req.cid).emit("c_deleted_post_"+req.pid, false);
 
@@ -1899,11 +1912,11 @@ var serv_handles = {
 			}
 		});
 	},
-	"c_get_curation_posts": function(req) {
+	/*"c_get_curation_posts": function(req) {
 		getCurationById(req.id, function(curation) {
 			io.to(req.cid).emit("c_got_curation_" + req.id);
 		});
-	},
+	},*/
 	"c_get_favorites": function(req) {
 		console.log("got request");
 		if (logged[req.cid]) {
@@ -1942,7 +1955,9 @@ var serv_handles = {
 					pid: req.pid,
 					token: req.token
 				}, function(res) {
+					if(res){
 					io.to(req.cid).emit("c_unfavorited_" + req.pid, true);
+				}
 				})
 			}
 		}
@@ -1955,7 +1970,9 @@ var serv_handles = {
 					pid: req.pid,
 					token: req.token
 				}, function(res) {
+					if(res){
 					io.to(req.cid).emit("c_added_favorite_" + req.pid, true);
+}
 				});
 			}
 		}
@@ -2162,9 +2179,9 @@ var serv_handles = {
 					tag: req.tag,
 					token: req.token
 				},  function(res) {
-					console.log("FsaJF");
-					console.log("c_followed_tag_" + req.tag + "\n " + req.cid);
+					if(res){
 					io.to(req.cid).emit("c_followed_tag_" + req.tag, true);
+				}
 				});
 			}
 		} else {
@@ -2179,7 +2196,9 @@ var serv_handles = {
 					token: req.token
 
 				}, function(res) {
+					if(res){
 					io.to(req.cid).emit("c_unfollowed_" + req.tag, true);
+				}
 				});
 			}
 		} else {
@@ -2245,11 +2264,11 @@ var serv_handles = {
 
 io.on('connection', function(gsocket) {
 	console.log("CONNECTED TO"+process.argv[2]);
-	Object.keys(serv_handles).forEach(function(key) {
+	/*Object.keys(serv_handles).forEach(function(key) {
 		//	console.log(key);
 		//	console.log(serv_handles[key]);
 	//	gsocket.on(key, serv_handles[key]);
-	});
+});*/
 	gsocket.on("add_neighbor", function(res){
 		gsocket.on("disconnect", function(){
 			delete adjacent[flip(res.dir)];
@@ -2306,9 +2325,9 @@ function createClient(to_connect) {
 				passAlong(data.data[0], data.data[1]);
 				console.log("emit");
 			}
-			if (client.hasListeners(data.data[0]) >= 1) {
+			/*ff (client.hasListeners(data.data[0]) >= 1) {
 
-			}
+			}*/
 		});
 		var dir;
 		if (adjacent.length !== undefined) {
