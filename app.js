@@ -804,7 +804,7 @@ function get_posts(criterion, cb) {
 		var cbe = function(postse) {
 			console.log("GOT RESPONSE");
 			count++;
-			if(count >=2){
+			if(count >=1){
 				console.log("NEVERING");
 			}
 
