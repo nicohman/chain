@@ -1,0 +1,4 @@
+#!/bin/bash
+echo '{}' > ~/.demenses/posts_dragon.json
+echo '{}' > ~/.demenses/posts_defiant.json
+echo '{}' > ~/.demenses/posts_dragon\'s\ teeth.json
