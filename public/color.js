@@ -1,3 +1,18 @@
+function notify(text) {
+	if (!("Notification" in window)) {
+		console.log("Notification: " + text);
+	} else if (Notification.permission === "granted") {
+		var notification = new Notification(text);
+		setTimeout(notification.close.bind(notification), 5000);
+	} else if (Notification.permission !== "denied") {
+		Notification.requestPermission(function (permission) {
+			if (permission === "granted") {
+				var notification = new Notification(text);
+				setTimeout(notification.close.bind(notification), 3000);
+			}
+		});
+	}
+}
 var schemes = {
 	"solarized": {
 		"main-bg": "#073642",
@@ -31,17 +46,44 @@ if (localStorage.getItem("colorscheme")) {
 }
 
 function changeColorscheme(scheme) {
-	var logo = "logo.png";
-	if (!schemes[scheme]) {
-		scheme = "solarized";
+	if (scheme === "custom") {
+		var cust = localStorage.getItem("customcolorscheme");
+		if (cust) {
+			try {
+				cust = JSON.parse(cust);
+				if (cust["main-bg"] && cust["sec-bg"] && cust.border && cust.text && cust.follow) {
+					schemes["cust-cs"] = cust;
+					changeColorscheme("cust-cs");
+				} else {
+					notify(
+						"There was an error with your custom colorscheme. Resetting to default.\nError Code: D_CCSNC"
+					);
+				}
+			} catch (e) {
+				notify(
+					"There was an error with your custom colorscheme. Resetting to default.\nError Code: D_CCSNF"
+				);
+				changeColorscheme("solarized");
+			}
+		} else {
+			notify(
+				"There was an error with your custom colorscheme. Resetting to default.\nError Code: D_CCSNE"
+			);
+			changeColorscheme("solarized");
+		}
+	} else {
+		var logo = "logo.png";
+		if (!schemes[scheme]) {
+			scheme = "solarized";
+		}
+		if (logos[scheme]) {
+			logo = logos[scheme];
+		}
+		Object.keys(schemes[scheme]).forEach(function (key) {
+			document.getElementsByTagName("html")[0].style.setProperty("--" + key,
+				schemes[scheme][key]);
+		});
+		document.getElementsByClassName("large-logo")[0].src =
+			"https://demenses.net/" + logo;
 	}
-	if (logos[scheme]) {
-		logo = logos[scheme];
-	}
-	Object.keys(schemes[scheme]).forEach(function (key) {
-		document.getElementsByTagName("html")[0].style.setProperty("--" + key,
-			schemes[scheme][key]);
-	});
-	document.getElementsByClassName("large-logo")[0].src = "https://demenses.net/" +
-		logo;
 }

@@ -28,17 +28,69 @@ window.onload = function () {
 			e.returnValue = false;
 		}
 	}
+
+	function checkCustSet(set) {
+		var lS = localStorage.get("customcolorscheme");
+		if (set) {
+			lS = set;
+		}
+		var csFormE = document.getElementById("cust-cs-from").elements;
+		if (!lS) {
+			lS["main-bg"] = "#?????";
+			lS["sec-bg"] = "#?????";
+			lS["border"] = "#?????";
+			lS["text"] = "#?????";
+			lS["follow"] = "#?????";
+		}
+		csFormE["main-bg"].value = lS["main-bg"];
+		csFormE["sec-bg"].value = lS["sec-bg"];
+		csFormE.border.value = lS.border;
+		csFormE.text.value = lS.text;
+		csFormE.follow.value = lS.follow;
+	}
+
+	function checkVisCust() {
+		if (document.getElementById("cs-form").elements["cs-select"].value ===
+			"custom") {
+			document.getElementById("cust-cs").style.display = "block";
+		} else {
+			document.getElementById("cust-cs").style.display = "none";
+		}
+	}
+	checkVisCust();
 	Object.keys(schemes).forEach(function (scheme) {
 		var sel = document.createElement("option");
 		sel.value = scheme;
 		sel.innerHTML = scheme;
 		document.getElementById("cs-select").appendChild(sel);
 	});
+	var custSel = document.createElement("option");
+	custSel.innerHTML = "custom";
+	custSel.value = "custom";
+	custSel.id = "cust-sel";
+	document.getElementById("cs-select").appendChild(custSel);
 	document.getElementById("cs-form").addEventListener("submit", function (e) {
 		prevent(e);
 		localStorage.setItem("colorscheme", e.target["cs-select"].value)
-		changeColorscheme(e.target["cs-select"].value);
+		if (e.target["cs-select"].value === "custom") {
+			var csFormE = document.getElementById("cust-cs-from").elements;
+			localStorage.setItem("customcolorscheme", {
+				"main-bg": csFormE["main-bg"].value,
+				"sec-bg": csFormE["sec-bg"].value,
+				"border": csFormE.border.value,
+				"text": csFormE.text.value,
+				"follow": csFormE.follow.value
+			});
+			checkCustSet();
+			changeColorscheme("custom");
+		} else {
+			changeColorscheme(e.target["cs-select"].value);
+		}
 	});
+	document.getElementById("cs-form").addEventListener("onchange", function () {
+		checkVisCust();
+	});
+	checkCustSet();
 	document.getElementById("yt-button").addEventListener("click", function () {
 		localStorage.setItem("yt", !useYt);
 		useYt = !useYt;
@@ -481,26 +533,6 @@ window.onload = function () {
 					posts[key] = results.posts[key];
 				});
 				cb(posts);
-			});
-		}
-	}
-
-	function notify(text) {
-		var notif = document.createElement("div");
-		notif.className = "notification";
-		notify.innerHTML = text;
-		document.getElementById("notifications").appendChild(notif);
-		if (!("Notification" in window)) {
-			console.log("Notification: " + text);
-		} else if (Notification.permission === "granted") {
-			var notification = new Notification(text);
-			setTimeout(notification.close.bind(notification), 5000);
-		} else if (Notification.permission !== "denied") {
-			Notification.requestPermission(function (permission) {
-				if (permission === "granted") {
-					var notification = new Notification(text);
-					setTimeout(notification.close.bind(notification), 5000);
-				}
 			});
 		}
 	}
@@ -1492,7 +1524,6 @@ window.onload = function () {
 					alert("A comment must not be empty!");
 				}
 			});
-
 			document.getElementById("create-post").addEventListener("submit",
 				function (e) {
 					prevent(e);
