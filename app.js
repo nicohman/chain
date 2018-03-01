@@ -1,9 +1,60 @@
 //Initialize basic variables and require modules.
-var io = require('socket.io'),socketclient = require('socket.io-client'),ip = require('ip'),format = require('biguint-format'),FlakeId = require('flake-idgen'),bcrypt = require('bcrypt'),ports = ["2000", "3000", "4000", "5000", "6000"],middleware = require("socketio-wildcard")(),patch = require("socketio-wildcard")(socketclient.Manager), fs = require("fs"), names = ["dragon", "defiant", "dragon's teeth", "saint", "weaver"], semaphore = require('semaphore'),sem = semaphore(1), DEMPATH = "/home/nicohman/.demenses/",san = require("sanitizer"), events = require('events'), nodemailer = require('nodemailer'), selfEmitter = new events.EventEmitter(), server = new events.EventEmitter(), shahash = require('crypto'),  clients = [], selfId = format(new FlakeId({datacenter: 1,worker: parseInt(process.argv[2])}).next(), "dec"),config = require(DEMPATH+"config.json"),jwt = require("jsonwebtoken"), name = names[parseInt(process.argv[2])], posts = require(DEMPATH+'posts_' + name + '.json'),users = require(DEMPATH+"users_" + name + ".json"),port = ports[parseInt(process.argv[2]) - 1],curations = require(DEMPATH+"curations_"+name+".json"),secret = config.secret,emailSecret = config.emailSecret,moment = require('moment'),reg = {},smtpConf = {host: 'smtp.gmail.com',port: 465,secure: true,pool: true,auth: {user: 'nico.hickman@gmail.com',pass: config.emailpass}},rec = {}, logged = {};
+var io = require('socket.io'),
+	socketclient = require('socket.io-client'),
+	ip = require('ip'),
+	format = require('biguint-format'),
+	FlakeId = require('flake-idgen'),
+	bcrypt = require('bcrypt'),
+	ports = ["2000", "3000", "4000", "5000", "6000"],
+	middleware = require("socketio-wildcard")(),
+	patch = require("socketio-wildcard")(socketclient.Manager),
+	fs = require("fs"),
+	names = ["dragon", "defiant", "dragon's teeth", "saint", "weaver"],
+	semaphore = require('semaphore'),
+	sem = semaphore(1),
+	DEMPATH = "/home/nicohman/.demenses/",
+	san = require("sanitizer"),
+	events = require('events'),
+	nodemailer = require('nodemailer'),
+	selfEmitter = new events.EventEmitter(),
+	server = new events.EventEmitter(),
+	shahash = require('crypto'),
+	commandArg = parseInt(process.argv[2]),
+	clients = [],
+	selfId = format(new FlakeId({
+		datacenter: 1,
+		worker: commandArg
+	}).next(), "dec"),
+	config = require(DEMPATH + "config.json"),
+	jwt = require("jsonwebtoken"),
+	name = names[commandArg],
+	posts = require(DEMPATH + 'posts_' + name + '.json'),
+	users = require(DEMPATH + "users_" + name + ".json"),
+	port = ports[commandArg - 1],
+	curations = require(DEMPATH + "curations_" + name + ".json"),
+	secret = config.secret,
+	emailSecret = config.emailSecret,
+	moment = require('moment'),
+	reg = {},
+	smtpConf = {
+		host: 'smtp.gmail.com',
+		port: 465,
+		secure: true,
+		pool: true,
+		auth: {
+			user: 'nico.hickman@gmail.com',
+			pass: config.emailpass
+		}
+	},
+	rec = {},
+	logged = {};
 var https = require("https");
 //Startup logs.
-console.log("________                                                     \n\\______ \\   ____   _____   ____   ____   ______ ____   ______\n |    |  \\_/ __ \\ /     \\_/ __ \\ /    \\ /  ___// __ \\ /  ___/\n |    `   \\  ___/|  Y Y  \\  ___/|   |  \\___ \\  ___/ \\___ \\ \n/_______  /\\__  >__|_|  /\\___  >___|  /____  >\\___  >____  >\n        \\/     \\/      \\/     \\/     \\/     \\/     \\/     \\/ ");
-console.log("I am the node "+name+", with an id of "+selfId, " at the ip address "+ip.address());
+console.log(
+	"________                                                     \n\\______ \\   ____   _____   ____   ____   ______ ____   ______\n |    |  \\_/ __ \\ /     \\_/ __ \\ /    \\ /  ___// __ \\ /  ___/\n |    `   \\  ___/|  Y Y  \\  ___/|   |  \\___ \\  ___/ \\___ \\ \n/_______  /\\__  >__|_|  /\\___  >___|  /____  >\\___  >____  >\n        \\/     \\/      \\/     \\/     \\/     \\/     \\/     \\/ "
+);
+console.log("I am the node " + name + ", with an id of " + selfId,
+	" at the ip address " + ip.address());
 //Provide registry lookup for self.
 reg[selfId] = {
 	name: name,
@@ -26,127 +77,124 @@ reg[selfId] = {
 		func(name, props);
 	}
 }*/
-function fulfill (name, condition, func, auth, amal, easy) {
-	var doneFunc = function(req, cb){
-		function others (){
-			if (cb){
+function fulfill(name, condition, func, auth, amal, easy) {
+	var doneFunc = function (req, cb) {
+		function others() {
+			if (cb) {
 				alldir(name, req);
 				var done = 0;
 				var posts = {};
 				var curs = [];
-				when(name+req.id, function(res){
+				when(name + req.id, function (res) {
 					done++;
-					switch(amal){
-						case "once":
-							if(res){
-								never(name+req.id);
-								cb(res)
-							} else if (done >= 2){
-								cb(false);
-								never(name+req.id);
-							}
-							break;
-						case "posts":
-							if(res){
-								Object.keys(res.posts).forEach(function(key){
-									if(!posts[key]){
-										posts[key] = res.posts[key];
-									}
-								});
-							}
-							if(done >=2){
-								cb(posts);
-							}
-							break;
-						case "curs":
-							if(res){
-								curs = curs.concat(res.curs);
-								curs = curs.sort(cmpcurfavs);
-								curs.splice(0,res.count);
-							}
-							if (done >= 2){
-								cb(curs);
-							}
-							break;
-						default:
-							console.log("Invalid amal option");
-							never(name+req.id);
-							break;
+					switch (amal) {
+					case "once":
+						if (res) {
+							never(name + req.id);
+							cb(res)
+						} else if (done >= 2) {
+							cb(false);
+							never(name + req.id);
+						}
+						break;
+					case "posts":
+						if (res) {
+							Object.keys(res.posts).forEach(function (key) {
+								if (!posts[key]) {
+									posts[key] = res.posts[key];
+								}
+							});
+						}
+						if (done >= 2) {
+							cb(posts);
+						}
+						break;
+					case "curs":
+						if (res) {
+							curs = curs.concat(res.curs);
+							curs = curs.sort(cmpcurfavs);
+							curs.splice(0, res.count);
+						}
+						if (done >= 2) {
+							cb(curs);
+						}
+						break;
+					default:
+						console.log("Invalid amal option");
+						never(name + req.id);
+						break;
 					}
 				});
-			} else if (adjacent[flip(getDir(req.from))]){
+			} else if (adjacent[flip(getDir(req.from))]) {
 				passAlong(name, req);
 			} else {
-				onedir(name+req.id, false, getDir(req.from));
+				onedir(name + req.id, false, getDir(req.from));
 			}
-
 		}
-
-		if(auth){
-			if(req.token){
-				verify(req.token, function(res){
-					if(res){
+		if (auth) {
+			if (req.token) {
+				verify(req.token, function (res) {
+					if (res) {
 						var newreq = req;
-						Object.keys(res).forEach(function(key){
+						Object.keys(res).forEach(function (key) {
 							newreq[key] = res[key];
 						});
-
 						var con = condition(newreq);
-						if(con){
+						if (con) {
 							var res = func(newreq, con);
-							if(cb){
+							if (cb) {
 								cb(res);
 							} else {
-								onedir(name+req.id, res, getDir(req.from));
+								onedir(name + req.id, res, getDir(req.from));
 							}
 						} else {
 							others();
 						}
-
 					} else {
-						if(cb){
+						if (cb) {
 							cb(false);
 						} else {
-							onedir(name+req.id, false, getDir(req.from));
+							onedir(name + req.id, false, getDir(req.from));
 						}
 					}
 				});
 			} else {
-				if(cb) {
+				if (cb) {
 					cb(false)
 				} else {
-					onedir(name+req.id, false, getDir(req.from));
-
+					onedir(name + req.id, false, getDir(req.from));
 				}
 			}
 		} else {
 			var con = condition(req);
-			if(con){
+			if (con) {
 				var res = func(req, con);
-				if(cb){
+				if (cb) {
 					cb(res);
 				} else {
-					onedir(name+req.id, res, getDir(req.from));
+					onedir(name + req.id, res, getDir(req.from));
 				}
-
 			} else {
 				others();
 			}
-		}}
-	if(easy){
-		doneFunc.easy = function(props, cb){
-			var def = {from:selfId, original:selfId};
-			Object.keys(props).forEach(function(key){
+		}
+	}
+	if (easy) {
+		doneFunc.easy = function (props, cb) {
+			var def = {
+				from: selfId,
+				original: selfId
+			};
+			Object.keys(props).forEach(function (key) {
 				def[key] = props[key];
 			});
-			def.id = hash(Date.now()+selfId+name);
+			def.id = hash(Date.now() + selfId + name);
 			doneFunc(def, cb);
 		};
 	}
-
 	return doneFunc;
 }
-var time = moment(fs.readFileSync("/home/nicohman/.demenses/timer"),'x');
+var time = moment(fs.readFileSync("/home/nicohman/.demenses/timer"), 'x');
 /*var get_posts_top = new indefinite("get_posts_top", function(req){
 	var check = Object.keys(posts).map(function(m) {
 		return posts[m];
@@ -228,27 +276,28 @@ function indefinite (name, exec, cond, auth, amal, easy, def) {
 	return doneFunc;
 
 }*/
-function verify(token, cb){
-	jwt.verify(token, secret, function(err, decode){
-		if(err){
+function verify(token, cb) {
+	jwt.verify(token, secret, function (err, decode) {
+		if (err) {
 			cb(false);
 		} else {
 			cb(decode);
 		}
 	});
 }
-var checkMe = function() {
-		if (time.isBefore(moment(), 'day') ){
-				console.log("A day has passed!");
-				time = moment();
-				fs.writeFile("/home/nicohman/.demenses/timer", time.valueOf(), "utf-8", function() {
-
-					https.get("https://www.reddit.com/r/me_irl/top/.json?count=1&limit=1", function(res) {
+var checkMe = function () {
+	if (time.isBefore(moment(), 'day')) {
+		console.log("A day has passed!");
+		time = moment();
+		fs.writeFile("/home/nicohman/.demenses/timer", time.valueOf(), "utf-8",
+			function () {
+				https.get("https://www.reddit.com/r/me_irl/top/.json?count=1&limit=1",
+					function (res) {
 						var data = "";
-						res.on("data", function(bit) {
+						res.on("data", function (bit) {
 							data += bit;
 						});
-						res.on('end', function() {
+						res.on('end', function () {
 							var uid = "klaatubaradanikto"
 							data = JSON.parse(data);
 							var post = data.data.children[0].data;
@@ -267,81 +316,88 @@ var checkMe = function() {
 							});
 						});
 					});
-				});
-			} else {
-				console.log("A day has not passed. "+time.toNow(true));
-			}
-		}
-var follow_cur = new fulfill("follow_cur",function(req){
-	if(users[req.uid]){
-		if(users[req.uid].original === true){
+			});
+	} else {
+		console.log("A day has not passed. " + time.toNow(true));
+	}
+}
+var follow_cur = new fulfill("follow_cur", function (req) {
+	if (users[req.uid]) {
+		if (users[req.uid].original === true) {
 			return true;
 		}
 	}
 	return false;
-}, function(req){
-	favsCur.easy({cid:req.cur, num:1}, function(){});
+}, function (req) {
+	favsCur.easy({
+		cid: req.cur,
+		num: 1
+	}, function () {});
 	users[req.uid].curs[req.cur] = true;
 	updateUsers(users[req.uid]);
 	return true;
-}, true,  "once", true);
+}, true, "once", true);
 //Lets a user follow a curation. Event function.
 //Set up nodemailer.
 var transporter = nodemailer.createTransport(smtpConf);
-transporter.verify(function(err) {
+transporter.verify(function (err) {
 	if (err) {
 		console.error(err);
 		process.exit(0);
 	}
 });
-var m_info = function(req, cb){
-	console.log(parseInt(process.argv[2]));
-	console.log(req);
-	req.active[parseInt(process.argv[2])] = true;
-	req.users[parseInt(process.argv[2])] = io.engine.clientsCount -1 ;
-	if(parseInt(process.argv[2]) ==2){
-		req.users[parseInt(process.argv[2])] +=1;
-	} else if (process.argv[2] == "1"){
-		req.users[parseInt(process.argv[2])] -= 2;
-	}
-	console.log("USERS CONNECTED: "+io.engine.clientsCount);
-	if(cb){
-		var dne = {
-			active:req.active,
-			users:req.users,
-			accounts:Object.keys(users).length
+var m_info = function (req, cb) {
+		console.log(commandArg);
+		console.log(req);
+		req.active[commandArg] = true;
+		req.users[commandArg] = io.engine.clientsCount - 1;
+		if (commandArg == 2) {
+			req.users[commandArg] += 1;
+		} else if (commandArg == "1") {
+			req.users[commandArg] -= 2;
 		}
-		var got = 0;
-		when("m_infoed", function(res){
-			console.log("infoed");
-			got++;
-			res.active.forEach(function(val, ind){
-				if(val !== null){
-				dne.active[ind] = val;
-				}
-			});
-			res.users.forEach(function(val, ind){
-				if(val != null){
-				dne.users[ind] = val;
-				}
-			});
-			if(got >= adjacent.filter(function(x){return x !== null}).length){
-				console.log("DONE");
-				never("m_infoed");
-				cb(dne);
+		console.log("USERS CONNECTED: " + io.engine.clientsCount);
+		if (cb) {
+			var dne = {
+				active: req.active,
+				users: req.users,
+				accounts: Object.keys(users).length
 			}
-		});
-		alldir("m_info", req);
-	} else if (adjacent[flip(getDir(req.from))]){
-		passAlong("m_info", req)
-	} else {
-		console.log("returning");
-		onedir("m_infoed", req, getDir(req.from));
+			var got = 0;
+			when("m_infoed", function (res) {
+				console.log("infoed");
+				got++;
+				res.active.forEach(function (val, ind) {
+					if (val !== null) {
+						dne.active[ind] = val;
+					}
+				});
+				res.users.forEach(function (val, ind) {
+					if (val != null) {
+						dne.users[ind] = val;
+					}
+				});
+				if (got >= adjacent.filter(function (x) {
+						return x !== null
+					}).length) {
+					console.log("DONE");
+					never("m_infoed");
+					cb(dne);
+				}
+			});
+			alldir("m_info", req);
+		} else if (adjacent[flip(getDir(req.from))]) {
+			passAlong("m_info", req)
+		} else {
+			console.log("returning");
+			onedir("m_infoed", req, getDir(req.from));
+		}
 	}
-}
-//Generates a Password reset link based on an user's email.
+	//Generates a Password reset link based on an user's email.
 function genRecLink(email, cb) {
-	easyEmail({email:email}, function(u) {
+	easyEmail({
+		email: email
+	}, function (u) {
 		if (u) {
 			var token = jwt.sign({
 				uid: u.id,
@@ -358,23 +414,22 @@ function genRecLink(email, cb) {
 }
 //Sends a password reset email.
 function sendRecEmail(email, cb) {
-	genRecLink(email, function(link) {
+	genRecLink(email, function (link) {
 		if (link) {
 			transporter.sendMail({
 				from: 'demenses@demenses.net',
 				to: email,
 				subject: 'Recovery link for your Demenses account',
 				text: 'Please use this link to reset your password: ' + link,
-				html: '<p>Please use <a href="' + link + '">this</a> link to reset your password.</p>'
-
-			}, function(err) {
+				html: '<p>Please use <a href="' + link +
+					'">this</a> link to reset your password.</p>'
+			}, function (err) {
 				if (err) {
 					cb(false);
 				} else {
 					cb(true);
 				}
 			});
-
 		}
 	});
 }
@@ -385,11 +440,10 @@ function hash(data) {
 //Temporary code while I'm keeping all the nodes on one machine that lets them connect to each other.
 var sslopts = {
 	key: fs.readFileSync("/etc/letsencrypt/live/demenses.net/privkey.pem"),
-	cert:fs.readFileSync("/etc/letsencrypt/live/demenses.net/fullchain.pem"),
+	cert: fs.readFileSync("/etc/letsencrypt/live/demenses.net/fullchain.pem"),
 };
 //Setup socketio server connection.
-var to_open = ports[parseInt(process.argv[2])];
-
+var to_open = ports[commandArg];
 var htt = https.Server(sslopts);
 io = io(htt);
 htt.listen(to_open);
@@ -397,17 +451,17 @@ io.use(middleware);
 var adjacent = [];
 if (port == undefined) {
 	port = "1000";
-	console.log("First!"+port+to_open);
+	console.log("First!" + port + to_open);
 }
-	var to_connect = 'https://demenses.net:' + port;
-	console.log("TOCONNECT"+to_connect);
-setTimeout(function(){
+var to_connect = 'https://demenses.net:' + port;
+console.log("TOCONNECT" + to_connect);
+setTimeout(function () {
 	createClient(to_connect);
 }, 1500);
 //Takes a link id and finds which direction[1-0] it is connected in.
 function getDir(id) {
 	var index = -1;
-	adjacent.forEach(function(newid, newindex) {
+	adjacent.forEach(function (newid, newindex) {
 		if (newid.id === id) {
 			index = newindex;
 		}
@@ -425,66 +479,66 @@ function get_user(uid, cb) {
 			uid: uid,
 			condition: 'fulfill'
 		});
-		whenonce('got_user_' + uid, function(got) {
+		whenonce('got_user_' + uid, function (got) {
 			cb(got);
 		});
 	}
 }
 var emails = {}
-function search_email(email){
+
+function search_email(email) {
 	var found = false;
 	console.log(email);
-	if(emails[email]){
+	if (emails[email]) {
 		found = users[emails[email]];
 		return found;
 	}
-	Object.keys(users).forEach(function(key){
-		if(users[key].email.trim() == email.trim()){
-			if(!found){
+	Object.keys(users).forEach(function (key) {
+		if (users[key].email.trim() == email.trim()) {
+			if (!found) {
 				found = users[key];
 			}
 			emails[email] = key;
 		}
 	});
-	if(!found){
+	if (!found) {
 		return false;
 	} else {
 		return found;
 	}
 }
-var get_user_by_email = new fulfill("find_user_by_email", function(req){
-	if( search_email(req.email)){
+var get_user_by_email = new fulfill("find_user_by_email", function (req) {
+	if (search_email(req.email)) {
 		return true;
-	} else{
+	} else {
 		return false;
 	}
-}, function(req){
-		console.log("Found");
-	return search_email(req.email)}, false, "once", true);
+}, function (req) {
+	console.log("Found");
+	return search_email(req.email)
+}, false, "once", true);
 var easyEmail = get_user_by_email.easy;
 //Get a user by email.
-
-var change_pass = new fulfill("change_pass", function(req){
+var change_pass = new fulfill("change_pass", function (req) {
 	console.log("REQ");
 	console.log(req);
 	return search_email(req.email);
-}, function(req, u){
-	bcrypt.hash(req.pass, 10, function(err, hashed) {
+}, function (req, u) {
+	bcrypt.hash(req.pass, 10, function (err, hashed) {
 		users[u.id].pass = hashed;
 		updateUsers(u);
 	});
-
 }, true, "once", true);
 //Does exactly what it says on the tin. Used to reverse an event's direction.
 function flip(dir) {
 	var ret = -1;
 	switch (dir) {
-		case 0:
-			ret = 1;
-			break;
-		case 1:
-			ret = 0;
-			break;
+	case 0:
+		ret = 1;
+		break;
+	case 1:
+		ret = 0;
+		break;
 	}
 	return ret;
 }
@@ -497,7 +551,7 @@ function passAlong(eventname, data) {
 //Sends an event in all directions down the chain.
 function alldir(eventname, data) {
 	console.log(reg);
-	clients.forEach(function(client) {
+	clients.forEach(function (client) {
 		console.log("emitting");
 		client.emit(eventname, data);
 	});
@@ -517,8 +571,8 @@ function createPost(post) {
 	console.log("post");
 	var auth = post.auth;
 	var color = false;
-	if(users[post.uid]){
-		if(users[post.uid].color){
+	if (users[post.uid]) {
+		if (users[post.uid].color) {
 			console.log("HAS A COLOR");
 			color = users[post.uid].color
 		}
@@ -527,7 +581,7 @@ function createPost(post) {
 		id: id,
 		title: san.escape(post.title),
 		auth: auth,
-		color:color,
+		color: color,
 		uid: post.uid,
 		date: Date.now(),
 		tags: post.tags.map(san.escape),
@@ -539,44 +593,45 @@ function createPost(post) {
 	return id;
 }
 //Writes curations to disk.
-function updateCurs(cur){
-	sem.take(function(){
+function updateCurs(cur) {
+	sem.take(function () {
 		var curstring = JSON.stringify(curations);
-		fs.writeFile(DEMPATH+"curations_"+name+".json", curstring, function(err){
-			if(err){
+		fs.writeFile(DEMPATH + "curations_" + name + ".json", curstring, function (
+			err) {
+			if (err) {
 				console.log("Error updating curations");
 			}
-			curations = require(DEMPATH+"curations_"+name+".json");
+			curations = require(DEMPATH + "curations_" + name + ".json");
 			sem.leave();
 		});
 	});
-	if(cur){
+	if (cur) {
 		alldir("update_curs", cur);
 	}
 }
 //Writes posts to disk.
 function updatePosts(post) {
-	sem.take(function() {
-		Object.keys(posts).forEach(function(key) {
+	sem.take(function () {
+		Object.keys(posts).forEach(function (key) {
 			if (posts[key].favorited == true) {
 				posts[key].favorited = undefined;
 			}
 		});
 		var usersstring = JSON.stringify(posts);
-		fs.writeFile(DEMPATH+'posts_' + name + '.json', usersstring, function(err) {
+		fs.writeFile(DEMPATH + 'posts_' + name + '.json', usersstring, function (
+			err) {
 			if (err) {
 				console.log("Error creating posts");
 			} else {
 				console.log("Created post successfully");
 			}
-			posts = require(DEMPATH+"posts_" + name + ".json");
+			posts = require(DEMPATH + "posts_" + name + ".json");
 			sem.leave();
 		});
 	})
-	if(post){
+	if (post) {
 		alldir("update_posts", post);
 	}
-
 }
 //Adds a comment.
 function addComment(comment) {
@@ -588,29 +643,29 @@ function addComment(comment) {
 function dirToString(dir) {
 	var ret = "neither";
 	switch (dir) {
-		case -1:
-			ret =  "neither"
-			break;
-		case 0:
-			ret =  "left"
-			break;
-		case 1:
-			ret =  "right"
-			break;
+	case -1:
+		ret = "neither"
+		break;
+	case 0:
+		ret = "left"
+		break;
+	case 1:
+		ret = "right"
+		break;
 	}
 	return ret;
 }
 //Sets listener everywhere.
 function when(eventname, cb) {
-	clients.forEach(function(client) {
+	clients.forEach(function (client) {
 		console.log("whenening");
-		client.on(eventname, function(data) {
+		client.on(eventname, function (data) {
 			//never(eventname);
 			console.log("whened from client" + eventname + getDir(data.from));
 			cb(data);
 		});
 	})
-	io.on(eventname, function(data) {
+	io.on(eventname, function (data) {
 		console.log("whened from server" + eventname + getDir(data.from));
 		console.log(getDir(data.from));
 		// never(eventname);
@@ -620,30 +675,28 @@ function when(eventname, cb) {
 }
 //Sets listener everywere once.
 function whenonce(eventname, cb) {
-	clients.forEach(function(client) {
+	clients.forEach(function (client) {
 		console.log("whenening");
-		client.once(eventname, function(data) {
+		client.once(eventname, function (data) {
 			never(eventname);
 			console.log("whened " + eventname + getDir(data.from));
 			cb(data);
 		});
 	})
-	io.once(eventname, function(data) {
+	io.once(eventname, function (data) {
 		console.log("whened" + eventname + getDir(data.from));
 		console.log(getDir(data.from));
 		never(eventname);
 		cb(data)
 	});
-	selfEmitter.once(eventname, function(data) {
+	selfEmitter.once(eventname, function (data) {
 		console.log("whened" + eventname + getDir(data.from));
-
 		cb(data)
 	});
-
 }
 //Unsets listener everywhere.
 function never(eventname) {
-	clients.forEach(function(client) {
+	clients.forEach(function (client) {
 		client.removeAllListeners(eventname);
 	});
 	io.removeAllListeners(eventname);
@@ -652,42 +705,41 @@ function never(eventname) {
 function cmpfavs(post1, post2) {
 	var a2bo = 0;
 	var a1bo = 0;
-	if (post1.stickied){
+	if (post1.stickied) {
 		a1bo += 2000;
 	}
-	if (post2.stickied){
+	if (post2.stickied) {
 		a2bo += 2000;
 	}
 	if (post1.favs + a1bo < post2.favs + a2bo) {
 		return 1;
-	} else if (post1.favs +a1bo > post2.favs + a2bo) {
+	} else if (post1.favs + a1bo > post2.favs + a2bo) {
 		return -1;
 	} else {
 		return 0;
 	}
-
 }
 //Checks a post against a given set of curation rules to see whether it is allowed in.
-function checkRules(post, rules){
+function checkRules(post, rules) {
 	var ok = true;
-	if(rules){
-		Object.keys(rules).forEach(function(key){
+	if (rules) {
+		Object.keys(rules).forEach(function (key) {
 			var rule = rules[key];
-			switch (rule.type){
-				case "not_u":
-					if(post.uid == rule.value){
-						ok = false;
-					}
-					break;
-				case "no_string":
-					if(post.content.indexOf(rule.value) !== -1){
-						ok = false;
-					}
-					break;
+			switch (rule.type) {
+			case "not_u":
+				if (post.uid == rule.value) {
+					ok = false;
+				}
+				break;
+			case "no_string":
+				if (post.content.indexOf(rule.value) !== -1) {
+					ok = false;
+				}
+				break;
 			}
 		});
 	}
-	if(ok){
+	if (ok) {
 		return true;
 	} else {
 		return false;
@@ -695,58 +747,54 @@ function checkRules(post, rules){
 }
 //Get posts event function.
 function get_posts(criterion, cb) {
-
-	Object.keys(posts).forEach(function(key) {
+	Object.keys(posts).forEach(function (key) {
 		var post = posts[key]
 		switch (criterion.filter) {
-			case 'tag':
-				if (Object.keys(criterion.posts).length < criterion.count) {
-					if (post.tags) {
-						post.tags.forEach(function(tag) {
-							criterion.filter_data.forEach(function(filter) {
-								if (filter.trim() == tag.trim()) {
-									if (!criterion.posts[key]) {
-										if(checkRules(post,criterion.rules)){
-											criterion.posts[key] = post;
-										}
+		case 'tag':
+			if (Object.keys(criterion.posts).length < criterion.count) {
+				if (post.tags) {
+					post.tags.forEach(function (tag) {
+						criterion.filter_data.forEach(function (filter) {
+							if (filter.trim() == tag.trim()) {
+								if (!criterion.posts[key]) {
+									if (checkRules(post, criterion.rules)) {
+										criterion.posts[key] = post;
 									}
 								}
-							});
+							}
 						});
-					}
-				} else {
-					console.log(Object.keys(criterion.posts).length + " " + criterion.count);
+					});
 				}
-				break;
-			case "user":
-				if (Object.keys(criterion.posts).length < criterion.count) {
-					console.log("LOOKING BY USER");
-					if(post.uid.trim() == criterion.filter_data.trim()){
-						console.log("FOUND A POST BY USER");
-						if (!criterion.posts[key]) {
-							if(checkRules(post,criterion.rules)){
-
-								criterion.posts[key] = post;
-							}
+			} else {
+				console.log(Object.keys(criterion.posts).length + " " + criterion.count);
+			}
+			break;
+		case "user":
+			if (Object.keys(criterion.posts).length < criterion.count) {
+				console.log("LOOKING BY USER");
+				if (post.uid.trim() == criterion.filter_data.trim()) {
+					console.log("FOUND A POST BY USER");
+					if (!criterion.posts[key]) {
+						if (checkRules(post, criterion.rules)) {
+							criterion.posts[key] = post;
 						}
 					}
 				}
-				break;
-			case "string":
-				if(Object.keys(criterion.posts).length < criterion.count) {
-					if(post.content.indexOf(criterion.filter_data) !== -1){
-						if (!criterion.posts[key]) {
-							if(checkRules(post,criterion.rules)){
-
-								criterion.posts[key] = post;
-							}
+			}
+			break;
+		case "string":
+			if (Object.keys(criterion.posts).length < criterion.count) {
+				if (post.content.indexOf(criterion.filter_data) !== -1) {
+					if (!criterion.posts[key]) {
+						if (checkRules(post, criterion.rules)) {
+							criterion.posts[key] = post;
 						}
-
 					}
 				}
-				break;
-			default:
-				break;
+			}
+			break;
+		default:
+			break;
 		}
 	});
 	if (criterion.filter == "id") {
@@ -761,54 +809,49 @@ function get_posts(criterion, cb) {
 	if (criterion.filter == "favs") {
 		console.log("favs");
 		if (Object.keys(criterion.posts).length < criterion.count) {
-			var check = Object.keys(posts).map(function(m) {
+			var check = Object.keys(posts).map(function (m) {
 				return posts[m];
 			}).sort(cmpfavs).splice(0, criterion.count);
-			check.forEach(function(check2, index) {
+			check.forEach(function (check2, index) {
 				if (criterion.posts[check2.id]) {
 					check = check.splice(index, 1);
 				}
 			});
 			console.log("CHECK: ");
 			console.log(check);
-
-			check = check.map(function(m) {
+			check = check.map(function (m) {
 				m.favs = posts[m.id].favs;
 				return m;
 			});
-
-			criterion.posts = check.concat(criterion.posts).sort(cmpfavs).splice(0, criterion.count);
-
+			criterion.posts = check.concat(criterion.posts).sort(cmpfavs).splice(0,
+				criterion.count);
 		}
 	}
 	if (cb && Object.keys(criterion.posts).length >= criterion.count) {
 		cb(criterion);
-
 	} else if (cb) {
 		console.log("got_posts_" + criterion.filter + "_" + criterion.filter_data);
 		var count = 0;
-
 		var eventname = "got_posts_" + criterion.filter + "_" + criterion.filter_data;
-		var cbe = function(postse) {
+		var cbe = function (postse) {
 			console.log("GOT RESPONSE");
 			count++;
-			if(count >=1){
+			if (count >= 1) {
 				console.log("NEVERING");
 			}
-
-				never(eventname);
+			never(eventname);
 			cb(postse);
-
 		};
 		when(eventname, cbe);
 		alldir("get_posts", criterion);
-
-	} else if (Object.keys(criterion.posts).length < criterion.count && adjacent[flip(getDir(criterion.from))]) {
+	} else if (Object.keys(criterion.posts).length < criterion.count && adjacent[
+			flip(getDir(criterion.from))]) {
 		console.log("Passing along");
 		passAlong("get_posts", criterion);
 	} else {
 		console.log("Finishing requests");
-		console.log("emitting : got_posts_" + criterion.filter + "_" + criterion.filter_data + "   " + getDir(criterion.from));
+		console.log("emitting : got_posts_" + criterion.filter + "_" + criterion.filter_data +
+			"   " + getDir(criterion.from));
 		onedir("got_posts_" + criterion.filter + "_" + criterion.filter_data, {
 			to: criterion.original,
 			filter: criterion.filter,
@@ -844,27 +887,24 @@ function get_even(criterion, cb) {
 	var gotten = 0;
 	var posts = {};
 	criterion.count = criterion.count / 2;
-	get_posts(criterion, function(gposts) {
+	get_posts(criterion, function (gposts) {
 		gotten++;
-		Object.keys(gposts).forEach(function(key) {
-
+		Object.keys(gposts).forEach(function (key) {
 			posts[key] = gposts[key];
 		});
 		if (gotten >= 1) {
 			if (criterion.filter == "favs") {
 				var fin = {};
 				//console.log(posts);
-				posts.posts.forEach(function(post) {
-
+				posts.posts.forEach(function (post) {
 					fin[post.id] = post;
 				});
 				//console.log(fin);
-				fin = Object.keys(fin).map(function(p) {
+				fin = Object.keys(fin).map(function (p) {
 					return fin[p];
 				}).sort(cmpfavs);
 				posts.posts = fin;
 			}
-
 			//console.log(posts.posts);
 			cb(posts);
 			posts = {}
@@ -873,22 +913,28 @@ function get_even(criterion, cb) {
 			console.log(gotten);
 			console.log("not gotten");
 		}
-
 	});
 }
 //Gets all posts of a user.
-function getPostsByUser(uid, cb, count){
-	if(!count){
+function getPostsByUser(uid, cb, count) {
+	if (!count) {
 		count = 10;
 	}
-	get_even({filter:"user", count:count, filter_data:uid, from:selfId, original:selfId, posts:{}}, function(posts){
+	get_even({
+		filter: "user",
+		count: count,
+		filter_data: uid,
+		from: selfId,
+		original: selfId,
+		posts: {}
+	}, function (posts) {
 		cb(posts);
 	});
 }
 //Checks if a given link id is a neighbor.
 function isNeighbor(id) {
 	var neighbor = false;
-	adjacent.forEach(function(adj) {
+	adjacent.forEach(function (adj) {
 		if (adj.id === id) {
 			neighbor = true;
 		}
@@ -897,18 +943,19 @@ function isNeighbor(id) {
 }
 //Writes users to disk.
 function updateUsers(u) {
-	if(u){
+	if (u) {
 		alldir("update_users", u);
 	}
-	sem.take(function() {
+	sem.take(function () {
 		var usersstring = JSON.stringify(users);
-		fs.writeFile(DEMPATH+'users_' + name + '.json', usersstring, function(err) {
+		fs.writeFile(DEMPATH + 'users_' + name + '.json', usersstring, function (
+			err) {
 			if (err) {
 				console.log("Error creating user");
 			} else {
 				console.log("Created user successfully");
 			}
-			console.log("leaving! from "+name);
+			console.log("leaving! from " + name);
 			sem.leave();
 		});
 	})
@@ -916,17 +963,17 @@ function updateUsers(u) {
 //Creates a user.
 function createUser(username, password, email, cb) {
 	var id = hash(username + Date.now());
-	bcrypt.hash(password, 10, function(err, hashed) {
+	bcrypt.hash(password, 10, function (err, hashed) {
 		users[id] = {
 			id: id,
 			date: Date.now(),
 			pass: hashed,
 			username: san.escape(username),
 			subbed: [],
-			curs:{},
+			curs: {},
 			email: san.escape(email),
 			tags: {},
-			curations_owned:{},
+			curations_owned: {},
 			favorites: {}
 		}
 		users[id].original = true;
@@ -943,234 +990,230 @@ function get_feed(toget, cb) {
 	var called = false;
 	console.log("NEED:");
 	console.log(toget);
+
 	function check() {
 		console.log("MIDAY:" + Object.keys(got).length + ":" + need);
 		if (Object.keys(got).length >= need && !called) {
-			console.log("Calling to get feed."+gotten+need);
+			console.log("Calling to get feed." + gotten + need);
 			console.log(posts);
 			cb(posts);
 			called = true;
 		}
-
 	}
-	toget.forEach(function(get) {
+	toget.forEach(function (get) {
 		console.log(get);
 		switch (get.type) {
-			case 'tag':
-				var pro;
-				if (get.pro) {
-					pro = get.pro;
-				} else {
-					pro = 1 / toget.length;
-				}
-
-				var amount = pro * toget.count;
-				console.log(amount + ":amount");
-				get_even({
-					count: amount,
-					filter: "tag",
-					filter_data: [get.tag],
-					from: selfId,
-					original: selfId,
-					posts: {}
-				}, function(gposts) {
-					console.log("respost "+gotten);
-					got[get.tag] = true;
-					Object.keys(gposts.posts).forEach(function(key) {
-						console.log("I GOT ONE" + key)
-
-						posts[key] = gposts.posts[key];
-					});
-					check();
-
+		case 'tag':
+			var pro;
+			if (get.pro) {
+				pro = get.pro;
+			} else {
+				pro = 1 / toget.length;
+			}
+			var amount = pro * toget.count;
+			console.log(amount + ":amount");
+			get_even({
+				count: amount,
+				filter: "tag",
+				filter_data: [get.tag],
+				from: selfId,
+				original: selfId,
+				posts: {}
+			}, function (gposts) {
+				console.log("respost " + gotten);
+				got[get.tag] = true;
+				Object.keys(gposts.posts).forEach(function (key) {
+					console.log("I GOT ONE" + key)
+					posts[key] = gposts.posts[key];
 				});
-				break
-			case "cur":
-				var pro;
-				if (get.pro) {
-					pro = get.pro;
-				} else {
-					pro = 1 / toget.length;
-				}
-
-				var amount = pro * toget.count;
-				console.log(amount + ":amount");
-
-				get_curation_posts(get.cur, function(gposts){
-					console.log("GOT CURATUION PSOTS");
-					Object.keys(gposts).forEach(function(key){
-						posts[key] = gposts[key];
-					});
-
-					console.log(posts);
-					console.log("THOSE WERE C POSTS");
-					got[get.cur.name] = true;
-					check();
-				}, amount);
-				break;
-			default:
-				break;
+				check();
+			});
+			break
+		case "cur":
+			var pro;
+			if (get.pro) {
+				pro = get.pro;
+			} else {
+				pro = 1 / toget.length;
+			}
+			var amount = pro * toget.count;
+			console.log(amount + ":amount");
+			get_curation_posts(get.cur, function (gposts) {
+				console.log("GOT CURATUION PSOTS");
+				Object.keys(gposts).forEach(function (key) {
+					posts[key] = gposts[key];
+				});
+				console.log(posts);
+				console.log("THOSE WERE C POSTS");
+				got[get.cur.name] = true;
+				check();
+			}, amount);
+			break;
+		default:
+			break;
 		}
 	});
 }
 //Lets a user follow a tag. Event function.
-var follow_tag = new fulfill("follow_tag", function(req){
-	if(users[req.uid]){
-		if(users[req.uid].original === true){
+var follow_tag = new fulfill("follow_tag", function (req) {
+	if (users[req.uid]) {
+		if (users[req.uid].original === true) {
 			return true;
 		}
 	}
 	return false;
-}, function(req){
+}, function (req) {
 	users[req.uid].tags[req.tag] = true;
 	updateUsers(users[req.uid]);
 	return true;
 }, true, "once", true);
 //Lets a user unfollow a curation. Event function.
-var unfollow_cur = new fulfill("unfollow_cur", function(req){
-	if(users[req.uid]){
+var unfollow_cur = new fulfill("unfollow_cur", function (req) {
+	if (users[req.uid]) {
 		return users[req.uid].original
 	}
 	return false;
-}, function(req){
-	favsCur.easy({num:-1, cid:req.cur}, function(){})
+}, function (req) {
+	favsCur.easy({
+		num: -1,
+		cid: req.cur
+	}, function () {})
 	users[req.uid].curs[req.cur] = false;
 	updateUsers(users[req.uid]);
 	return true;
 }, true, "once", true);
-var unfollow = new fulfill("unfollow", function(req){
-	if(users[req.uid]){
+var unfollow = new fulfill("unfollow", function (req) {
+	if (users[req.uid]) {
 		return users[req.uid].original
 	}
 	return false
-}, function(req){
+}, function (req) {
 	users[req.uid].tags[req.tag] = false;
 	updateUsers(users[req.uid]);
 	return true;
 }, true, "once", true);
 //Lets a user unfollow a tag. Event function.
 //Lets a user favorite a post.
-var add_favorite = new fulfill("add_favorite", function(req){
-	if(users[req.uid]){
+var add_favorite = new fulfill("add_favorite", function (req) {
+	if (users[req.uid]) {
 		return users[req.uid].original
 	}
 	return false
-}, function(req){
+}, function (req) {
 	users[req.uid].favorites[req.pid] = true;
 	updateUsers(users[req.uid]);
-	favsUpdate.easy({pid:req.pid, num:1}, function(){});
+	favsUpdate.easy({
+		pid: req.pid,
+		num: 1
+	}, function () {});
 	return true;
 }, true, "once", true);
-var favsUpdate = new fulfill("update_favs", function(req){
+var favsUpdate = new fulfill("update_favs", function (req) {
 	return posts[req.pid]
-}, function(req){
+}, function (req) {
 	posts[req.pid].favs += req.num;
 	updatePosts(posts[req.pid]);
-	if(req.original == selfId){
+	if (req.original == selfId) {
 		alldir("update_favs", req);
 	}
 	return true;
 }, false, "once", true);
-var delete_comment = new fulfill("delete_comment", function(req){
+var delete_comment = new fulfill("delete_comment", function (req) {
 	return posts[req.pid];
-}, function(req){
+}, function (req) {
 	delete posts[req.pid].comments[req.cpos];
 	updatePosts(posts[req.pid]);
 	return true;
 }, true, "once", true);
-var favsCur = new fulfill("update_cur_favs", function(req){
+var favsCur = new fulfill("update_cur_favs", function (req) {
 	return curations[req.cid]
-}, function(req){
-	if(!curations[req.cid].favs){
+}, function (req) {
+	if (!curations[req.cid].favs) {
 		curations[req.cid].favs = 0;
 	}
 	curations[req.cid].favs += req.num;
 	updateCurs(curations[req.cid]);
-	if(req.original == selfId){
+	if (req.original == selfId) {
 		alldir("update_cur_favs", req);
 	}
 	return true;
 }, false, "once", true);
 //Delete post event function. Requires either author's jwt token or admin status.
-
-function deletePost(req, cb){
-	if(posts[req.pid]){
-		jwt.verify(req.token, secret, function(err, decode){
-			if(!err){
-				if(decode.uid == posts[req.pid].uid || decode.admin === true){
+function deletePost(req, cb) {
+	if (posts[req.pid]) {
+		jwt.verify(req.token, secret, function (err, decode) {
+			if (!err) {
+				if (decode.uid == posts[req.pid].uid || decode.admin === true) {
 					delete posts[req.pid];
 					updatePosts();
 					req.deleted++;
-					if (adjacent[flip(getDir(req.from))]){
+					if (adjacent[flip(getDir(req.from))]) {
 						passAlong("delete_post", req);
 					} else {
-						if(cb){
+						if (cb) {
 							alldir('delete_post', req);
 						} else {
-							onedir("deleted_post_"+req.pid, req.deleted, flip(getDir(req.from)));
+							onedir("deleted_post_" + req.pid, req.deleted, flip(getDir(req.from)));
 						}
 					}
 				} else {
-					if(cb){
+					if (cb) {
 						cb(req.deleted)
 					} else {
-						onedir("deleted_post_"+req.pid, req.deleted, flip(getDir(req.from)));
+						onedir("deleted_post_" + req.pid, req.deleted, flip(getDir(req.from)));
 					}
-
 				}
 			} else {
-				if(cb){
+				if (cb) {
 					cb(req.deleted);
-				} else{
-					onedir("deleted_post_"+req.pid, req.deleted, flip(getDir(req.from)));
+				} else {
+					onedir("deleted_post_" + req.pid, req.deleted, flip(getDir(req.from)));
 				}
 			}
 		});
-	} else if (adjacent[flip(getDir(req.from))]){
+	} else if (adjacent[flip(getDir(req.from))]) {
 		passAlong("delete_post", req);
-	} else if(!cb){
-		onedir("deleted_post_"+req.pid, req.deleted, flip(getDir(req.from)));
-	} else if (cb){
+	} else if (!cb) {
+		onedir("deleted_post_" + req.pid, req.deleted, flip(getDir(req.from)));
+	} else if (cb) {
 		alldir("delete_post", req);
 	}
-	if(cb){
+	if (cb) {
 		var had = 0;
 		var del = 0;
-		when("deleted_post_"+req.pid, function(deli){
+		when("deleted_post_" + req.pid, function (deli) {
 			had++;
 			console.log("Would delete post");
 			del += deli;
-			if(had >= 2){
-				never("deleted_post_"+req.pid);
+			if (had >= 2) {
+				never("deleted_post_" + req.pid);
 				cb(del);
 			}
 		});
 	}
 }
 // Easy way to delete a post given a token and pid.
-function easyDel(pid, token, cb){
+function easyDel(pid, token, cb) {
 	deletePost({
-		from:selfId,
-		original:selfId,
-		pid:pid,
-		token:token,
-		deleted:0
-	}, function(res){
+		from: selfId,
+		original: selfId,
+		pid: pid,
+		token: token,
+		deleted: 0
+	}, function (res) {
 		console.log("DELETED POST");
 		cb(res);
 	});
 }
-
 //Iterates through posts, adding favorited to them where they match favs.
-function checkFavs(favs, rposts){
+function checkFavs(favs, rposts) {
 	var fposts = rposts;
-	if(rposts.posts){
+	if (rposts.posts) {
 		fposts = rposts.posts;
 	}
-
-	Object.keys(favs).forEach(function(fav){
-		if(favs[fav] === true){
-			if(fposts[fav]){
+	Object.keys(favs).forEach(function (fav) {
+		if (favs[fav] === true) {
+			if (fposts[fav]) {
 				fposts[fav].favorited = true;
 			} else {
 				console.log(fposts);
@@ -1183,86 +1226,87 @@ function checkFavs(favs, rposts){
 	return fposts;
 }
 //Same as checkFavs, but for when posts are in an array.
-function checkFavsArr(favs, rposts){
-	rposts.forEach(function(post, index){
-		if(favs[post.id] ===true){
+function checkFavsArr(favs, rposts) {
+	rposts.forEach(function (post, index) {
+		if (favs[post.id] === true) {
 			rposts[index].favorited = true;
 		}
 	});
 	return rposts
 }
 //Change username event function
-var change_username = new fulfill("change_username", function(req){
-	if(users[req.uid]){
-		if(users[req.uid].original === true){
+var change_username = new fulfill("change_username", function (req) {
+	if (users[req.uid]) {
+		if (users[req.uid].original === true) {
 			return true;
 		}
 	}
 	return false;
-}, function(req){
+}, function (req) {
 	users[req.uid].username = req.new_u;
 	updateUsers(users[req.uid]);
 	return true;
 }, true, "once", true);
-var changeEmail = new fulfill("change_email", function(req){
-	if(users[req.uid]){
+var changeEmail = new fulfill("change_email", function (req) {
+	if (users[req.uid]) {
 		return users[req.uid].original
 	}
 	return false
-}, function(req){
+}, function (req) {
 	users[req.uid].email = req.email;
 	updateUsers(users[req.uid]);
 	return true;
 }, true, "once", true);
-var change_color = new fulfill("change_color", function(req){
-	var u  = search_email(req.email);
-	if(u){
+var change_color = new fulfill("change_color", function (req) {
+	var u = search_email(req.email);
+	if (u) {
 		return u.original;
 	}
 	return false;
-}, function(req){
-
+}, function (req) {
 	var id = search_email(req.email).id;
 	users[id].color = req.color;
-				updateUsers(users[id]);
+	updateUsers(users[id]);
 	return true;
-
 }, true, "once", true);
-var unfavorite = new fulfill("unfavorite", function(req){
-	if(users[req.uid]){
+var unfavorite = new fulfill("unfavorite", function (req) {
+	if (users[req.uid]) {
 		return users[req.uid].original
 	}
 	return false
-}, function(req){
+}, function (req) {
 	users[req.uid].favorites[req.pid] = false;
 	updateUsers(users[req.uid]);
-	favsUpdate.easy({pid:req.pid, num:-1}, function(){});
+	favsUpdate.easy({
+		pid: req.pid,
+		num: -1
+	}, function () {});
 	return true;
 }, true, "once", true);
-var add_comment = new fulfill("add_comment", function(req){
-	if (posts[req.pid]){
+var add_comment = new fulfill("add_comment", function (req) {
+	if (posts[req.pid]) {
 		return posts[req.pid];
-	}else {
-		console.log("It is not here"+req.pid);
+	} else {
+		console.log("It is not here" + req.pid);
 	}
 	return false;
-}, function(req){
+}, function (req) {
 	posts[req.pid].comments.push(req);
 	console.log("Added comment");
 	updatePosts(posts[req.pid]);
 	return true;
 }, false, "once", true);
-var sticky = new fulfill("sticky", function(req){
+var sticky = new fulfill("sticky", function (req) {
 	return posts[req.pid];
-}, function(req){
-	if(req.admin) {
+}, function (req) {
+	if (req.admin) {
 		posts[req.pid].stickied = true;
 		updatePosts(posts[req.pid]);
 		return true;
 	}
 	return false;
 }, true, "once", true);
-var unsticky = new fulfill("unsticky", function(req){
+var unsticky = new fulfill("unsticky", function (req) {
 	return posts[req.pid];
 }, function (req) {
 	if (req.admin) {
@@ -1290,124 +1334,128 @@ function get_curation_by_name(name, cb) {
 	get_curation.easy({
 		filter: "name",
 		filter_data: name
-	}, function(res) {
+	}, function (res) {
 		cb(res);
 	});
 }
-var add_cur_own = new fulfill("add_cur_own", function(req){
-	if(users[req.uid]){
+var add_cur_own = new fulfill("add_cur_own", function (req) {
+	if (users[req.uid]) {
 		return users[req.uid]
 	}
 	return false;
-}, function(req){
+}, function (req) {
 	users[req.uid].curations_owned[req.cid] = true;
 	updateUsers(users[req.uid]);
 	return true;
 }, true, "once", true);
-var get_curation = new fulfill('get_curation', function(req){
-	if(req.filter == "name"){
-		if(curations[req.filter_data]){
+var get_curation = new fulfill('get_curation', function (req) {
+	if (req.filter == "name") {
+		if (curations[req.filter_data]) {
 			return req.filter_data;
 		} else {
 			return false;
 		}
 	}
-}, function(req){
+}, function (req) {
 	return curations[req.filter_data];
 }, false, "once", true);
-function create_curation(req, cb){
-	jwt.verify(req.token, secret, function(err, decode){
-		if(decode.uid == req.uid){
+
+function create_curation(req, cb) {
+	jwt.verify(req.token, secret, function (err, decode) {
+		if (decode.uid == req.uid) {
 			curations[req.title] = {
-				tags:req.tags,
-				rules:{},
-				own:req.uid,
-				name:req.title
+				tags: req.tags,
+				rules: {},
+				own: req.uid,
+				name: req.title
 			}
 			updateCurs(curations[req.title]);
 			cb(true);
 		}
-
 	});
 }
-function cmpcurfavs (cur1, cur2){
-	if (curations[cur1].favs && curations[cur2].favs){
-		if(curations[cur1].favs > curations[cur2].favs){
+
+function cmpcurfavs(cur1, cur2) {
+	if (curations[cur1].favs && curations[cur2].favs) {
+		if (curations[cur1].favs > curations[cur2].favs) {
 			return -1;
-		} else if (curations[cur1].favs < curations[cur2].favs){
+		} else if (curations[cur1].favs < curations[cur2].favs) {
 			return 1;
 		} else {
 			return 0;
 		}
 	} else {
-		if(curations[cur1].favs){
+		if (curations[cur1].favs) {
 			return -1;
-		} else if(curations[cur2].favs){
+		} else if (curations[cur2].favs) {
 			return 1;
 		} else {
 			return 0;
 		}
 	}
 }
-var get_curs_top = new fulfill("get_curs_top", function(req){
-	req.curs = req.curs.concat(Object.keys(curations).sort(cmpcurfavs).splice(0, req.count));
-	req.curs = req.curs.sort(cmpcurfavs).filter(function(elem, index, self){
+var get_curs_top = new fulfill("get_curs_top", function (req) {
+	req.curs = req.curs.concat(Object.keys(curations).sort(cmpcurfavs).splice(0,
+		req.count));
+	req.curs = req.curs.sort(cmpcurfavs).filter(function (elem, index, self) {
 		return index === self.indexOf(elem);
-	}).splice(0,req.count);
+	}).splice(0, req.count);
 	return !adjacent[flip(getDir(req.from))];
-}, function(req){
+}, function (req) {
 	return req;
-}, false, "curs", true, {curs:[]});
+}, false, "curs", true, {
+	curs: []
+});
+
 function updateRec(id) {
-	Object.keys(rec[id]).forEach(function(key) {
+	Object.keys(rec[id]).forEach(function (key) {
 		if (!moment(rec[id][key]).isAfter(moment().subtract(1, 'days'))) {
 			delete rec[id][key]
 		}
 	});
 }
-var ban = new fulfill(function(req){
+var ban = new fulfill(function (req) {
 	return users[req.uid] && users[req.uid].original;
-}, function(req){
-	if(req.admin){
+}, function (req) {
+	if (req.admin) {
 		users[req.uid].banned = true;
 		updateUsers(users[req.uid]);
 		return true;
 	}
 	return false;
 }, true, "once", true);
-var unban = new fulfill(function(req){
+var unban = new fulfill(function (req) {
 	return users[req.uid] && users[req.uid].original;
-}, function(req){
-	if(req.admin){
+}, function (req) {
+	if (req.admin) {
 		users[req.uid].banned = false;
 		updateUsers(users[req.uid]);
 		return true;
 	}
 	return false;
 }, true, "once", true);
-function get_curation_posts(cur, cb, count){
-	if(!count){
 
+function get_curation_posts(cur, cb, count) {
+	if (!count) {
 		count = 10;
 	}
 	var got = 0
 	var called = false;
 	var posts = {};
 	var got = {};
-	get_curation_by_name(cur, function(cur){
-		if(cur){
-
+	get_curation_by_name(cur, function (cur) {
+		if (cur) {
 			var need = cur.tags.length
-			var rec = function(name) {
-				return function(gotposts){
-					if(gotposts.posts){
+			var rec = function (name) {
+				return function (gotposts) {
+					if (gotposts.posts) {
 						console.log("GET EVEN CALLED")
 						gotposts = gotposts.posts;
-						Object.keys(gotposts).forEach(function(key){
+						Object.keys(gotposts).forEach(function (key) {
 							posts[key] = gotposts[key];
 						});
 						got[name] = true;
-						if(Object.keys(got).length >= need && !called){
+						if (Object.keys(got).length >= need && !called) {
 							called = true;
 							console.log("GOT ALL POSTS : ");
 							console.log(posts);
@@ -1422,68 +1470,66 @@ function get_curation_posts(cur, cb, count){
 					}
 				}
 			}
-			Object.keys(cur.rules).forEach(function(key){
+			Object.keys(cur.rules).forEach(function (key) {
 				var rule = cur.rules[key];
-				switch(rule.type){
-					case "yes_string":
-						need++;
-						get_even({
-							count: count*2,
-							filter: "string",
-							filter_data: rule.value,
-							from: selfId,
-							rules:cur.rules,
-							original: selfId,
-							posts: {}
-						}, rec("yes_s"));
-						break;
-					case "yes_u":
-						need++;
-						get_even({
-							count: count*2,
-							filter: "user",
-							filter_data: rule.value,
-							from: selfId,
-							rules:cur.rules,
-							original: selfId,
-							posts: {}
-						}, rec("yes_y"));
-						break;
-
+				switch (rule.type) {
+				case "yes_string":
+					need++;
+					get_even({
+						count: count * 2,
+						filter: "string",
+						filter_data: rule.value,
+						from: selfId,
+						rules: cur.rules,
+						original: selfId,
+						posts: {}
+					}, rec("yes_s"));
+					break;
+				case "yes_u":
+					need++;
+					get_even({
+						count: count * 2,
+						filter: "user",
+						filter_data: rule.value,
+						from: selfId,
+						rules: cur.rules,
+						original: selfId,
+						posts: {}
+					}, rec("yes_y"));
+					break;
 				}
 			});
-			if(need == 0){
+			if (need == 0) {
 				cb(posts);
 			}
-			cur.tags.forEach(function(tag){
-				console.log("GETTING TAG NOW : "+tag);
+			cur.tags.forEach(function (tag) {
+				console.log("GETTING TAG NOW : " + tag);
 				get_even({
-					count: count*2,
+					count: count * 2,
 					filter: "tag",
 					filter_data: [tag],
 					from: selfId,
-					rules:cur.rules,
+					rules: cur.rules,
 					original: selfId,
 					posts: {}
 				}, rec(tag));
 			});
-		}else {
+		} else {
 			cb(false);
 		}
 	});
-
 }
-var edit_cur_mod = new fulfill("edit_cur_mod", function(req){
-	if(curations[req.cur]){
-		if(curations[req.cur].own == req.uid){
+var edit_cur_mod = new fulfill("edit_cur_mod", function (req) {
+	if (curations[req.cur]) {
+		if (curations[req.cur].own == req.uid) {
 			return true;
 		}
 	}
 	return false;
-}, function(req){
-	Object.keys(req.changes).forEach(function(change){
-		if(curations[req.cur][change]){
-			curations[req.cur][change]  = req.changes[change];
+}, function (req) {
+	Object.keys(req.changes).forEach(function (change) {
+		if (curations[req.cur][change]) {
+			curations[req.cur][change] = req.changes[change];
 		}
 	});
 	updateCurs(curations[req.cur]);
@@ -1501,13 +1547,12 @@ var edit_cur_mod = new fulfill("edit_cur_mod", function(req){
 var socket = io.sockets;
 console.log(socket);
 if (process.argv[2] == "1") {
-	setTimeout(function() {
+	setTimeout(function () {
 		// createUser("nicohman", "dude");
 	}, 10000);
 }
-
 if (process.argv[2] == "3") {
-	setTimeout(function() {
+	setTimeout(function () {
 		console.log("get post");
 		get_posts({
 			filter: "tag",
@@ -1516,22 +1561,22 @@ if (process.argv[2] == "3") {
 			original: selfId,
 			from: selfId,
 			posts: []
-		}, function(posts) {
+		}, function (posts) {
 			console.log(posts);
 		});
 	}, 1000);
 }
 console.log("co");
 var serv_handles = {
-	"update_users": function(u) {
+	"update_users": function (u) {
 		users[u.id] = u;
 		updateUsers();
 	},
-	"update_curations":function(cur){
+	"update_curations": function (cur) {
 		curations[cur.name] = cur;
 		updateCurs();
 	},
-	"update_posts": function(post) {
+	"update_posts": function (post) {
 		if (!posts[post.id]) {
 			if (post.favorited) {
 				post.favorited = undefined;
@@ -1540,28 +1585,27 @@ var serv_handles = {
 			updatePosts();
 		}
 	},
-	"get_user": function(id) {
+	"get_user": function (id) {
 		if (users[id.uid]) {
 			onedir('got_user_' + id.uid, users[id.uid], flip(getDir(id.from)));
 		} else {
-			if(adjacent[getDir(flip(id.from))]){
+			if (adjacent[getDir(flip(id.from))]) {
 				passAlong('get_user', id);
 			} else {
 				onedir('got_user_' + id.uid, false, getDir(id.from));
-
 			}
 		}
 	},
-	"check_login": function(u) {
+	"check_login": function (u) {
 		if (users[u.uid]) {
-			if(users[u.uid].banned){
-				onedir("check_result_"+u.uid, {
-					user:u.uid,
-					name:users[u.uid].username,
-					result:false
+			if (users[u.uid].banned) {
+				onedir("check_result_" + u.uid, {
+					user: u.uid,
+					name: users[u.uid].username,
+					result: false
 				}, getDir(u.from));
 			} else {
-				bcrypt.compare(u.pwd, users[u.pass], function(err, res) {
+				bcrypt.compare(u.pwd, users[u.pass], function (err, res) {
 					if (res) {
 						onedir("check_result_" + u.uid, {
 							user: u.uid,
@@ -1575,104 +1619,109 @@ var serv_handles = {
 			passAlong("check_login");
 		}
 	},
-	"m_info":m_info,
-	"m_get_info":function(req){
-		m_info({from:selfId, active:[], users:[], original:selfId}, function(res){
-			console.log("ressing for m"+process.argv[2])
+	"m_info": m_info,
+	"m_get_info": function (req) {
+		m_info({
+			from: selfId,
+			active: [],
+			users: [],
+			original: selfId
+		}, function (res) {
+			console.log("ressing for m" + process.argv[2])
 			io.to(req.cid).emit("m_got_info", res);
 		});
 	},
-	"change_color":change_color,
-	"c_change_color":function(req){
-		jwt.verify(req.token, secret, function(err, dec){
-			if(!err){
-				if(dec.admin){
+	"change_color": change_color,
+	"c_change_color": function (req) {
+		jwt.verify(req.token, secret, function (err, dec) {
+			if (!err) {
+				if (dec.admin) {
 					change_color.easy({
-						color:req.color,
-						token:req.token,
-						uid:req.uid,
-						email:req.email
-					}, function(res){
+						color: req.color,
+						token: req.token,
+						uid: req.uid,
+						email: req.email
+					}, function (res) {
 						io.to(req.cid).emit("c_changed_color", res);
 					});
 				} else {
-
-				io.to(req.cid).emit("c_changed_color", false);
+					io.to(req.cid).emit("c_changed_color", false);
 				}
 			} else {
 				io.to(req.cid).emit("c_changed_color", false);
 			}
 		});
 	},
-	"c_check_ban":function(req){
-		io.to(req.cid).emit("c_checked_ban_"+req.uid, users[req.uid] && !users[req.uid].banned);
+	"c_check_ban": function (req) {
+		io.to(req.cid).emit("c_checked_ban_" + req.uid, users[req.uid] && !users[
+			req.uid].banned);
 	},
-	"c_ban":function(req){
-		jwt.verify(req.token, secret, function(err, dec){
-			if(!err){
-				if(dec.admin){
-					ban.easy(
-						{
-							uid:req.uid,
-							token:req.token
-						}, function(res){
-							io.to(req.cid).emit("c_banned_"+req.uid, res);
-						});
+	"c_ban": function (req) {
+		jwt.verify(req.token, secret, function (err, dec) {
+			if (!err) {
+				if (dec.admin) {
+					ban.easy({
+						uid: req.uid,
+						token: req.token
+					}, function (res) {
+						io.to(req.cid).emit("c_banned_" + req.uid, res);
+					});
 				} else {
-					io.to(req.cid).emit("c_banned_"+req.uid, false);
+					io.to(req.cid).emit("c_banned_" + req.uid, false);
 				}
 			} else {
-				io.to(req.cid).emit("c_banned_"+req.uid, false);
+				io.to(req.cid).emit("c_banned_" + req.uid, false);
 			}
 		});
 	},
-	"c_unban":function(req){
-		jwt.verify(req.token, secret, function(err, dec){
-			if(!err){
-				if(dec.admin){
-					unban.easy(
-						{
-							uid:req.uid,
-							token:req.token
-						}, function(res){
-							io.to(req.cid).emit("c_unbanned_"+req.uid, res);
-						});
+	"c_unban": function (req) {
+		jwt.verify(req.token, secret, function (err, dec) {
+			if (!err) {
+				if (dec.admin) {
+					unban.easy({
+						uid: req.uid,
+						token: req.token
+					}, function (res) {
+						io.to(req.cid).emit("c_unbanned_" + req.uid, res);
+					});
 				} else {
-					io.to(req.cid).emit("c_unbanned_"+req.uid, false);
+					io.to(req.cid).emit("c_unbanned_" + req.uid, false);
 				}
 			} else {
-				io.to(req.cid).emit("c_unbanned_"+req.uid, false);
+				io.to(req.cid).emit("c_unbanned_" + req.uid, false);
 			}
 		});
-
 	},
-	"get_curs_top":get_curs_top,
-	"c_get_curs_top":function(req){
-		get_curs_top.easy({count:5,curs:[]}, function(res){
-			io.to(req.cid).emit("c_got_curs_top",res.curs);
+	"get_curs_top": get_curs_top,
+	"c_get_curs_top": function (req) {
+		get_curs_top.easy({
+			count: 5,
+			curs: []
+		}, function (res) {
+			io.to(req.cid).emit("c_got_curs_top", res.curs);
 		});
 	},
 	"update_favs": favsUpdate,
 	"add_comment": add_comment,
-	"c_add_comment": function(req) {
+	"c_add_comment": function (req) {
 		if (logged[req.cid]) {
 			var color = false;
-			if(users[logged[req.cid]] && users[logged[req.cid]].color){
+			if (users[logged[req.cid]] && users[logged[req.cid]].color) {
 				color = users[logged[req.cid]].color;
 			}
 			add_comment.easy({
 				uid: req.uid,
 				pid: req.id,
 				content: req.content,
-				color:color,
+				color: color,
 				auth: req.auth,
 				date: Date.now()
-			}, function(res) {
+			}, function (res) {
 				io.to(req.cid).emit("c_added_comment", res);
 			});
 		}
 	},
-	"add_reg": function(toAdd) {
+	"add_reg": function (toAdd) {
 		if (!reg[reg.id]) {
 			reg[toAdd.id] = {
 				name: toAdd.name,
@@ -1686,69 +1735,75 @@ var serv_handles = {
 		toAdd.from = toAdd.recentFrom;
 		toAdd.recentFrom = selfId;
 		passAlong("add_reg", toAdd);
-
 	},
-	"get_reg": function(info) {
+	"get_reg": function (info) {
 		socket.emit("got_reg_" + info.from, reg);
 	},
-	"unban":unban,
-	"ban":ban,
+	"unban": unban,
+	"ban": ban,
 	"create_curation": create_curation,
-	"c_create_curation": function(req) {
+	"c_create_curation": function (req) {
 		if (logged[req.cid]) {
 			console.log("creating");
 			var to_create = {
-				id: hash(req.name + Date.now()),
-				title: req.name,
-				uid: logged[req.cid],
-				from: selfId,
-				original: selfId,
-				tags: req.tags,
-				token: req.token
-			}
-			//get_curation_by_name(req.name, function(res) {
-			var res = curations[req.name];
-				if (res) {
-					io.to(req.cid).emit("c_created_curation", "already");
-				} else {
-					add_cur_own.easy({token:req.token, cid:req.name}, function(){
-						create_curation(to_create, function(res) {
-							io.to(req.cid).emit("c_created_curation", res);
-						});
-					});
+					id: hash(req.name + Date.now()),
+					title: req.name,
+					uid: logged[req.cid],
+					from: selfId,
+					original: selfId,
+					tags: req.tags,
+					token: req.token
 				}
-		//	});
+				//get_curation_by_name(req.name, function(res) {
+			var res = curations[req.name];
+			if (res) {
+				io.to(req.cid).emit("c_created_curation", "already");
+			} else {
+				add_cur_own.easy({
+					token: req.token,
+					cid: req.name
+				}, function () {
+					create_curation(to_create, function (res) {
+						io.to(req.cid).emit("c_created_curation", res);
+					});
+				});
+			}
+			//	});
 		}
 	},
-	"c_change_email":function(req){
-		if(logged[req.cid]){
-			jwt.verify(req.token, secret, function(err, dec){
+	"c_change_email": function (req) {
+		if (logged[req.cid]) {
+			jwt.verify(req.token, secret, function (err, dec) {
 				console.log("decoded");
-				if(!err){
-					easyEmail({email:req.email}, function(u){
-						if(u){
-							if(u.id == dec.uid){
-							io.to(req.cid).emit("c_changed_email", false);
-						}
-						} else
-						{
+				if (!err) {
+					easyEmail({
+						email: req.email
+					}, function (u) {
+						if (u) {
+							if (u.id == dec.uid) {
+								io.to(req.cid).emit("c_changed_email", false);
+							}
+						} else {
 							console.log("Not already used!");
-							changeEmail.easy({email:req.email ,token:req.token}, function(res){
+							changeEmail.easy({
+								email: req.email,
+								token: req.token
+							}, function (res) {
 								io.to(req.cid).emit("c_changed_email", res);
 							});
 						}
 					});
-				}else {
+				} else {
 					io.to(req.cid).emit("c_changed_email", false);
 				}
 			});
 		}
 	},
-	"c_get_self_posts":function(req){
-		jwt.verify(req.token, secret, function(err, dec){
-			if(!err){
-				if(dec.uid == logged[req.cid]){
-					getPostsByUser(dec.uid, function(posts){
+	"c_get_self_posts": function (req) {
+		jwt.verify(req.token, secret, function (err, dec) {
+			if (!err) {
+				if (dec.uid == logged[req.cid]) {
+					getPostsByUser(dec.uid, function (posts) {
 						io.to(req.cid).emit("c_got_self_posts", posts, req.count || 10);
 					});
 				} else {
@@ -1759,49 +1814,57 @@ var serv_handles = {
 			}
 		});
 	},
-	"unsticky":unsticky,
-	"sticky":sticky,
-	"c_unsticky":function(req){
-		if (logged[req.cid]){
-			jwt.verify(req.token, secret, function(err, dec){
-				if (!err) {
-					if(dec.admin){
-						unsticky.easy({token:req.token, pid:req.pid}, function(res){
-							io.to(req.cid).emit("c_unstickied_"+req.pid, res);
-						});
-					} else {
-						io.to(req.cid).emit("c_unstickied_"+req.pid, false);
-					}
-				} else {
-					io.to(req.cid).emit("c_unstickied_"+req.pid, false);
-				}
-			});
-		}
-	},
-	"c_sticky":function(req){
-		if (logged[req.cid]){
-			jwt.verify(req.token, secret, function(err, dec){
-				if (!err)
-				{
-					if (dec.admin){
-						sticky.easy({token:req.token, pid:req.pid}, function(res){
-							io.to(req.cid).emit("c_stickied_"+req.pid, res);
-						});
-					} else {
-						io.to(req.cid).emit("c_stickied_"+req.pid, false);
-					}
-				} else {
-					io.to(req.cid).emit("c_stickied_"+req.pid, false);
-				}
-			});
-		}
-	},
-	"change_email":changeEmail,
-	"c_change_username": function(req) {
+	"unsticky": unsticky,
+	"sticky": sticky,
+	"c_unsticky": function (req) {
 		if (logged[req.cid]) {
-			jwt.verify(req.token, secret, function(err) {
+			jwt.verify(req.token, secret, function (err, dec) {
 				if (!err) {
-					change_username.easy({token:req.token, new_u:req.new_u}, function(res) {
+					if (dec.admin) {
+						unsticky.easy({
+							token: req.token,
+							pid: req.pid
+						}, function (res) {
+							io.to(req.cid).emit("c_unstickied_" + req.pid, res);
+						});
+					} else {
+						io.to(req.cid).emit("c_unstickied_" + req.pid, false);
+					}
+				} else {
+					io.to(req.cid).emit("c_unstickied_" + req.pid, false);
+				}
+			});
+		}
+	},
+	"c_sticky": function (req) {
+		if (logged[req.cid]) {
+			jwt.verify(req.token, secret, function (err, dec) {
+				if (!err) {
+					if (dec.admin) {
+						sticky.easy({
+							token: req.token,
+							pid: req.pid
+						}, function (res) {
+							io.to(req.cid).emit("c_stickied_" + req.pid, res);
+						});
+					} else {
+						io.to(req.cid).emit("c_stickied_" + req.pid, false);
+					}
+				} else {
+					io.to(req.cid).emit("c_stickied_" + req.pid, false);
+				}
+			});
+		}
+	},
+	"change_email": changeEmail,
+	"c_change_username": function (req) {
+		if (logged[req.cid]) {
+			jwt.verify(req.token, secret, function (err) {
+				if (!err) {
+					change_username.easy({
+						token: req.token,
+						new_u: req.new_u
+					}, function (res) {
 						io.to(req.cid).emit("c_changed_username", res);
 					});
 				} else {
@@ -1810,24 +1873,26 @@ var serv_handles = {
 			});
 		}
 	},
-	"c_get_cur_posts":function(req){
-		get_curation_posts(req.cur, function(posts){
+	"c_get_cur_posts": function (req) {
+		get_curation_posts(req.cur, function (posts) {
 			var got = false;
-			if(!got){
-				io.to(req.cid).emit("c_got_cur_posts_"+req.cur+"_"+req.time, posts);
-				console.log("EMITTING EVENT C: "+req.time);
+			if (!got) {
+				io.to(req.cid).emit("c_got_cur_posts_" + req.cur + "_" + req.time,
+					posts);
+				console.log("EMITTING EVENT C: " + req.time);
 				got = true;
 			}
 		}, req.count);
 	},
 	"change_username": change_username,
-	"c_req_rec": function(req) {
+	"c_req_rec": function (req) {
 		if (!logged[req.cid]) {
-			easyEmail({email:req.email}, function(u) {
+			easyEmail({
+				email: req.email
+			}, function (u) {
 				console.log(u);
-
 				if (u) {
-					sendRecEmail(u.email, function() {
+					sendRecEmail(u.email, function () {
 						io.to(req.cid).emit("c_reqed_reced", true);
 					});
 				} else {
@@ -1837,7 +1902,7 @@ var serv_handles = {
 		}
 	},
 	"get_posts": get_posts,
-	"c_get_posts": function(req) {
+	"c_get_posts": function (req) {
 		get_even({
 			filter: req.filter,
 			count: req.count,
@@ -1845,29 +1910,34 @@ var serv_handles = {
 			original: selfId,
 			from: selfId,
 			posts: {}
-		}, function(postsR) {
+		}, function (postsR) {
 			postsR = checkFavs(users[logged[req.id]].favorites, postsR.posts);
-			io.to(req.id).emit("c_got_posts_" + req.data,{posts: postsR});
+			io.to(req.id).emit("c_got_posts_" + req.data, {
+				posts: postsR
+			});
 		});
-
 	},
-	"delete_comment":delete_comment,
-	"c_delete_comment":function(req){
-		jwt.verify(req.token, secret, function(err, dec){
-			if(!err){
-				if(dec.admin ){
-					delete_comment.easy({pid:req.pid, cpos:req.cpos, token:req.token}, function(res){
-						io.to(req.cid).emit("c_deleted_comment_"+req.pid, res);
+	"delete_comment": delete_comment,
+	"c_delete_comment": function (req) {
+		jwt.verify(req.token, secret, function (err, dec) {
+			if (!err) {
+				if (dec.admin) {
+					delete_comment.easy({
+						pid: req.pid,
+						cpos: req.cpos,
+						token: req.token
+					}, function (res) {
+						io.to(req.cid).emit("c_deleted_comment_" + req.pid, res);
 					});
 				} else {
-					io.to(req.cid).emit("c_deleted_comment_"+req.pid, false);
+					io.to(req.cid).emit("c_deleted_comment_" + req.pid, false);
 				}
 			} else {
-				io.to(req.cid).emit("c_deleted_comment_"+req.pid, false);
+				io.to(req.cid).emit("c_deleted_comment_" + req.pid, false);
 			}
 		});
 	},
-	"c_get_top": function(req) {
+	"c_get_top": function (req) {
 		get_even({
 			filter: "favs",
 			filter_data: "top",
@@ -1875,40 +1945,43 @@ var serv_handles = {
 			original: selfId,
 			posts: {},
 			from: selfId
-		}, function(postsR) {
-			postsR = checkFavsArr(users[logged[req.id || req.cid]].favorites, postsR.posts);
+		}, function (postsR) {
+			postsR = checkFavsArr(users[logged[req.id || req.cid]].favorites, postsR
+				.posts);
 			console.log("GOT OTP< COUNT:" + Object.keys(postsR).length);
 			console.log(postsR);
-			io.to(req.id).emit("c_got_top", {posts:postsR})
+			io.to(req.id).emit("c_got_top", {
+				posts: postsR
+			})
 		});
 	},
 	"get_curation": get_curation,
 	"find_user_by_email": get_user_by_email,
-	"c_find_user_by_email": function(req) {
+	"c_find_user_by_email": function (req) {
 		if (!logged[req.cid]) {
-		//	easyEmail({email:req.email}, function(res) {
-				io.to(req.cid).emit("c_found_user_by_email_" + req.email, search_email(req.email));
-				console.log("Found!");
-		//	});
+			//	easyEmail({email:req.email}, function(res) {
+			io.to(req.cid).emit("c_found_user_by_email_" + req.email, search_email(req
+				.email));
+			console.log("Found!");
+			//	});
 		}
 	},
-	"delete_post":deletePost,
-	"c_delete_post":function(req){
-		jwt.verify(req.token, secret, function(err, decode){
-			if(!err){
-				if(logged[req.cid] == decode.uid){
-					easyDel(req.pid, req.token, function(){
+	"delete_post": deletePost,
+	"c_delete_post": function (req) {
+		jwt.verify(req.token, secret, function (err, decode) {
+			if (!err) {
+				if (logged[req.cid] == decode.uid) {
+					easyDel(req.pid, req.token, function () {
 						console.log("Sending deleted");
 					});
-					setTimeout(function(){
-						io.to(req.cid).emit("c_deleted_post_"+req.pid, true)
+					setTimeout(function () {
+						io.to(req.cid).emit("c_deleted_post_" + req.pid, true)
 					}, 1200);
 				} else {
-					io.to(req.cid).emit("c_deleted_post_"+req.pid, false);
-
+					io.to(req.cid).emit("c_deleted_post_" + req.pid, false);
 				}
 			} else {
-				io.to(req.cid).emit("c_deleted_post_"+req.pid, false);
+				io.to(req.cid).emit("c_deleted_post_" + req.pid, false);
 			}
 		});
 	},
@@ -1917,17 +1990,17 @@ var serv_handles = {
 			io.to(req.cid).emit("c_got_curation_" + req.id);
 		});
 	},*/
-	"c_get_favorites": function(req) {
+	"c_get_favorites": function (req) {
 		console.log("got request");
 		if (logged[req.cid]) {
 			if (logged[req.cid] == req.uid) {
-				get_user(req.uid, function(user) {
+				get_user(req.uid, function (user) {
 					var favs = Object.keys(user.favorites);
 					var got = 0;
 					var full = [];
-					favs.forEach(function(fav) {
+					favs.forEach(function (fav) {
 						if (user.favorites[fav]) {
-							get_post_by_id(fav, function(post) {
+							get_post_by_id(fav, function (post) {
 								full.push(post);
 								got++;
 								if (got >= favs.length) {
@@ -1941,54 +2014,53 @@ var serv_handles = {
 								io.to(req.cid).emit("c_got_favorites", full);
 							}
 						}
-
 					});
 				})
 			}
 		}
 	},
 	"unfavorite": unfavorite,
-	"c_unfavorite": function(req) {
+	"c_unfavorite": function (req) {
 		if (logged[req.cid]) {
 			if (logged[req.cid] == req.uid) {
 				unfavorite.easy({
 					pid: req.pid,
 					token: req.token
-				}, function(res) {
-					if(res){
-					io.to(req.cid).emit("c_unfavorited_" + req.pid, true);
-				}
+				}, function (res) {
+					if (res) {
+						io.to(req.cid).emit("c_unfavorited_" + req.pid, true);
+					}
 				})
 			}
 		}
 	},
 	"add_favorite": add_favorite,
-	"c_add_favorite": function(req) {
+	"c_add_favorite": function (req) {
 		if (logged[req.cid]) {
 			if (logged[req.cid] == req.uid) {
 				add_favorite.easy({
 					pid: req.pid,
 					token: req.token
-				}, function(res) {
-					if(res){
-					io.to(req.cid).emit("c_added_favorite_" + req.pid, true);
-}
+				}, function (res) {
+					if (res) {
+						io.to(req.cid).emit("c_added_favorite_" + req.pid, true);
+					}
 				});
 			}
 		}
 	},
-	"c_get_self": function(req) {
+	"c_get_self": function (req) {
 		if (logged[req.cid]) {
-			jwt.verify(req.token, secret, function(err, decode) {
+			jwt.verify(req.token, secret, function (err, decode) {
 				if (decode.uid == logged[req.cid]) {
-					get_user(decode.uid, function(user) {
+					get_user(decode.uid, function (user) {
 						io.to(req.cid).emit("c_got_self", user)
 					});
 				}
 			});
 		}
 	},
-	"c_create_post": function(post) {
+	"c_create_post": function (post) {
 		if (logged[post.cid]) {
 			if (!rec[logged[post.cid]]) {
 				rec[logged[post.cid]] = {};
@@ -1996,58 +2068,55 @@ var serv_handles = {
 			rec[logged[post.cid]][post.id] = Date.now();
 			updateRec(logged[post.cid]);
 			if (Object.keys(rec[logged[post.cid]]).length < 10) {
-
 				createPost(post);
-
 				io.to(post.cid).emit("c_created_post", true);
 			} else {
-
-
 				io.to(post.cid).emit("c_created_post", false);
-
 			}
 		}
-
 	},
-	"c_login": function(req) {
-		easyEmail({email:req.email}, function(user) {
+	"c_login": function (req) {
+		easyEmail({
+			email: req.email
+		}, function (user) {
 			console.log(user);
-			if (user.banned){
-				io.to(req.cid).emit("c_logged_in_"+req.email, false);
+			if (user.banned) {
+				io.to(req.cid).emit("c_logged_in_" + req.email, false);
 			} else {
-				bcrypt.compare(req.password, user.pass, function(err, res) {
+				bcrypt.compare(req.password, user.pass, function (err, res) {
 					if (res) {
 						console.log("User " + user.username + " successfully logged in");
 						var admin = false;
-						if(user.admin){
+						if (user.admin) {
 							admin = true;
 						}
 						var token = jwt.sign({
 							username: user.username,
 							uid: user.id,
 							email: req.email,
-							admin:admin
+							admin: admin
 						}, secret);
 						io.to(req.cid).emit("c_logged_in_" + req.email, token);
 						logged[req.cid] = req.uid;
 					} else {
-						console.log("User " + user.username + " did not successfully log in")
+						console.log("User " + user.username +
+							" did not successfully log in")
 						io.to(req.cid).emit("c_logged_in_" + req.email, false);
 					}
 				});
 			}
 		});
 	},
-	"c_create_user": function(req) {
+	"c_create_user": function (req) {
 		if (!logged[req.cid]) {
-			createUser(req.username, req.password, req.email, function(id) {
+			createUser(req.username, req.password, req.email, function (id) {
 				io.to(req.cid).emit("c_created_user", id);
 			});
 		}
 	},
-	"c_get_feed": function(req) {
+	"c_get_feed": function (req) {
 		if (logged[req.cid]) {
-			var toget = Object.keys(users[logged[req.cid]].tags).map(function(item) {
+			var toget = Object.keys(users[logged[req.cid]].tags).map(function (item) {
 				if (users[logged[req.cid]].tags[item] == true) {
 					return {
 						type: 'tag',
@@ -2056,23 +2125,23 @@ var serv_handles = {
 				} else {
 					return undefined;
 				}
-			}).filter(function(e) {
+			}).filter(function (e) {
 				if (e !== undefined) {
 					return true;
 				} else {
 					return false;
 				}
 			});
-			var to2 = Object.keys(users[logged[req.cid]].curs).map(function(key){
+			var to2 = Object.keys(users[logged[req.cid]].curs).map(function (key) {
 				if (users[logged[req.cid]].curs[key] === true) {
 					return {
-						type:'cur',
-						cur:key
+						type: 'cur',
+						cur: key
 					}
 				} else {
 					return undefined;
 				}
-			}).filter(function(e) {
+			}).filter(function (e) {
 				if (e !== undefined) {
 					return true;
 				} else {
@@ -2084,20 +2153,22 @@ var serv_handles = {
 			console.log(users[logged[req.cid]]);
 			toget.count = req.count * 2;
 			console.log("getting");
-			get_feed(toget, function(postsR) {
-
+			get_feed(toget, function (postsR) {
 				postsR = checkFavs(users[logged[req.cid]].favorites, postsR);
-
 				console.log("c_got_feed_" + logged[req.cid]);
 				io.to(req.cid).emit("c_got_feed_" + logged[req.cid], postsR);
-
 			});
 		}
 	},
-	"d_change_pass": function(req) {
-		jwt.verify(req.token, emailSecret, function(err, un) {
+	"d_change_pass": function (req) {
+		jwt.verify(req.token, emailSecret, function (err, un) {
 			if (!err && req.pass1 == req.pass2) {
-				change_pass.easy({token:jwt.sign({email:un.email, pass:req.pass1}, secret)}, function(res) {
+				change_pass.easy({
+					token: jwt.sign({
+						email: un.email,
+						pass: req.pass1
+					}, secret)
+				}, function (res) {
 					io.to(req.cid).emit("d_changed_pass_" + un.email, res);
 				});
 			}
@@ -2106,117 +2177,118 @@ var serv_handles = {
 	"change_pass": change_pass,
 	"unfollow": unfollow,
 	"follow_tag": follow_tag,
-	"follow_cur":follow_cur,
-	"unfollow_cur":unfollow_cur,
-	"c_follow_cur":function(req){
-		if(logged[req.cid]){
-			if(logged[req.cid] == req.uid) {
-				follow_cur.easy({uid:req.uid, cur:req.cur, token:req.token}, function(res){
-					io.to(req.cid).emit("c_follow_cur_"+req.cur, res);
+	"follow_cur": follow_cur,
+	"unfollow_cur": unfollow_cur,
+	"c_follow_cur": function (req) {
+		if (logged[req.cid]) {
+			if (logged[req.cid] == req.uid) {
+				follow_cur.easy({
+					uid: req.uid,
+					cur: req.cur,
+					token: req.token
+				}, function (res) {
+					io.to(req.cid).emit("c_follow_cur_" + req.cur, res);
 				})
 			}
 		}
-
 	},
-	"c_unfollow_cur":function(req){
-		if(logged[req.cid]){
-			if(logged[req.cid] == req.uid){
-				unfollow_cur.easy({cur:req.cur, token:req.token}, function(res){
-					io.to(req.cid).emit("c_unfollow_cur_"+req.cur, res);
+	"c_unfollow_cur": function (req) {
+		if (logged[req.cid]) {
+			if (logged[req.cid] == req.uid) {
+				unfollow_cur.easy({
+					cur: req.cur,
+					token: req.token
+				}, function (res) {
+					io.to(req.cid).emit("c_unfollow_cur_" + req.cur, res);
 				})
-
 			}
 		}
-
 	},
-	"c_get_cur_mod":function(req){
-		if(logged[req.cid]){
-			jwt.verify(req.token, secret, function(err, decode){
-				if(err || (decode.uid !== logged[req.cid])){
+	"c_get_cur_mod": function (req) {
+		if (logged[req.cid]) {
+			jwt.verify(req.token, secret, function (err, decode) {
+				if (err || (decode.uid !== logged[req.cid])) {
 					console.log("Not who they appear to be");
-					io.to(req.cid).emit("c_got_cur_mod_"+req.cur, false);
+					io.to(req.cid).emit("c_got_cur_mod_" + req.cur, false);
 				} else {
-					get_user(logged[req.cid], function(u){
-						if(u.curations_owned[req.cur] === true){
-
-							get_curation_by_name(req.cur, function(cur){
-								io.to(req.cid).emit("c_got_cur_mod_"+req.cur, {
-									rules:cur.rules,
-									tags:cur.tags
+					get_user(logged[req.cid], function (u) {
+						if (u.curations_owned[req.cur] === true) {
+							get_curation_by_name(req.cur, function (cur) {
+								io.to(req.cid).emit("c_got_cur_mod_" + req.cur, {
+									rules: cur.rules,
+									tags: cur.tags
 								});
 							});
 						} else {
 							console.log("does not own curation");
-							io.to(req.cid).emit("c_got_cur_mod_"+req.cur, false);
+							io.to(req.cid).emit("c_got_cur_mod_" + req.cur, false);
 						}
-					})}
+					})
+				}
 			});
 		}
 	},
-	"edit_cur_mod":edit_cur_mod,
-	"c_edit_cur_mod":function(req){
-		if(logged[req.cid]){
-			jwt.verify(req.token, secret, function(err, decode){
-				if(err || (decode.uid !== logged[req.cid])){
-					io.to(req.cid).emit("c_edited_cur_mod_"+req.cur, false);
+	"edit_cur_mod": edit_cur_mod,
+	"c_edit_cur_mod": function (req) {
+		if (logged[req.cid]) {
+			jwt.verify(req.token, secret, function (err, decode) {
+				if (err || (decode.uid !== logged[req.cid])) {
+					io.to(req.cid).emit("c_edited_cur_mod_" + req.cur, false);
 				} else {
 					edit_cur_mod.easy({
-						cur:req.cur,
-						token:req.token,
-						changes:req.changes
-					}, function(res){
-						io.to(req.cid).emit("c_edited_cur_mod_"+req.cur, res);
+						cur: req.cur,
+						token: req.token,
+						changes: req.changes
+					}, function (res) {
+						io.to(req.cid).emit("c_edited_cur_mod_" + req.cur, res);
 					});
 				}
-				io.to(req.cid).emit("c_edited_cur_mod_"+req.cur, false);
+				io.to(req.cid).emit("c_edited_cur_mod_" + req.cur, false);
 			});
 		}
 	},
-	"c_follow_tag": function(req) {
+	"c_follow_tag": function (req) {
 		if (logged[req.cid]) {
 			if (logged[req.cid] == req.uid) {
 				follow_tag.easy({
 					tag: req.tag,
 					token: req.token
-				},  function(res) {
-					if(res){
-					io.to(req.cid).emit("c_followed_tag_" + req.tag, true);
-				}
+				}, function (res) {
+					if (res) {
+						io.to(req.cid).emit("c_followed_tag_" + req.tag, true);
+					}
 				});
 			}
 		} else {
 			console.log("Not logged in!");
 		}
 	},
-	"c_unfollow": function(req) {
+	"c_unfollow": function (req) {
 		if (logged[req.cid]) {
 			if (logged[req.cid] == req.uid) {
 				unfollow.easy({
 					tag: req.tag,
 					token: req.token
-
-				}, function(res) {
-					if(res){
-					io.to(req.cid).emit("c_unfollowed_" + req.tag, true);
-				}
+				}, function (res) {
+					if (res) {
+						io.to(req.cid).emit("c_unfollowed_" + req.tag, true);
+					}
 				});
 			}
 		} else {
 			console.log("Not logged in!");
 		}
 	},
-
-	"c_token_login": function(req) {
+	"c_token_login": function (req) {
 		console.log("recieved request");
 		var token = req.token
-		jwt.verify(token, secret, function(err, decode) {
+		jwt.verify(token, secret, function (err, decode) {
 			if (decode) {
-				get_user(decode.uid, function(res){
-					if(res){
-						if(res.banned){
-							io.to(req.cid).emit("c_token_logged_in",false);
+				get_user(decode.uid, function (res) {
+					if (res) {
+						if (res.banned) {
+							io.to(req.cid).emit("c_token_logged_in", false);
 						} else {
-
 							console.log("worked");
 							console.log(decode);
 							io.to(req.cid).emit("c_token_logged_in", decode);
@@ -2224,27 +2296,30 @@ var serv_handles = {
 						}
 					} else {
 						io.to(req.cid).emit("c_token_logged_in", false);
-					}});
+					}
+				});
 			} else {
 				io.to(req.cid).emit("c_token_logged_in", false);
 			}
 		})
 	},
-	"c_get_post_by_id": function(req) {
-		get_post_by_id(req.pid, function(res) {
+	"c_get_post_by_id": function (req) {
+		get_post_by_id(req.pid, function (res) {
 			io.to(req.cid).emit("c_got_post_by_id", res);
 		});
 	},
 	"create_post": createPost,
-	"add_neighbor": function(toAdd) {
+	"add_neighbor": function (toAdd) {
 		console.log("NEIGHBOR ADDING");
-		if (adjacent.length < 2 && !isNeighbor(toAdd.id) && toAdd.id != selfId && !adjacent[flip(toAdd.dir)]) {
+		if (adjacent.length < 2 && !isNeighbor(toAdd.id) && toAdd.id != selfId && !
+			adjacent[flip(toAdd.dir)]) {
 			adjacent[flip(toAdd.dir)] = {
 				id: toAdd.original,
 				name: toAdd.name,
 				ip: toAdd.ip
 			};
-			console.log("New neighbor, named " + toAdd.name + " from the direction of " + dirToString(getDir(toAdd.from)));
+			console.log("New neighbor, named " + toAdd.name +
+				" from the direction of " + dirToString(getDir(toAdd.from)));
 			console.log("neighbor_add_" + toAdd.original);
 			io.emit("neighbor_add_" + toAdd.original, {
 				from: selfId,
@@ -2254,32 +2329,29 @@ var serv_handles = {
 				dir: flip(toAdd.dir),
 				ip: ip.address()
 			});
-
 		} else {
 			console.log("Couldn't add " + toAdd.name);
 		}
-
 	}
 }
-
-io.on('connection', function(gsocket) {
-	console.log("CONNECTED TO"+process.argv[2]);
+io.on('connection', function (gsocket) {
+	console.log("CONNECTED TO" + process.argv[2]);
 	/*Object.keys(serv_handles).forEach(function(key) {
 		//	console.log(key);
 		//	console.log(serv_handles[key]);
 	//	gsocket.on(key, serv_handles[key]);
 });*/
-	gsocket.on("add_neighbor", function(res){
-		gsocket.on("disconnect", function(){
+	gsocket.on("add_neighbor", function (res) {
+		gsocket.on("disconnect", function () {
 			delete adjacent[flip(res.dir)];
 			console.log("removing");
 		});
 	});
-	gsocket.on("*", function(data) {
-		if(serv_handles[data.data[0]]){
+	gsocket.on("*", function (data) {
+		if (serv_handles[data.data[0]]) {
 			serv_handles[data.data[0]](data.data[1]);
 		}
-		if(data.data[0] === "m_info"){
+		if (data.data[0] === "m_info") {
 			console.log("M INFO OTHER");
 		}
 		server.emit(data.data[0], data.data[1]);
@@ -2289,7 +2361,6 @@ io.on('connection', function(gsocket) {
 			console.log(io.listenerCount(data.data[0]));
 			passAlong(data.data[0], data.data[1]);
 		} else {
-
 			console.log(io.listenerCount(data.data[0]));
 			console.log("handler for : " + data.data[0]);
 		}
@@ -2297,31 +2368,29 @@ io.on('connection', function(gsocket) {
 });
 
 function createClient(to_connect) {
-	console.log("attempting a connec tto "+to_connect);
-	var client = socketclient(to_connect, {secure:true});
+	console.log("attempting a connec tto " + to_connect);
+	var client = socketclient(to_connect, {
+		secure: true
+	});
 	patch(client);
 	var client_handles = {
-		"update_users": function(u) {
-			if (!users[u.id]) {
-				users[u.id] = u;
-				updateUsers();
+			"update_users": function (u) {
+				if (!users[u.id]) {
+					users[u.id] = u;
+					updateUsers();
+				}
 			}
 		}
-	}
-	//console.log(to_connect);
-	client.on('connect', function() {
-
+		//console.log(to_connect);
+	client.on('connect', function () {
 		console.log("connected to " + to_connect);
-		client.on("*", function(data) {
-			//console.log("hillo");
-			if(data.data[0] == "m_info"){
-				console.log("M INFO BITCH" + parseInt(process.argv[2]));
-			}
+		client.on("*", function (data) {
 			console.log(data.data[0]);
 			if (serv_handles[data.data[0]]) {
 				serv_handles[data.data[0]](data.data[1]);
 			}
-			if (!client_handles[data.data[0]] && client.hasListeners(data.data[0]) < 1) {
+			if (!client_handles[data.data[0]] && client.hasListeners(data.data[0]) <
+				1) {
 				passAlong(data.data[0], data.data[1]);
 				console.log("emit");
 			}
@@ -2345,8 +2414,9 @@ function createClient(to_connect) {
 			port: to_open
 		});
 		console.log("neighbor_add_" + selfId);
-		client.once("neighbor_add_" + selfId, function(toAdd) {
-			if (adjacent.length < 2 && !isNeighbor(toAdd.id) && toAdd.id != selfId && !adjacent[flip(toAdd.dir)]) {
+		client.once("neighbor_add_" + selfId, function (toAdd) {
+			if (adjacent.length < 2 && !isNeighbor(toAdd.id) && toAdd.id != selfId &&
+				!adjacent[flip(toAdd.dir)]) {
 				console.log(toAdd.from);
 				adjacent[flip(toAdd.dir)] = {
 					id: toAdd.from,
@@ -2355,11 +2425,11 @@ function createClient(to_connect) {
 					dir: flip(toAdd.dir),
 					port: toAdd.port
 				};
-				console.log("New neighbor, named " + toAdd.name + " from the direction of " + dirToString(getDir(toAdd.from)));
-	client.on("disconnect", function() {
-		delete adjacent[flip(toAdd.dir)];
-	});
-
+				console.log("New neighbor, named " + toAdd.name +
+					" from the direction of " + dirToString(getDir(toAdd.from)));
+				client.on("disconnect", function () {
+					delete adjacent[flip(toAdd.dir)];
+				});
 			}
 		});
 		client.emit("add_reg", {
@@ -2374,22 +2444,20 @@ function createClient(to_connect) {
 			from: selfId,
 			condition: "fulfill"
 		});
-		client.once("got_reg_" + selfId, function(upreg) {
-			Object.keys(upreg).forEach(function(key) {
+		client.once("got_reg_" + selfId, function (upreg) {
+			Object.keys(upreg).forEach(function (key) {
 				reg[key] = upreg[key];
 			});
 			console.log(reg);
 		});
-
 	});
-	Object.keys(client_handles).forEach(function(key) {
+	Object.keys(client_handles).forEach(function (key) {
 		console.log(key);
-
 		client.on(key, client_handles[key]);
 	});
 	clients.push(client);
 }
-	if(process.argv[2] == "1"){
-		setTimeout(checkMe,1000);
-		setInterval(checkMe, 30000)
-	}
+if (process.argv[2] == "1") {
+	setTimeout(checkMe, 1000);
+	setInterval(checkMe, 30000)
+}
