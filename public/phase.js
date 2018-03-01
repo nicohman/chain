@@ -1504,15 +1504,7 @@ window.onload = function() {
 					alert("A comment must not be empty!");
 				}
 			});
-			var mC = document.getElementById("mob-click");
-			var nB = document.getElementById("navbar");
-			mC.addEventListener("click", function(e){
-				if(nB.style.display == "none"){
-					nB.style.display = "fixed";
-				} else if (nB.style.display == "fixed"){
-					nB.style.display = "none";
-				}
-			});
+
 			document.getElementById("create-post").addEventListener("submit", function(e) {
 				prevent(e);
 				var title = e.target.title.value;
