@@ -3,6 +3,16 @@
 	"version": "0.0.1",
 	"description": "Distributed social network",
 	"main": "app.js",
+	"eslintConfig": {
+		"extends": "eslint:recommended",
+		"rules": {
+			"no-console": "off",
+			"no-redeclare": "off"
+		},
+		"env": {
+			"node": true
+		}
+	},
 	"author": "Nicholas Hickman",
 	"license": "GPL",
 	"dependencies": {
