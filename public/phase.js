@@ -594,19 +594,21 @@ window.onload = function () {
 		var yt =
 			/(?:https:\/\/(?:www\.)*youtube\.com\/watch\?v=(\S+))|(?:https*:\/\/youtu\.be\/(\S+))/
 		var is = cont.replace(res, function (match) {
+			var to = "";
 			if (rmfirst && done === 0) {
 				done = 1;
-				return "";
 			} else {
 				var ytT = match.match(yt);
 				if (ytT && useYt) {
 					// eslint-disable-next-line
-					return "<iframe class='ytplayer' type='text/html' width='320' height='180' src='https://www.youtube.com/embed/" +
-					ytT[1] + "'></iframe>"; //es-lint-disable-line
+					to =
+						"<iframe class='ytplayer' type='text/html' width='320' height='180' src='https://www.youtube.com/embed/" +
+						ytT[1] + "'></iframe>";
 				} else {
 					return "<a target='_blank' href='" + match + "'>" + match + "</a>"
 				}
 			}
+			return to;
 		});
 		if (is) {
 			return is
@@ -1517,7 +1519,7 @@ window.onload = function () {
 							return false;
 						}
 					});
-					if (title.length < 140 && content.length < 1000) {
+					if (title.length < 140 && content.length < 1000 && title.length > 0) {
 						removeFrom(document.getElementById("create-already-tags"));
 						chain.create_post(title, content, tags, function (res) {
 							if (res) {
