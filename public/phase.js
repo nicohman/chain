@@ -30,12 +30,15 @@ window.onload = function () {
 	}
 
 	function checkCustSet(set) {
-		var lS = localStorage.get("customcolorscheme");
+		var lS = localStorage.getItem("customcolorscheme");
 		if (set) {
 			lS = set;
 		}
-		var csFormE = document.getElementById("cust-cs-from").elements;
 		if (!lS) {
+			lS = {};
+		}
+		var csFormE = document.getElementById("cust-cs-form").elements;
+		if (!lS.text) {
 			lS["main-bg"] = "#?????";
 			lS["sec-bg"] = "#?????";
 			lS["border"] = "#?????";
@@ -73,21 +76,21 @@ window.onload = function () {
 		prevent(e);
 		localStorage.setItem("colorscheme", e.target["cs-select"].value)
 		if (e.target["cs-select"].value === "custom") {
-			var csFormE = document.getElementById("cust-cs-from").elements;
-			localStorage.setItem("customcolorscheme", {
+			var csFormE = document.getElementById("cust-cs-form").elements;
+			localStorage.setItem("customcolorscheme", JSON.stringify({
 				"main-bg": csFormE["main-bg"].value,
 				"sec-bg": csFormE["sec-bg"].value,
 				"border": csFormE.border.value,
 				"text": csFormE.text.value,
 				"follow": csFormE.follow.value
-			});
+			}));
 			checkCustSet();
 			changeColorscheme("custom");
 		} else {
 			changeColorscheme(e.target["cs-select"].value);
 		}
 	});
-	document.getElementById("cs-form").addEventListener("onchange", function () {
+	document.getElementById("cs-form").addEventListener("change", function () {
 		checkVisCust();
 	});
 	checkCustSet();
@@ -545,7 +548,9 @@ window.onload = function () {
 		removeFrom(commentsCon);
 		cur_com = post.id;
 		console.log(post);
-		post.comments.forEach(function (comment, ind) {
+		post.comments.filter(function (x) {
+			return x != null
+		}).forEach(function (comment) {
 			var el = document.createElement("li");
 			el.className = "comment";
 			el.innerHTML = comment.content;
@@ -561,19 +566,23 @@ window.onload = function () {
 				"en-US") + " | ";
 			au.innerHTML = auT;
 			var del_com = document.createElement("button");
-			del_com.className = "del-com";
+			del_com.className = "del-com niceinput";
 			del_com.addEventListener("click", function () {
-				chain.delete_comment(post.id, ind, function (res) {
+				var toind = post.comments.indexOf(comment);
+				console.log(toind);
+				chain.delete_comment(post.id, toind, function (res) {
 					if (res) {
 						notify("Comment deleted!");
-						chain.get_by_id(cur_com, function (post) {
-							show_comments(post);
-						});
 					} else {
 						notify("Couldn't delete comment");
 					}
 				});
+				chain.get_by_id(cur_com, function (post) {
+					show_comments(post);
+				});
 			});
+			del_com.innerHTML = "Delete"
+			au.appendChild(del_com);
 			el.appendChild(au);
 			commentsCon.appendChild(el);
 		});
@@ -613,7 +622,9 @@ window.onload = function () {
 					cur_com.trim()) {
 					console.log("Found!");
 					posts.item(i).getElementsByClassName("comment-post").item(0).innerHTML =
-						"Comments: " + post.comments.length;
+						"Comments: " + post.comments.filter(function (x) {
+							return x != null
+						}).length;
 					break;
 				}
 			}
@@ -723,7 +734,9 @@ window.onload = function () {
 		var comments = document.createElement("button");
 		comments.className = "comment-post";
 		comments.type = "button";
-		comments.innerHTML = "Comments: " + post.comments.length;
+		comments.innerHTML = "Comments: " + post.comments.filter(function (x) {
+			return x != null
+		}).length;
 		comments.addEventListener("click", function (e) {
 			prevent(e)
 			chain.get_by_id(post.id, function (post) {
