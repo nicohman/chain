@@ -1861,12 +1861,17 @@ var serv_handles = {
 		if (logged[req.cid]) {
 			jwt.verify(req.token, secret, function (err) {
 				if (!err) {
+					if(req.new_u.length < 32){
 					change_username.easy({
 						token: req.token,
 						new_u: req.new_u
 					}, function (res) {
 						io.to(req.cid).emit("c_changed_username", res);
 					});
+					} else {
+					
+					io.to(req.cid).emit("c_changed_username", false);
+					}
 				} else {
 					io.to(req.cid).emit("c_changed_username", false);
 				}
