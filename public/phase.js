@@ -34,7 +34,7 @@ window.onload = function () {
 		if (set) {
 			lS = set;
 		} else if (localStorage.getItem("customcolorscheme")) {
-			lS = localStorage.getItem("customcolorscheme");
+			lS = JSON.parse(localStorage.getItem("customcolorscheme"));
 		}
 		var csFormE = document.getElementById("cust-cs-form").elements;
 		if (!lS.text) {
@@ -61,10 +61,12 @@ window.onload = function () {
 	}
 	checkVisCust();
 	Object.keys(schemes).forEach(function (scheme) {
-		var sel = document.createElement("option");
-		sel.value = scheme;
-		sel.innerHTML = scheme;
-		document.getElementById("cs-select").appendChild(sel);
+		if (scheme !== "cust-cs") {
+			var sel = document.createElement("option");
+			sel.value = scheme;
+			sel.innerHTML = scheme;
+			document.getElementById("cs-select").appendChild(sel);
+		}
 	});
 	var custSel = document.createElement("option");
 	custSel.innerHTML = "custom";
