@@ -30,12 +30,11 @@ window.onload = function () {
 	}
 
 	function checkCustSet(set) {
-		var lS = localStorage.getItem("customcolorscheme");
+		var lS = {};
 		if (set) {
 			lS = set;
-		}
-		if (!lS) {
-			lS = {};
+		} else if (localStorage.getItem("customcolorscheme")) {
+			lS = localStorage.getItem("customcolorscheme");
 		}
 		var csFormE = document.getElementById("cust-cs-form").elements;
 		if (!lS.text) {
@@ -548,7 +547,6 @@ window.onload = function () {
 		removeFrom(commentsCon);
 		cur_com = post.id;
 		console.log(post);
-
 		post.comments.filter(function (x) {
 			return x != null
 		}).forEach(function (comment) {
@@ -569,7 +567,6 @@ window.onload = function () {
 			var del_com = document.createElement("button");
 			del_com.className = "del-com niceinput";
 			del_com.addEventListener("click", function () {
-
 				var toind = post.comments.indexOf(comment);
 				console.log(toind);
 				chain.delete_comment(post.id, toind, function (res) {
@@ -579,11 +576,9 @@ window.onload = function () {
 						notify("Couldn't delete comment");
 					}
 				});
-
 				chain.get_by_id(cur_com, function (post) {
 					show_comments(post);
 				});
-
 			});
 			del_com.innerHTML = "Delete"
 			au.appendChild(del_com);
@@ -626,7 +621,6 @@ window.onload = function () {
 					cur_com.trim()) {
 					console.log("Found!");
 					posts.item(i).getElementsByClassName("comment-post").item(0).innerHTML =
-
 						"Comments: " + post.comments.filter(function (x) {
 							return x != null
 						}).length;
@@ -739,7 +733,6 @@ window.onload = function () {
 		var comments = document.createElement("button");
 		comments.className = "comment-post";
 		comments.type = "button";
-
 		comments.innerHTML = "Comments: " + post.comments.filter(function (x) {
 			return x != null
 		}).length;
