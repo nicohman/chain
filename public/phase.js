@@ -704,7 +704,7 @@ window.onload = function () {
 			}
 			var content = document.createElement("div");
 			content.className = "post-content";
-			content.innerHTML = links;
+			content.innerHTML = links.replace("\n", "<br>");
 			if (img) {
 				content.appendChild(img);
 				img.src = ilink
@@ -1297,6 +1297,7 @@ window.onload = function () {
 	}
 
 	function findByCuration(cur) {
+		cur = cur.toLowerCase();
 		var max_res = 20;
 		var coll = {};
 		var max = 0; //eslint-disable-line
@@ -1393,6 +1394,7 @@ window.onload = function () {
 	}
 
 	function findByTag(tag) {
+		tag = tag.toLowerCase();
 		var max_res = 20;
 		var coll = {};
 		var max = 0; //eslint-disable-line
@@ -1762,17 +1764,22 @@ window.onload = function () {
 			document.getElementById("settings-name").addEventListener("submit",
 				function (e) {
 					prevent(e);
-					chain.change_username(e.target.elements.username.value, function (res) {
-						if (res) {
-							localStorage.removeItem("auth_token");
-							alert(
-								"For security reasons, you must log back in after changing your username."
-							);
-							window.location.href = "/login.html";
-						} else {
-							alert("Couldn't change username");
-						}
-					});
+					if (e.target.elements.username.value < 1 || e.target.elements.username
+						.value > 32) {
+						notify("Your username must be between 1 and 32 characters long");
+					} else {
+						chain.change_username(e.target.elements.username.value, function (res) {
+							if (res) {
+								localStorage.removeItem("auth_token");
+								alert(
+									"For security reasons, you must log back in after changing your username."
+								);
+								window.location.href = "/login.html";
+							} else {
+								alert("Couldn't change username");
+							}
+						});
+					}
 				});
 			document.getElementById("overlay-background").addEventListener("click",
 				function () {
