@@ -83,7 +83,9 @@ function changeColorscheme(scheme) {
 			document.getElementsByTagName("html")[0].style.setProperty("--" + key,
 				schemes[scheme][key]);
 		});
+		setTimeout(function(){
 		document.getElementsByClassName("large-logo")[0].src =
 			"https://demenses.net/" + logo;
+		},500);
 	}
 }

@@ -65,7 +65,7 @@ window.onload = function () {
 		e.preventDefault();
 		var form = e.target.elements;
 		if (form.pass.value == form["pass-repeat"].value) {
-			if (form.name.value.length > 0) {
+			if (form.name.value.length > 0 && form.name.value.length < 32) {
 				chain.createUser(form.name.value, form.pass.value, form.email.value,
 					function (res) {
 						if (res == false) {
@@ -81,6 +81,8 @@ window.onload = function () {
 							});
 						}
 					});
+			} else {
+				notify("Your username must be between 1 and 32 characters in length!");
 			}
 		} else {
 			createform.reset();
