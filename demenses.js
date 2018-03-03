@@ -28,20 +28,20 @@ Caman.Filter.register("convertToC", function (cur, to) {
    var convCur2 = hexToRgb(cur[1]);
    var convTo1 = hexToRgb(to[0]);
    var convTo2 = hexToRgb(to[1]);
-	console.log(convCur1);
+   console.log(convCur1);
    this.process("convertToC", function (rgba) {
       var prev = rgba.a;
-	if(rgba.r == convCur1.r && rgba.b == convCur1.b && rgba.g == convCur1.g){
-		rgba.r = convTo1.r;
-		rgba.b = convTo1.b;
-		rgba.g = convTo1.g;
-	} else if(false){
-		if(rgba.b != convCur1.b){
-			console.log(rgba.b+"-"+convCur1.b);
-		} else if (rgba.g != convCur1.g){
-			console.log(rgba.g+"-"+convCur1.g);
-		}
-	}
+      if (rgba.r == convCur1.r && rgba.b == convCur1.b && rgba.g ==
+         convCur1.g) {
+         rgba.r = convTo1.r;
+         rgba.b = convTo1.b;
+         rgba.g = convTo1.g;
+      } else if (rgba.r == convCur2.r && rgba.b == convCur2.b &&
+         rgba.g == convCur2.g) {
+         rgba.r = convTo2.r;
+         rgba.b = convTo2.b;
+         rgba.g = convTo2.g;
+      }
       rgba.a = prev;
       return rgba;
    });
@@ -62,7 +62,7 @@ client.on("connect", function () {
       app.post("/reset/:token", resetPassword);
       //  Start server
       app.get("/logo/big/:color1/:color2", function (req, res) {
-	      console.log("Logo req");
+         console.log("Logo req");
          fs.access('./public/logos/big/' + req.params.color1 + '-' +
             req.params.color2 + '.png',
             function (err) {
@@ -78,8 +78,9 @@ client.on("connect", function () {
                         this.render(function () {
                            this.save(__dirname +
                               "/public/logos/big/" +
-                              req.params.color1 +"-"+ req.params
-                              .color2 + ".png");
+                              req.params.color1 + "-" +
+                              req.params.color2 +
+                              ".png");
                            setTimeout(function () {
                               res.sendFile(
                                  "./public/logos/big/" +

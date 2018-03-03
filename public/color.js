@@ -30,8 +30,8 @@ var schemes = {
 	},
 	"monokai": {
 		"main-bg": "#272822",
-		"sec-bg": "#272822",
-		"border": "#FD971F",
+		"sec-bg": "#A5A290",
+		"border": "#b36a13",
 		"text": "#FFFFFF",
 		"follow": "#66D9EF"
 	}
@@ -78,7 +78,8 @@ function changeColorscheme(scheme) {
 		});
 		setTimeout(function () {
 			document.getElementsByClassName("large-logo")[0].src =
-				"https://demenses.net/logo/big/" + schemes[scheme]["sec-bg"].replace("#","") + "/FFFFFF";
+				"https://demenses.net/logo/big/" + schemes[scheme]["sec-bg"].replace("#",
+					"") + "/FFFFFF";
 		}, 100);
 	}
 }
