@@ -36,9 +36,6 @@ var schemes = {
 		"follow": "#66D9EF"
 	}
 }
-var logos = {
-	"monokai": "logo-monokai.png"
-}
 if (localStorage.getItem("colorscheme")) {
 	changeColorscheme(localStorage.getItem("colorscheme"));
 } else {
@@ -72,20 +69,16 @@ function changeColorscheme(scheme) {
 			changeColorscheme("solarized");
 		}
 	} else {
-		var logo = "logo.png";
 		if (!schemes[scheme]) {
 			scheme = "solarized";
-		}
-		if (logos[scheme]) {
-			logo = logos[scheme];
 		}
 		Object.keys(schemes[scheme]).forEach(function (key) {
 			document.getElementsByTagName("html")[0].style.setProperty("--" + key,
 				schemes[scheme][key]);
 		});
-		setTimeout(function(){
-		document.getElementsByClassName("large-logo")[0].src =
-			"https://demenses.net/" + logo;
-		},500);
+		setTimeout(function () {
+			document.getElementsByClassName("large-logo")[0].src =
+				"https://demenses.net/logo/big/" + schemes[scheme]["sec-bg"] + "/#FFFFFF";
+		}, 500);
 	}
 }

@@ -1030,7 +1030,7 @@ function get_feed(toget, cb) {
 				});
 				console.log(posts);
 				console.log("THOSE WERE C POSTS");
-				got[get.cur.name] = true;
+				got[get.cur] = true;
 				console.log(got);
 				check();
 			}, amount);
