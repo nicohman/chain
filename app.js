@@ -61,22 +61,7 @@ reg[selfId] = {
 	ip: ip.address(),
 	id: selfId
 };
-/*function Event(name, properties){
-	if(!properties){
-		var props = {}
-	} else {
-		var props = properties;
-	}
-	props.original = selfId;
-	props.from = selfId;
-	return function(func, newP){
-		Object.keys(newP).forEach(function(key){
-			props[key] = newP[key];
-		});
-		props.id = hash(Date.now()+selfId+name);
-		func(name, props);
-	}
-}*/
+
 function fulfill(name, condition, func, auth, amal, easy) {
 	var doneFunc = function (req, cb) {
 		function others() {
@@ -306,7 +291,7 @@ var checkMe = function () {
 								content: post.url,
 								auth: "me_irl_bot",
 								uid: uid,
-								tags: ["me_irl", "bot"]
+								tags: ["me_irl", "bot", "memes"]
 							});
 							addComment({
 								uid: uid,
@@ -2216,7 +2201,8 @@ var serv_handles = {
 							get_curation_by_name(req.cur, function (cur) {
 								io.to(req.cid).emit("c_got_cur_mod_" + req.cur, {
 									rules: cur.rules,
-									tags: cur.tags
+									tags: cur.tags,
+									favs: cur.favs
 								});
 							});
 						} else {

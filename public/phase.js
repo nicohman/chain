@@ -1443,11 +1443,14 @@ window.onload = function () {
 		var follow = document.getElementById("results-follow");
 		var unfollow = document.getElementById("results-unfollow");
 		if (resCur) {
-			document.getElementById("results-cur").style.display = "block";
-			document.getElementById("results-tag").style.display = "none";
-			document.getElementById('cur-span').innerHTML = resultsTag;
-			follow = document.getElementById("results-cur-follow");
-			unfollow = document.getElementById("results-cur-unfollow");
+			chain.get_curMod(resCur, function (rules) {
+				document.getElementById("results-cur").style.display = "block";
+				document.getElementById("results-tag").style.display = "none";
+				document.getElementById('cur-span').innerHTML = resultsTag;
+				document.getElementById('cur-follows-span').innerHTML = rules.favs;
+				follow = document.getElementById("results-cur-follow");
+				unfollow = document.getElementById("results-cur-unfollow");
+			});
 		} else {
 			document.getElementById("cur-mod").style.display = "none";
 			document.getElementById("results-cur").style.display = "none";
