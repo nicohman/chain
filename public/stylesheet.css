@@ -267,7 +267,7 @@ body {
 	font-size:medium;
 }
 #settings > div {
-	padding-left:5%;	
+	padding-left:5%;
 }
 #settings-name input {
         margin-top: 1%;
@@ -300,6 +300,13 @@ body {
         transform: translate(-50%, -100%);
 
 
+}
+.small-logo {
+	position:absolute;
+	z-index:-1;
+	top:70%;
+	left:50%;
+	tranform:translate(-50%,-100%);
 }
 #cur-seperator ul {
         margin-left: 5px;
@@ -864,4 +871,3 @@ transform: translate(-50%, 0%) !important;
     	margin-top:20% !important;
     }
 }
-

@@ -14,7 +14,8 @@ var cert = fs.readFileSync("/etc/letsencrypt/live/demenses.net/fullchain.pem",
 var config = require("./config.json");
 var client = require("socket.io-client");
 var defaultsBig = ["0d3944", "FFFFFF"];
-//var defaultsSmall = ["#ff6a00", "#4c4c4c"];
+var defaultsSmall = ["#ff6a00", "#4c4c4c"];
+
 function hexToRgb(hex) {
    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
    return result ? {
@@ -95,6 +96,45 @@ client.on("connect", function () {
                } else {
                   res.sendFile("./public/logos/big/" + req.params.color1 +
                      "-" + req.params.color2 + ".png", {
+                        root: __dirname
+                     });
+               }
+            });
+      });
+      app.get("/logo/small/:color1/:color2", function (req, res) {
+         console.log("Logo req small");
+         fs.access('./public/logos/small/' + req.params.color1 + '-' +
+            req.params.color2 + '.png',
+            function (err) {
+               if (err) {
+                  console.log(
+                     "Logo configuration not found, generating");
+                  Caman(__dirname + "/public/basic_small.png",
+                     function () {
+                        this.convertToC(defaultsSmall, [req.params
+                           .color1,
+                           req.params.color2
+                        ]);
+                        this.render(function () {
+                           this.save(__dirname +
+                              "/public/logos/small/" +
+                              req.params.color1 + "-" +
+                              req.params.color2 +
+                              ".png");
+                           setTimeout(function () {
+                              res.sendFile(
+                                 "./public/logos/small/" +
+                                 req.params.color1 +
+                                 "-" + req.params
+                                 .color2 + ".png", {
+                                    root: __dirname
+                                 });
+                           }, 20)
+                        });
+                     });
+               } else {
+                  res.sendFile("./public/logos/small/" + req.params
+                     .color1 + "-" + req.params.color2 + ".png", {
                         root: __dirname
                      });
                }
