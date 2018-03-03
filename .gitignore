@@ -6,6 +6,8 @@ yarn-debug.log*
 yarn-error.log*
 *.swp
 imgs
+public/logos/big/*
+public/logos/small*
 imgs/*
 *.swo
 .gitignore

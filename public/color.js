@@ -78,7 +78,7 @@ function changeColorscheme(scheme) {
 		});
 		setTimeout(function () {
 			document.getElementsByClassName("large-logo")[0].src =
-				"https://demenses.net/logo/big/" + schemes[scheme]["sec-bg"] + "/#FFFFFF";
-		}, 500);
+				"https://demenses.net/logo/big/" + schemes[scheme]["sec-bg"].replace("#","") + "/FFFFFF";
+		}, 100);
 	}
 }

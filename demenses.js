@@ -3,7 +3,7 @@ var app = express();
 var htt = express();
 var fs = require("fs");
 var https = require("https");
-var Caman = require("caman");
+var Caman = require("caman").Caman;
 var path = require("path");
 var jwt = require("jsonwebtoken");
 var bodyParser = require('body-parser');
@@ -13,7 +13,7 @@ var cert = fs.readFileSync("/etc/letsencrypt/live/demenses.net/fullchain.pem",
    "utf8");
 var config = require("./config.json");
 var client = require("socket.io-client");
-var defaultsBig = ["#0d3944", "#FFFFFF"];
+var defaultsBig = ["0d3944", "FFFFFF"];
 //var defaultsSmall = ["#ff6a00", "#4c4c4c"];
 function hexToRgb(hex) {
    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -28,20 +28,20 @@ Caman.Filter.register("convertToC", function (cur, to) {
    var convCur2 = hexToRgb(cur[1]);
    var convTo1 = hexToRgb(to[0]);
    var convTo2 = hexToRgb(to[1]);
+	console.log(convCur1);
    this.process("convertToC", function (rgba) {
       var prev = rgba.a;
-      switch ({
-         r: rgba.r,
-         g: rgba.g,
-         b: rgba.b
-      }) {
-      case convCur1:
-         rgba = convTo1;
-         break;
-      case convCur2:
-         rgba = convTo2;
-         break;
-      }
+	if(rgba.r == convCur1.r && rgba.b == convCur1.b && rgba.g == convCur1.g){
+		rgba.r = convTo1.r;
+		rgba.b = convTo1.b;
+		rgba.g = convTo1.g;
+	} else if(false){
+		if(rgba.b != convCur1.b){
+			console.log(rgba.b+"-"+convCur1.b);
+		} else if (rgba.g != convCur1.g){
+			console.log(rgba.g+"-"+convCur1.g);
+		}
+	}
       rgba.a = prev;
       return rgba;
    });
@@ -62,7 +62,8 @@ client.on("connect", function () {
       app.post("/reset/:token", resetPassword);
       //  Start server
       app.get("/logo/big/:color1/:color2", function (req, res) {
-         fs.access('./public/logos/big/' + req.params.color1 + '/' +
+	      console.log("Logo req");
+         fs.access('./public/logos/big/' + req.params.color1 + '-' +
             req.params.color2 + '.png',
             function (err) {
                if (err) {
@@ -77,13 +78,13 @@ client.on("connect", function () {
                         this.render(function () {
                            this.save(__dirname +
                               "/public/logos/big/" +
-                              req.parmas.color1 + req.params
+                              req.params.color1 +"-"+ req.params
                               .color2 + ".png");
                            setTimeout(function () {
                               res.sendFile(
                                  "./public/logos/big/" +
                                  req.params.color1 +
-                                 "/" + req.params
+                                 "-" + req.params
                                  .color2 + ".png", {
                                     root: __dirname
                                  });
@@ -92,7 +93,7 @@ client.on("connect", function () {
                      });
                } else {
                   res.sendFile("./public/logos/big/" + req.params.color1 +
-                     "/" + req.params.color2 + ".png", {
+                     "-" + req.params.color2 + ".png", {
                         root: __dirname
                      });
                }
