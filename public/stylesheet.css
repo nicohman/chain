@@ -302,11 +302,14 @@ body {
 
 }
 .small-logo {
-	position:absolute;
+	position:fixed;
 	z-index:-1;
-	top:70%;
+	top:95%;
+	height:100.5;
+	width:88.75px;
+	opacity:0.3;
 	left:50%;
-	tranform:translate(-50%,-100%);
+	transform:translate(-50%,-100%);
 }
 #cur-seperator ul {
         margin-left: 5px;
