@@ -1443,7 +1443,7 @@ window.onload = function () {
 		var follow = document.getElementById("results-follow");
 		var unfollow = document.getElementById("results-unfollow");
 		if (resCur) {
-			chain.get_curMod(resCur, function (rules) {
+			chain.get_cur_mod(resCur, function (rules) {
 				document.getElementById("results-cur").style.display = "block";
 				document.getElementById("results-tag").style.display = "none";
 				document.getElementById('cur-span').innerHTML = resultsTag;

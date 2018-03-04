@@ -739,6 +739,7 @@ function get_posts(criterion, cb) {
 			if (Object.keys(criterion.posts).length < criterion.count) {
 				if (post.tags) {
 					post.tags.forEach(function (tag) {
+						tag = tag.toLowerCase();
 						criterion.filter_data.forEach(function (filter) {
 							if (filter.trim() == tag.trim()) {
 								if (!criterion.posts[key]) {
@@ -1246,6 +1247,7 @@ var changeEmail = new fulfill("change_email", function (req) {
 var change_color = new fulfill("change_color", function (req) {
 	var u = search_email(req.email);
 	if (u) {
+		console.log("Found user with the email " + req.email);
 		return u.original;
 	}
 	return false;

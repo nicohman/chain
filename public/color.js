@@ -34,6 +34,13 @@ var schemes = {
 		"border": "#b36a13",
 		"text": "#FFFFFF",
 		"follow": "#66D9EF"
+	},
+	"gruvbox": {
+		"main-bg": "#282828",
+		"sec-bg": "#1d2021",
+		"border": "#98971a",
+		"text": "#eddbb2",
+		"follow": "#458588"
 	}
 }
 if (localStorage.getItem("colorscheme")) {
