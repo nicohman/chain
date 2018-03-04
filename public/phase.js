@@ -173,7 +173,11 @@ window.onload = function () {
 				cur: cur,
 				uid: loggedin.uid
 			});
-			client.once("c_got_cur_mod_" + cur, cb);
+			client.once("c_got_cur_mod_" + cur, function(res){
+				console.log(res);
+				console.log("MOD"+cur);
+				cb(res);
+			});
 		},
 		change_email: function (email, cb) {
 			client.emit("c_change_email", {
@@ -1443,7 +1447,9 @@ window.onload = function () {
 		var follow = document.getElementById("results-follow");
 		var unfollow = document.getElementById("results-unfollow");
 		if (resCur) {
-			chain.get_cur_mod(resCur, function (rules) {
+			chain.get_cur_mod(resultsTag, function (rules) {
+				console.log(rules);
+				console.log("RULES");
 				document.getElementById("results-cur").style.display = "block";
 				document.getElementById("results-tag").style.display = "none";
 				document.getElementById('cur-span').innerHTML = resultsTag;

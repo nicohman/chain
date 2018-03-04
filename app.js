@@ -1245,14 +1245,16 @@ var changeEmail = new fulfill("change_email", function (req) {
 	return true;
 }, true, "once", true);
 var change_color = new fulfill("change_color", function (req) {
-	var u = search_email(req.email);
+	var u = search_email(req.Temail);
 	if (u) {
-		console.log("Found user with the email " + req.email);
+		console.log("Found user with the email " + req.Temail);
 		return u.original;
 	}
 	return false;
 }, function (req) {
-	var id = search_email(req.email).id;
+	var id = search_email(req.Temail).id;
+	console.log(users[id]);
+	console.log("CHANGE");
 	users[id].color = req.color;
 	updateUsers(users[id]);
 	return true;
@@ -1624,11 +1626,12 @@ var serv_handles = {
 		jwt.verify(req.token, secret, function (err, dec) {
 			if (!err) {
 				if (dec.admin) {
+					console.log(req.email+ "REQEMAIL");
 					change_color.easy({
 						color: req.color,
 						token: req.token,
 						uid: req.uid,
-						email: req.email
+						Temail: req.email
 					}, function (res) {
 						io.to(req.cid).emit("c_changed_color", res);
 					});
