@@ -21,6 +21,12 @@ window.onload = function () {
 		}
 	}
 
+	function getParameter(name) {
+		return decodeURIComponent((new RegExp('[?|&]' + name + '=' +
+			'([^&;]+?)(&|#|;|$)').exec(location.search) || [null, ''])[1].replace(
+			/\+/g, '%20')) || null;
+	}
+
 	function prevent(e) {
 		if (e.preventDefault) {
 			e.preventDefault();
@@ -173,9 +179,9 @@ window.onload = function () {
 				cur: cur,
 				uid: loggedin.uid
 			});
-			client.once("c_got_cur_mod_" + cur, function(res){
+			client.once("c_got_cur_mod_" + cur, function (res) {
 				console.log(res);
-				console.log("MOD"+cur);
+				console.log("MOD" + cur);
 				cb(res);
 			});
 		},
@@ -665,6 +671,39 @@ window.onload = function () {
 		}
 	}
 
+	function createContent(content, toAppend) {
+		var e = checkUrl(content.trim());
+		var res = e.res;
+		var img;
+		var ilink;
+		if (res) {
+			console.log("URLRL");
+			var imgC = checkImage(res[0]);
+			if (imgC) {
+				img = document.createElement("img");
+				ilink = "https://images.weserv.nl/?url=" + res[0].replace("https://", "").replace(
+					"http://", "");
+				console.log("IT'S A MEME");
+				img.className = "post-image";
+				res.shift();
+			}
+		}
+		var yes = false;
+		if (imgC) {
+			yes = true;
+		}
+		var links = replLinks(content, yes);
+		if (!links) {
+			links = "";
+		}
+		toAppend.innerHTML = links.replace("\n", "<br>");
+		if (img) {
+			toAppend.appendChild(img);
+			img.src = ilink
+			img.onload = function () {}
+		}
+	}
+
 	function makePost(post) {
 		if (!post.title) {
 			return;
@@ -683,38 +722,9 @@ window.onload = function () {
 		}
 		auth.innerHTML = "by " + name;
 		if (post.content) {
-			var e = checkUrl(post.content.trim());
-			var res = e.res;
-			var img;
-			var ilink;
-			if (res) {
-				console.log("URLRL");
-				var imgC = checkImage(res[0]);
-				if (imgC) {
-					img = document.createElement("img");
-					ilink = "https://images.weserv.nl/?url=" + res[0].replace("https://", "")
-						.replace("http://", "");
-					console.log("IT'S A MEME");
-					img.className = "post-image";
-					res.shift();
-				}
-			}
-			var yes = false;
-			if (imgC) {
-				yes = true;
-			}
-			var links = replLinks(post.content, yes);
-			if (!links) {
-				links = "";
-			}
 			var content = document.createElement("div");
 			content.className = "post-content";
-			content.innerHTML = links.replace("\n", "<br>");
-			if (img) {
-				content.appendChild(img);
-				img.src = ilink
-				img.onload = function () {}
-			}
+			createContent(post.content, content);
 		}
 		var bar = document.createElement("div");
 		bar.className = "post-bar";
@@ -869,6 +879,33 @@ window.onload = function () {
 
 	function show_post(post, toAppend) {
 		var made = makePost(post);
+		if (made) {
+			toAppend.appendChild(made);
+		}
+	}
+
+	function make_big_post(post) {
+		var postE = document.createElement("div");
+		postE.className = "big-post";
+		var title = document.createElement("div");
+		title.innerHTML = post.title;
+		title.className = "big-title";
+		var date = document.createElement("div");
+		var date_obj = new Date(post.date);
+		date.innerHTML = date_obj.toDateString() + " " + date_obj.toLocaleTimeString(
+			"en-US");
+		date.className = "big-date";
+		postE.appendChild(title);
+		if (post.content) {
+			var content = document.createElement("div");
+			content.className = "big-content";
+			createContent(post.content, content);
+		}
+		postE.appendChild(content);
+	}
+
+	function show_big_post(post, toAppend) {
+		var made = make_big_post(post);
 		if (made) {
 			toAppend.appendChild(made);
 		}
@@ -1524,7 +1561,23 @@ window.onload = function () {
 				}
 				mains["feed"].ref();
 				if (window.location.href.split("#")[1]) {
-					showblocking(window.location.href.split("#")[1]);
+					if (window.location.href.split("#")[1].contains("post")) {
+						var pid = getParameter("postid");
+						if (pid) {
+							chain.get_by_id(pid, function (res) {
+								if (res) {
+									show_big_post(res);
+								} else {
+									notify("Invalid post id! Resetting to home page.");
+									showblocking("home");
+								}
+							});
+						} else {
+							showblocking("home");
+						}
+					} else {
+						showblocking(window.location.href.split("#")[1]);
+					}
 				} else {
 					showblocking("home");
 				}
