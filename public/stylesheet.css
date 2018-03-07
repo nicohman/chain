@@ -708,6 +708,22 @@ transform: translate(-50%, 0%) !important;
         flex-direction: column;
         justify-content: space-between;
 }
+#big-container {
+	opacity:1;
+	z-index: :101;
+	position: fixed;
+	width: 80%;
+	height: 60%;
+	border: 4px var(--border) solid;
+	top:20%;
+	left:10%;
+	overflow-y: visible;
+	overflow-x: hidden;
+	background: var(--sec-bg);
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+}
 #mob-click {
 	display:none;
 }

@@ -7,6 +7,8 @@ window.onload = function () {
 	var home_num = 10;
 	var cur_show = "home";
 	var resCur = false;
+	var bigPost = "";
+	var curBig = false;
 	var useYt = false;
 	var enDub = false;
 	var pdate = function (posts) {
@@ -551,31 +553,22 @@ window.onload = function () {
 		}
 	}
 
-	function show_comments(post) {
-		var overlay = document.getElementById("overlay");
-		overlay.style.display = "block";
-		document.getElementById("comment-title").innerHTML = post.title;
-		var commentsCon = document.getElementById("comments-list");
-		removeFrom(commentsCon);
-		cur_com = post.id;
-		console.log(post);
-		post.comments.filter(function (x) {
-			return x != null
-		}).forEach(function (comment) {
-			var el = document.createElement("li");
-			el.className = "comment";
-			el.innerHTML = comment.content;
-			var au = document.createElement("span");
-			au.className = "comment-author";
-			var auT = comment.auth;
-			if (comment.color) {
-				auT = "<span style='color:" + comment.color + "'>" + comment.auth +
-					"</span>";
-			}
-			var date = new Date(comment.date);
-			auT += " | " + date.toDateString() + " " + date.toLocaleTimeString(
-				"en-US") + " | ";
-			au.innerHTML = auT;
+	function createComment(comment, post, commentsCon) {
+		var el = document.createElement("li");
+		el.className = "comment";
+		el.innerHTML = comment.content;
+		var au = document.createElement("span");
+		au.className = "comment-author";
+		var auT = comment.auth;
+		if (comment.color) {
+			auT = "<span style='color:" + comment.color + "'>" + comment.auth +
+				"</span>";
+		}
+		var date = new Date(comment.date);
+		auT += " | " + date.toDateString() + " " + date.toLocaleTimeString("en-US") +
+			" | ";
+		au.innerHTML = auT;
+		if (loggedin.admin) {
 			var del_com = document.createElement("button");
 			del_com.className = "del-com niceinput";
 			del_com.addEventListener("click", function () {
@@ -594,8 +587,23 @@ window.onload = function () {
 			});
 			del_com.innerHTML = "Delete"
 			au.appendChild(del_com);
-			el.appendChild(au);
-			commentsCon.appendChild(el);
+		}
+		el.appendChild(au);
+		commentsCon.appendChild(el);
+	}
+
+	function show_comments(post) {
+		var overlay = document.getElementById("overlay");
+		overlay.style.display = "block";
+		document.getElementById("comment-title").innerHTML = post.title;
+		var commentsCon = document.getElementById("comments-list");
+		removeFrom(commentsCon);
+		cur_com = post.id;
+		console.log(post);
+		post.comments.filter(function (x) {
+			return x != null
+		}).forEach(function (comment) {
+			createComment(comment, post, commentsCon);
 		});
 	}
 
@@ -621,6 +629,12 @@ window.onload = function () {
 		} else {
 			return false;
 		}
+	}
+
+	function hide_big_post() {
+		var bigCon = document.getElementById("big-container");
+		bigCon.style.display = "none";
+		curBig = false;
 	}
 
 	function hide_comments() {
@@ -885,23 +899,104 @@ window.onload = function () {
 	}
 
 	function make_big_post(post) {
-		var postE = document.createElement("div");
-		postE.className = "big-post";
-		var title = document.createElement("div");
+		curBig = true;
+		bigPost = post;
+		var title = document.getElementById("big-title-content")
 		title.innerHTML = post.title;
-		title.className = "big-title";
-		var date = document.createElement("div");
+		var date = document.getElementById("big-date");
 		var date_obj = new Date(post.date);
 		date.innerHTML = date_obj.toDateString() + " " + date_obj.toLocaleTimeString(
 			"en-US");
-		date.className = "big-date";
-		postE.appendChild(title);
 		if (post.content) {
-			var content = document.createElement("div");
-			content.className = "big-content";
-			createContent(post.content, content);
+			var e = checkUrl(post.content.trim());
+			var res = e.res;
+			var img;
+			var ilink;
+			if (res) {
+				var imgC = checkImage(res[0]);
+				if (imgC) {
+					img = true;
+					ilink = "https://images.weserv.nl/?url=" + res[0].replace("https://", "")
+						.replace("http://", "");
+					res.shift();
+				}
+			}
+			var yes = false;
+			if (imgC) {
+				yes = true;
+			}
+			var links = replLinks(post.content, yes);
+			if (!links) {
+				links = "";
+			}
+			links = links.replace("\n", "<br>");
+			var bigCont = document.getElementById("big-content");
+			var bImg = document.getElementById("big-img");
+			if (img) {
+				bImg.src = ilink
+			}
+			if (links.length > 0) {
+				bigCont.innerHTML = links;
+			}
+			if (img && links.length > 0) {
+				bImg.className = "";
+				bigCont.className = "";
+				bigCont.style.display = "block";
+				bImg.style.display = "block";
+			} else if (img) {
+				bImg.className = "big-centered";
+				bigCont.style.display = "none";
+			} else if (links.length > 0) {
+				bImg.style.display = "none";
+				bigCont.className = "big-centered";
+			}
 		}
-		postE.appendChild(content);
+		var tags = document.getElementById("big-tags");
+		removeFrom(tags);
+		post.tags.forEach(function (tag) {
+			var button = document.createElement("button");
+			button.className = "big-tag tag";
+			button.type = "button";
+			button.innerHTML = tag;
+			button.addEventListener("click", function () {
+				findByTag(tag);
+				hide_big_post();
+			});
+			tags.appendChild(button);
+		});
+		var fav = document.getElementById("big-favorite");
+		var new_fav = fav.cloneNode(true);
+		fav.parentNode.replaceChild(new_fav, fav);
+		if (post.favorited == true) {
+			new_fav.innerHTML = "Unfavorite"
+			new_fav.addEventListener("click", function () {
+				chain.unfavorite(post.id, function () {
+					reloadCur();
+				});
+			});
+		} else {
+			new_fav.innerHTML = "Favorite"
+			new_fav.addEventListener("click", function () {
+				console.log("Favoriting");
+				chain.add_favorite(post.id, function () {
+					reloadCur();
+				});
+			});
+		}
+		var deleteBut = document.getElementById("big-delete");
+		if (post.uid == loggedin.uid || loggedin.admin === true) {
+			deleteBut.style.display = "block";
+		} else {
+			deleteBut.style.display = "none";
+		}
+		var banBut = document.getElementById("big-ban");
+		chain.check_banned(post.uid, function (res) {
+			if (res && !res.banned) {
+				banBut.innerHTML = "Ban User";
+			} else if (res) {
+				banBut.innerHTML = "Unban User";
+			}
+		});
 	}
 
 	function show_big_post(post, toAppend) {
@@ -1187,7 +1282,6 @@ window.onload = function () {
 			var coll = {};
 			var max = 0; //eslint-disable-line
 			postI.appendChild(makeFake("No found posts!"));
-			//	setTimeout(function() {
 			chain.get_feed(function (posts) {
 				console.log("GOT FEED POSTS");
 				removeFrom(postI);
@@ -1223,7 +1317,6 @@ window.onload = function () {
 					});
 				}
 			}, 20);
-			//}, 20);
 		}
 	}
 	Object.keys(mains).forEach(function (key) {
@@ -1236,7 +1329,13 @@ window.onload = function () {
 
 	function reloadCur() {
 		console.log("reloading current page");
-		showblocking(cur_show);
+		if (curBig) {
+			chain.get_by_id(bigPost.id, function (res) {
+				show_big_post(res);
+			});
+		} else {
+			showblocking(cur_show);
+		}
 	}
 
 	function logout() {
@@ -1276,6 +1375,9 @@ window.onload = function () {
 			}
 			console.log(main.el.id + " " + toshow);
 		});
+		if (toshow === "post") {
+			show_big_post(bigPost);
+		}
 		console.log(document.getElementById("results").style)
 		document.getElementById("results").style.display = "none";
 		removeFrom(document.getElementById("results-posts"));
@@ -1750,6 +1852,37 @@ window.onload = function () {
 					alert("Your curation needs to start with a name and at least one tag");
 				}
 			});
+			if (loggedin.admin === true) {
+				var stickyBut = document.getElementById("big-sticky");
+				if (bigPost.stickied) {
+					stickyBut.innerHTML = "Unsticky";
+				} else {
+					stickyBut.innerHTML = "Sticky";
+				}
+			}
+			document.getElementById("big-sticky").addEventListener("click", function () {
+				stickyBut.addEventListener("click", function () {
+					if (bigPost.stickied) {
+						chain.unsticky(bigPost.id, function (res) {
+							if (res) {
+								notify("Post unstickied!");
+								reloadCur();
+							} else {
+								notify("Couldn't unsticky post");
+							}
+						});
+					} else {
+						chain.sticky(bigPost.id, function (res) {
+							if (res) {
+								notify("Post stickied!");
+								reloadCur();
+							} else {
+								notify("Couldn't sticky post");
+							}
+						});
+					}
+				});
+			});
 			document.getElementById("createmodtag").addEventListener("submit",
 				function (e) {
 					prevent(e);
@@ -1810,6 +1943,27 @@ window.onload = function () {
 						});
 					}
 				});
+			document.getElementById("big-ban").addEventListener("click", function () {
+				if (document.getElementById("big-ban").innerHTML[0].toLowerCase() ==
+					"b") {
+					chain.ban(bigPost.uid, function (res) {
+						if (res) {
+							notify("User banned!");
+						} else {
+							notify("Couldn't ban user");
+						}
+					});
+				} else {
+					chain.unban(bigPost.uid, function (res) {
+						if (res) {
+							notify("User unbanned!");
+						} else {
+							notify("Couldn't unban user");
+						}
+					});
+				}
+				reloadCur();
+			});
 			document.getElementById("results-cur-follow").addEventListener("click",
 				function () {
 					if (resultsTag !== false) {
@@ -1846,8 +2000,22 @@ window.onload = function () {
 				});
 			document.getElementById("overlay-background").addEventListener("click",
 				function () {
-					hide_comments();
+					if (curBig) {
+						hide_big_post();
+					} else {
+						hide_comments();
+					}
 				});
+			document.getElementById("big-delete").addEventListener("click", function () {
+				chain.delete_post(bigPost.id, function (res) {
+					if (res) {
+						notify("Deleted post");
+						reloadCur()
+					} else {
+						notify("Couldn't delete post");
+					}
+				});
+			});
 			document.getElementById("results-unfollow").addEventListener("click",
 				function () {
 					if (resultsTag !== false) {
