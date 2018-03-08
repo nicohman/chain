@@ -17,6 +17,12 @@
         list-style-type: none;
 	color:var(--text);
 }
+#big-buttons button {
+	border: 3px var(--border) solid;
+	background: none;
+	color: var(--text);
+	font-weight: bold;
+}
 #home {
 	flex-wrap:wrap;
 	display:flex;
@@ -724,6 +730,11 @@ transform: translate(-50%, 0%) !important;
 	flex-direction: column;
 	justify-content: flex-start;
 }
+#big-container button {
+	background: none;
+	border: none;
+	color: var(--text);
+}
 #big-title {
 	height:10%;
 	font-weight: bold;
@@ -738,11 +749,14 @@ transform: translate(-50%, 0%) !important;
 #big-comments{
 	list-style-type: none;
 	color:var(--text);
+	border-bottom: 0.5% var(--border) solid;
+	border-top: 0.5% var(--border) solid;
 }
 #big-buttons {
 	background: none;
-	border: none;
-	color: var(--text);
+	border-bottom: 0.5% var(--border) solid;
+	border-top: 0.5% var(--border) solid;
+		color: var(--text);
 }
 #mob-click {
 	display:none;
