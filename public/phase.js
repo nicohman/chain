@@ -24,8 +24,9 @@ window.onload = function () {
 	}
 
 	function getParameter(name) {
+		console.log(location.search);
 		return decodeURIComponent((new RegExp('[?|&]' + name + '=' +
-			'([^&;]+?)(&|#|;|$)').exec(location.search) || [null, ''])[1].replace(
+			'([^&;]+?)(&|#|;|$)').exec(window.location) || [null, ''])[1].replace(
 			/\+/g, '%20')) || null;
 	}
 
@@ -1663,7 +1664,7 @@ window.onload = function () {
 				}
 				mains["feed"].ref();
 				if (window.location.href.split("#")[1]) {
-					if (window.location.href.split("#")[1].contains("post")) {
+					if (window.location.href.split("#")[1].includes("post")) {
 						var pid = getParameter("postid");
 						if (pid) {
 							chain.get_by_id(pid, function (res) {
@@ -1675,6 +1676,8 @@ window.onload = function () {
 								}
 							});
 						} else {
+							console.log("NO RIGHT PID");
+							console.log(pid);
 							showblocking("home");
 						}
 					} else {
