@@ -724,6 +724,26 @@ transform: translate(-50%, 0%) !important;
 	flex-direction: column;
 	justify-content: flex-start;
 }
+#big-title {
+	height:10%;
+	font-weight: bold;
+	border-bottom: 0.5% var(--border) solid;
+	display:flex;
+	justify-content: space-between;
+}
+#big-content-container{
+	display: flex;
+	justify-content: center;
+}
+#big-comments{
+	list-style-type: none;
+	color:var(--text);
+}
+#big-buttons {
+	background: none;
+	border: none;
+	color: var(--text);
+}
 #mob-click {
 	display:none;
 }

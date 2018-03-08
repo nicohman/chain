@@ -595,6 +595,7 @@ window.onload = function () {
 	function show_comments(post) {
 		var overlay = document.getElementById("overlay");
 		overlay.style.display = "block";
+		hide_big_post();
 		document.getElementById("comment-title").innerHTML = post.title;
 		var commentsCon = document.getElementById("comments-list");
 		removeFrom(commentsCon);
@@ -797,16 +798,16 @@ window.onload = function () {
 			deleteBut.type = "button";
 			deleteBut.innerHTML = "Delete";
 			deleteBut.addEventListener("click", function () {
-				chain.delete_post(post.id, function (res) {
-					if (res) {
-						notify("Deleted post");
-						reloadCur()
-					} else {
-						notify("Couldn't delete post");
-					}
-				});
-			})
-			buttons.appendChild(deleteBut);
+					chain.delete_post(post.id, function (res) {
+						if (res) {
+							notify("Deleted post");
+							reloadCur()
+						} else {
+							notify("Couldn't delete post");
+						}
+					});
+				})
+				//buttons.appendChild(deleteBut);
 		}
 		if (loggedin.admin === true) {
 			var stickyBut = document.createElement("button");
@@ -838,7 +839,7 @@ window.onload = function () {
 					});
 				}
 			});
-			buttons.appendChild(stickyBut);
+			//buttons.appendChild(stickyBut);
 			var banBut = document.createElement("button");
 			banBut.className = "ban-post";
 			banBut.type = "button";
@@ -868,8 +869,15 @@ window.onload = function () {
 					}
 				});
 			});
-			buttons.appendChild(banBut);
+			//buttons.appendChild(banBut);
 		}
+		var bigBut = document.createElement("big-but");
+		bigBut.className = "big-but";
+		bigBut.type = "button";
+		bigBut.addEventListener("click", function () {
+			show_big_post(post);
+		});
+		buttons.appendChild(bigBut);
 		buttons.appendChild(comments);
 		buttons.appendChild(fav);
 		bar.appendChild(buttons);
@@ -903,6 +911,8 @@ window.onload = function () {
 		bigPost = post;
 		var title = document.getElementById("big-title-content")
 		title.innerHTML = post.title;
+		document.getElementById("overlay").style.display = "block";
+		hide_comments();
 		var date = document.getElementById("big-date");
 		var date_obj = new Date(post.date);
 		date.innerHTML = date_obj.toDateString() + " " + date_obj.toLocaleTimeString(
@@ -999,11 +1009,11 @@ window.onload = function () {
 		});
 	}
 
-	function show_big_post(post, toAppend) {
-		var made = make_big_post(post);
-		if (made) {
+	function show_big_post(post /*, toAppend*/ ) {
+		make_big_post(post);
+		/*if (made) {
 			toAppend.appendChild(made);
-		}
+		}*/
 	}
 
 	function set_username(username) {
