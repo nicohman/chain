@@ -710,12 +710,12 @@ transform: translate(-50%, 0%) !important;
 }
 #big-container {
 	opacity:1;
-	z-index: :101;
+	z-index:99;
 	position: fixed;
 	width: 80%;
-	height: 60%;
+	height: 80%;
 	border: 4px var(--border) solid;
-	top:20%;
+	top:10%;
 	left:10%;
 	overflow-y: visible;
 	overflow-x: hidden;
@@ -725,6 +725,9 @@ transform: translate(-50%, 0%) !important;
 	justify-content: flex-start;
 }
 #big-title {
+	margin-top:3%;
+	margin-left:3%;
+	margin-right:3%;
 	height:10%;
 	font-weight: bold;
 	border-bottom: 0.5% var(--border) solid;
@@ -742,7 +745,13 @@ transform: translate(-50%, 0%) !important;
 #big-buttons {
 	background: none;
 	border: none;
+	display:flex;
+	justify-content:space-between;
 	color: var(--text);
+}
+#big-content {
+	border:0.5% var(--border) solid;
+height:40%;
 }
 #mob-click {
 	display:none;

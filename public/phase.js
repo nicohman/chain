@@ -642,6 +642,7 @@ window.onload = function () {
 	function hide_comments() {
 		var overlay = document.getElementById("overlay");
 		overlay.style.display = "none";
+		document.getElementById("comment-container").style.display = "none"
 		chain.get_by_id(cur_com, function (post) {
 			var posts = document.getElementsByClassName("post");
 			for (var i = 0; i < posts.length; i++) {
@@ -872,7 +873,8 @@ window.onload = function () {
 			});
 			//buttons.appendChild(banBut);
 		}
-		var bigBut = document.createElement("big-but");
+		var bigBut = document.createElement("button");
+		bigBut.innerHTML = "Expand";
 		bigBut.className = "big-but";
 		bigBut.type = "button";
 		bigBut.addEventListener("click", function () {
@@ -912,8 +914,9 @@ window.onload = function () {
 		bigPost = post;
 		var title = document.getElementById("big-title-content")
 		title.innerHTML = post.title;
-		document.getElementById("overlay").style.display = "block";
+
 		hide_comments();
+		document.getElementById("overlay").style.display = "block";
 		var date = document.getElementById("big-date");
 		var date_obj = new Date(post.date);
 		date.innerHTML = date_obj.toDateString() + " " + date_obj.toLocaleTimeString(
