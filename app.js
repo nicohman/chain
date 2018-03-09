@@ -730,9 +730,19 @@ function checkRules(post, rules) {
 		return false;
 	}
 }
+
+function postDate(post1, post2) {
+	if (post1.date > post2.date) {
+		return -1;
+	} else if (post2.date > post1.date) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
 //Get posts event function.
 function get_posts(criterion, cb) {
-	Object.keys(posts).forEach(function (key) {
+	Object.keys(posts).sort(postDate).forEach(function (key) {
 		var post = posts[key]
 		switch (criterion.filter) {
 		case 'tag':
@@ -1626,7 +1636,7 @@ var serv_handles = {
 		jwt.verify(req.token, secret, function (err, dec) {
 			if (!err) {
 				if (dec.admin) {
-					console.log(req.email+ "REQEMAIL");
+					console.log(req.email + "REQEMAIL");
 					change_color.easy({
 						color: req.color,
 						token: req.token,

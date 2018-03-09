@@ -636,6 +636,7 @@ window.onload = function () {
 	function hide_big_post() {
 		var bigCon = document.getElementById("big-container");
 		bigCon.style.display = "none";
+		document.getElementById("overlay").style.display = "none";
 		curBig = false;
 	}
 
@@ -913,8 +914,8 @@ window.onload = function () {
 		curBig = true;
 		bigPost = post;
 		var title = document.getElementById("big-title-content")
-		title.innerHTML = post.title;
 
+		title.innerHTML = post.title + "<br>" + post.auth;
 		hide_comments();
 		document.getElementById("overlay").style.display = "block";
 		var date = document.getElementById("big-date");
@@ -1010,6 +1011,9 @@ window.onload = function () {
 			} else if (res) {
 				banBut.innerHTML = "Unban User";
 			}
+		});
+		post.comments.forEach(function (comment) {
+			createComment(comment, post, document.getElementById("big-comments"));
 		});
 	}
 
@@ -1720,6 +1724,25 @@ window.onload = function () {
 					alert("A comment must not be empty!");
 				}
 			});
+			document.getElementById("big-comment").addEventListener("submit",
+				function (e) {
+					prevent(e);
+					var content = e.target.elements.content.value;
+					if (content.length > 0) {
+						if (content.length < 256) {
+							e.target.reset();
+							chain.add_comment(content, bigPost.id, function () {
+								chain.get_by_id(bigPost.id, function (post) {
+									show_big_post(post);
+								});
+							});
+						} else {
+							alert("A comment must be less than 256 characters!");
+						}
+					} else {
+						alert("A comment must not be empty!");
+					}
+				});
 			document.getElementById("create-post").addEventListener("submit",
 				function (e) {
 					prevent(e);
