@@ -594,9 +594,11 @@ window.onload = function () {
 	}
 
 	function show_comments(post) {
+
+		hide_big_post();
 		var overlay = document.getElementById("overlay");
 		overlay.style.display = "block";
-		hide_big_post();
+		document.getElementById("comment-container").style.display = "flex";
 		document.getElementById("comment-title").innerHTML = post.title;
 		var commentsCon = document.getElementById("comments-list");
 		removeFrom(commentsCon);
@@ -812,6 +814,15 @@ window.onload = function () {
 				})
 				//buttons.appendChild(deleteBut);
 		}
+		var shareBut = document.createElement("button");
+		shareBut.className = "share-post";
+		shareBut.type = "button";
+		shareBut.innerHTML = "Share";
+		shareBut.addEventListener("click", function(){
+			var cdiv = document.getElementById("copy-div");
+			cdiv.style.display = "block";
+			document.getElementById("copy-fill").innerHTML = "https://demenses.net#post?postid="+post.id;
+		});
 		if (loggedin.admin === true) {
 			var stickyBut = document.createElement("button");
 			stickyBut.className = "sticky-post";
@@ -882,6 +893,7 @@ window.onload = function () {
 			show_big_post(post);
 		});
 		buttons.appendChild(bigBut);
+		buttons.appendChild(shareBut);
 		buttons.appendChild(comments);
 		buttons.appendChild(fav);
 		bar.appendChild(buttons);
@@ -918,6 +930,7 @@ window.onload = function () {
 		title.innerHTML = post.title + "<br>" + post.auth;
 		hide_comments();
 		document.getElementById("overlay").style.display = "block";
+		document.getElementById("big-container").style.display = "flex";
 		var date = document.getElementById("big-date");
 		var date_obj = new Date(post.date);
 		date.innerHTML = date_obj.toDateString() + " " + date_obj.toLocaleTimeString(
@@ -951,6 +964,9 @@ window.onload = function () {
 				bImg.src = ilink
 			}
 			if (links.length > 0) {
+				if(links.length < 240){
+					links = "<br>"+links+"<br>";
+				}
 				bigCont.innerHTML = links;
 			}
 			if (img && links.length > 0) {
@@ -959,10 +975,16 @@ window.onload = function () {
 				bigCont.style.display = "block";
 				bImg.style.display = "block";
 			} else if (img) {
+				console.log("img");
 				bImg.className = "big-centered";
+				bImg.style.display = "block";
 				bigCont.style.display = "none";
+				bigCont.className = "";
 			} else if (links.length > 0) {
+				console.log("text");
+				bigCont.style.display = "block";
 				bImg.style.display = "none";
+				bImg.className = "";
 				bigCont.className = "big-centered";
 			}
 		}
@@ -1012,8 +1034,11 @@ window.onload = function () {
 				banBut.innerHTML = "Unban User";
 			}
 		});
+		removeFrom(document.getElementById("big-comments"));
 		post.comments.forEach(function (comment) {
+			if(comment){
 			createComment(comment, post, document.getElementById("big-comments"));
+			}
 		});
 	}
 
@@ -1724,6 +1749,14 @@ window.onload = function () {
 					alert("A comment must not be empty!");
 				}
 			});
+			document.getElementById("big-share").addEventListener("click", function(){
+							var cdiv = document.getElementById("copy-div");
+			cdiv.style.display = "block";
+			document.getElementById("copy-fill").innerHTML = "https://demenses.net#post?postid="+bigPost.id;
+			});
+			document.getElementById("copy-x").addEventListener("click", function(){
+				document.getElementById("copy-div").style.display = "none";
+			});
 			document.getElementById("big-comment").addEventListener("submit",
 				function (e) {
 					prevent(e);
@@ -1854,6 +1887,7 @@ window.onload = function () {
 						e.target.reset();
 					}
 				});
+			
 			document.getElementById("view-own").addEventListener("click", function () {
 				chain.get_self_posts(function (posts) {
 					if (posts) {

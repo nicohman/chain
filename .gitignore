@@ -9,6 +9,7 @@ imgs
 public/logos/big/*
 public/logos/small*
 imgs/*
+errs
 *.swo
 .gitignore
 log

@@ -23,6 +23,11 @@
 	color: var(--text);
 	font-weight: bold;
 }
+.big-but {
+	color:var(--text);
+	background:none;
+	border:none;
+}
 #home {
 	flex-wrap:wrap;
 	display:flex;
@@ -700,7 +705,7 @@ transform: translate(-50%, 0%) !important;
 
 #comment-container {
         opacity: 1;
-        z-index: 100;
+        z-index: 95;
         position: fixed;
         width: 60%;
         height: 60%;
@@ -716,7 +721,7 @@ transform: translate(-50%, 0%) !important;
 }
 #big-container {
 	opacity:1;
-	z-index:99;
+	z-index:95;
 	position: fixed;
 	width: 80%;
 	height: 80%;
@@ -729,6 +734,50 @@ transform: translate(-50%, 0%) !important;
 	display: flex;
 	flex-direction: column;
 	justify-content: flex-start;
+}
+#big-container div {
+	margin-left:2%;
+	margin-right:2%;
+	color:var(--text);
+}
+#copy-div {
+	display:none;
+	z-index:100;
+	width:40%;
+	height:10%;
+	background:var(--sec-bg);
+	border:4px var(--border) solid;
+	position:fixed;
+
+	transform:translate(-50%, -50%);
+	left:50%;
+	top:50%;
+}
+#copy-x {
+	margin-left:auto;
+	right:0;
+	position:relative;
+	top:0;
+}
+.share-post {
+	background:none;
+	cursor:pointer;
+	color:var(--text);
+	border:none;
+}
+#big-share {
+	background:none;
+	cursor:pointer;
+	color:var(--text);
+	border:none;
+
+}
+#copy-fill {
+	position:relative;
+	top:30%;
+	cursor:pointer;
+	left:5%;
+	color:var(--follow);
 }
 #big-container button {
 	background: none;
