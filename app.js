@@ -732,6 +732,8 @@ function checkRules(post, rules) {
 }
 
 function postDate(post1, post2) {
+	post1 = posts[post1];
+	post2 = posts[post2];
 	if (post1.date > post2.date) {
 		return -1;
 	} else if (post2.date > post1.date) {
@@ -2307,6 +2309,11 @@ var serv_handles = {
 	},
 	"c_get_post_by_id": function (req) {
 		get_post_by_id(req.pid, function (res) {
+			if(logged[req.cid]){
+				if(users[logged[req.cid]].favorites[req.pid] === true){
+					res.favorited = true;
+				}
+			}
 			io.to(req.cid).emit("c_got_post_by_id", res);
 		});
 	},
