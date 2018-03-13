@@ -1807,6 +1807,7 @@ var serv_handles = {
 			if (!err) {
 				if (dec.uid == logged[req.cid]) {
 					getPostsByUser(dec.uid, function (posts) {
+						posts.posts = checkFavs(users[logged[req.cid]].favorites, posts.posts);
 						io.to(req.cid).emit("c_got_self_posts", posts, req.count || 10);
 					});
 				} else {
@@ -1880,6 +1881,7 @@ var serv_handles = {
 		get_curation_posts(req.cur, function (posts) {
 			var got = false;
 			if (!got) {
+				posts =  checkFavs(users[logged[req.cid]].favorites, posts);
 				io.to(req.cid).emit("c_got_cur_posts_" + req.cur + "_" + req.time,
 					posts);
 				console.log("EMITTING EVENT C: " + req.time);

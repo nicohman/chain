@@ -1670,6 +1670,9 @@ window.onload = function () {
 					yes = true;
 					follow.style.display = "none";
 					unfollow.style.display = "block";
+				} else {
+					follow.style.display = "block";
+					unfollow.style.display = "none";
 				}
 			} else {
 				Object.keys(me.tags).forEach(function (tag) {
@@ -1680,7 +1683,7 @@ window.onload = function () {
 						follow.style.display = "none";
 						unfollow.style.display = "block";
 						yes = true;
-					}
+					} 
 				});
 			}
 			if (!yes) {
