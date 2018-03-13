@@ -774,6 +774,8 @@ function checkRules(post, rules) {
 }
 
 function postDate(post1, post2) {
+	post1 = posts[post1];
+	post2 = posts[post2];
 	if (post1.date > post2.date) {
 		return -1;
 	} else if (post2.date > post1.date) {
@@ -1847,6 +1849,7 @@ var serv_handles = {
 			if (!err) {
 				if (dec.uid == logged[req.cid]) {
 					getPostsByUser(dec.uid, function (posts) {
+						posts.posts = checkFavs(users[logged[req.cid]].favorites, posts.posts);
 						io.to(req.cid).emit("c_got_self_posts", posts, req.count || 10);
 					});
 				} else {
@@ -1920,6 +1923,7 @@ var serv_handles = {
 		get_curation_posts(req.cur, function (posts) {
 			var got = false;
 			if (!got) {
+				posts =  checkFavs(users[logged[req.cid]].favorites, posts);
 				io.to(req.cid).emit("c_got_cur_posts_" + req.cur + "_" + req.time,
 					posts);
 				console.log("EMITTING EVENT C: " + req.time);
@@ -2349,6 +2353,11 @@ var serv_handles = {
 	},
 	"c_get_post_by_id": function (req) {
 		get_post_by_id(req.pid, function (res) {
+			if(logged[req.cid]){
+				if(users[logged[req.cid]].favorites[req.pid] === true){
+					res.favorited = true;
+				}
+			}
 			io.to(req.cid).emit("c_got_post_by_id", res);
 		});
 	},

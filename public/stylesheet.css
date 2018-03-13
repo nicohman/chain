@@ -18,7 +18,6 @@
 	color:var(--text);
 }
 #big-buttons button {
-	border: 3px var(--border) solid;
 	background: none;
 	color: var(--text);
 	font-weight: bold;
@@ -279,11 +278,17 @@ body {
 }
 #settings > div {
 	padding-left:5%;
-	margin-top:15%;
+	margin-top:5%;
 }
 #settings-name input {
         margin-top: 1%;
         margin-bottom: 1%;
+
+}
+#big-img {
+	border:1px  var(--border) solid;
+	max-height:400px;
+	max-width:650px;
 
 }
 #cur-seperator {
@@ -807,10 +812,19 @@ transform: translate(-50%, 0%) !important;
 #big-buttons {
 	background: none;
 	border: none;
+	border-top:3px  var(--border) solid;
+	border-bottom:3px var(--border) solid;
 	display:flex;
+	margin-top:1%;
+	margin-bottom:1%;
+	padding-top:1.5%;
+	padding-bottom:1.5%;
 	justify-content:space-between;
 	color: var(--text);
 
+}
+.big-tag {
+	border:1px var(--border) solid !important;
 }
 #big-content {
 	border:0.5% var(--border) solid;

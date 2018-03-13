@@ -927,7 +927,7 @@ window.onload = function () {
 		bigPost = post;
 		var title = document.getElementById("big-title-content")
 
-		title.innerHTML = post.title + "<br>" + post.auth;
+		title.innerHTML = post.title +" - "+ post.favs + "<br>" + post.auth;
 		hide_comments();
 		document.getElementById("overlay").style.display = "block";
 		document.getElementById("big-container").style.display = "flex";
@@ -1021,12 +1021,28 @@ window.onload = function () {
 			});
 		}
 		var deleteBut = document.getElementById("big-delete");
+
+		var banBut = document.getElementById("big-ban");
 		if (post.uid == loggedin.uid || loggedin.admin === true) {
+
 			deleteBut.style.display = "block";
 		} else {
 			deleteBut.style.display = "none";
 		}
-		var banBut = document.getElementById("big-ban");
+		var stickyBut =  document.getElementById("big-sticky");
+		if(loggedin.admin){
+			stickyBut.style.display = "block";
+			banBut.style.display = "block";
+			if(post.stickied){
+				stickyBut.innerHTML = "Unsticky";
+			} else {
+				stickyBut.innerHTML = "Sticky";
+			}
+		} else {
+			banBut.style.display = "none";
+			stickyBut.style.display = "none";
+		}
+
 		chain.check_banned(post.uid, function (res) {
 			if (res && !res.banned) {
 				banBut.innerHTML = "Ban User";
@@ -1374,6 +1390,8 @@ window.onload = function () {
 		console.log("reloading current page");
 		if (curBig) {
 			chain.get_by_id(bigPost.id, function (res) {
+				console.log("up");
+				console.log(res);
 				show_big_post(res);
 			});
 		} else {
@@ -1652,6 +1670,9 @@ window.onload = function () {
 					yes = true;
 					follow.style.display = "none";
 					unfollow.style.display = "block";
+				} else {
+					follow.style.display = "block";
+					unfollow.style.display = "none";
 				}
 			} else {
 				Object.keys(me.tags).forEach(function (tag) {
@@ -1662,7 +1683,7 @@ window.onload = function () {
 						follow.style.display = "none";
 						unfollow.style.display = "block";
 						yes = true;
-					}
+					} 
 				});
 			}
 			if (!yes) {
@@ -1934,7 +1955,6 @@ window.onload = function () {
 				}
 			}
 			document.getElementById("big-sticky").addEventListener("click", function () {
-				stickyBut.addEventListener("click", function () {
 					if (bigPost.stickied) {
 						chain.unsticky(bigPost.id, function (res) {
 							if (res) {
@@ -1954,7 +1974,6 @@ window.onload = function () {
 							}
 						});
 					}
-				});
 			});
 			document.getElementById("createmodtag").addEventListener("submit",
 				function (e) {
@@ -2083,7 +2102,9 @@ window.onload = function () {
 				chain.delete_post(bigPost.id, function (res) {
 					if (res) {
 						notify("Deleted post");
-						reloadCur()
+						curBig  = false;
+						reloadCur();
+						hide_big_post();
 					} else {
 						notify("Couldn't delete post");
 					}
