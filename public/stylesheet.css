@@ -30,6 +30,7 @@
 #home {
 	flex-wrap:wrap;
 	display:flex;
+	position: relative;
 	margin-left:15%;
 }
 .curbutx {
@@ -52,6 +53,7 @@
         border: 5px var(--border) solid;
         background: var(--sec-bg);
         display: flex;
+				position: absolute;
         color: var(--text);
         flex-direction: column;
         justify-content: center;
