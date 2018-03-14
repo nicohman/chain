@@ -12,8 +12,8 @@ var io = require('socket.io'),
 	names = ["dragon", "defiant", "dragon's teeth", "saint", "weaver"],
 	semaphore = require('semaphore'),
 	sem = semaphore(1),
-	Youtube = require("youtube-node"),
-	youtube = Youtube(),
+	YouTube = require("youtube-node"),
+	yt = new YouTube(),
 	DEMPATH = "/home/nicohman/.demenses/",
 	san = require("sanitizer"),
 	events = require('events'),
@@ -33,7 +33,7 @@ var io = require('socket.io'),
 	posts = require(DEMPATH + 'posts_' + name + '.json'),
 	users = require(DEMPATH + "users_" + name + ".json"),
 	port = ports[commandArg - 1],
-	ytChannels = ["UURrWaIO7p-1fmJrb95gBZwA"],
+	ytChannels = ["UUQD3awTLw9i8Xzh85FKsuJA"],
 	curations = require(DEMPATH + "curations_" + name + ".json"),
 	secret = config.secret,
 	emailSecret = config.emailSecret,
@@ -52,7 +52,8 @@ var io = require('socket.io'),
 	rec = {},
 	logged = {};
 var https = require("https");
-youtube.setKey(config.yt);
+console.log(config.yt);
+yt.setKey(config.yt);
 //Startup logs.
 console.log(
 	"________                                                     \n\\______ \\   ____   _____   ____   ____   ______ ____   ______\n |    |  \\_/ __ \\ /     \\_/ __ \\ /    \\ /  ___// __ \\ /  ___/\n |    `   \\  ___/|  Y Y  \\  ___/|   |  \\___ \\  ___/ \\___ \\ \n/_______  /\\__  >__|_|  /\\___  >___|  /____  >\\___  >____  >\n        \\/     \\/      \\/     \\/     \\/     \\/     \\/     \\/ "
@@ -197,7 +198,10 @@ function writeLast() {
 
 function checkYt() {
 	ytChannels.forEach(function (item) {
-		youtube.getPlayListsItemsById(item, function (err, res) {
+		yt.setKey(config.yt);
+
+		console.log("KEY : "+config.yt);
+		yt.getPlayListsItemsById(item, function (err, res) {
 			if (err) {
 				console.error(err);
 			} else {
@@ -205,6 +209,9 @@ function checkYt() {
 					console.log(res.items[0]);
 					var uid = "johnnyfiveisalive"
 					var vid = res.items[0].snippet;
+					if(!lastYts[item]){
+						lastYts[item] = "";
+					}
 					if (vid.resourceId.videoId.trim() != lastYts[item].trim()) {
 						createPost({
 							title: vid.title,
@@ -217,6 +224,7 @@ function checkYt() {
 						writeLast();
 					} else {
 						console.log("NO NEW VIDEO FOR " + item)
+						console.log(vid.resourceId.videoId.trim()+","+lastYts[item].trim());
 					}
 				}
 			}
@@ -321,10 +329,10 @@ function checkX() {
 			data += bit;
 		});
 		res.on('end', function () {
+			console.log(data);
 			data = JSON.parse(data);
-			if (data.num != lastX) {
+			if (data.num > parseInt(lastX)) {
 				var uid = ""
-				data = JSON.parse(data);
 				createPost({
 					title: "XKCD #" + data.num + " " + data.title,
 					content: data.img,
