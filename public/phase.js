@@ -4,6 +4,7 @@ window.onload = function () {
 	});
 	var loggedin = {};
 	var resultsTag;
+	var homePage = new Muuri("#home");
 	var home_num = 10;
 	var cur_show = "home";
 	var resCur = false;
@@ -912,7 +913,10 @@ window.onload = function () {
 		postt.appendChild(bar);
 		postt.appendChild(id);
 		postt.appendChild(dI);
-		return postt;
+		var containerDiv = document.createElement("div");
+		containerDiv.className = "post-container";
+		containerDiv.appendChild(postt);
+		return containerDiv;
 	}
 
 	function show_post(post, toAppend) {
@@ -1683,7 +1687,7 @@ window.onload = function () {
 						follow.style.display = "none";
 						unfollow.style.display = "block";
 						yes = true;
-					} 
+					}
 				});
 			}
 			if (!yes) {
@@ -1908,7 +1912,7 @@ window.onload = function () {
 						e.target.reset();
 					}
 				});
-			
+
 			document.getElementById("view-own").addEventListener("click", function () {
 				chain.get_self_posts(function (posts) {
 					if (posts) {
