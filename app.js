@@ -431,6 +431,7 @@ var sslopts = {
 var to_open = ports[commandArg];
 var htt = https.Server(sslopts);
 io = io(htt);
+console.log("OPENING "+to_open);
 htt.listen(to_open);
 io.use(middleware);
 var adjacent = [];
@@ -2381,7 +2382,8 @@ io.on('connection', function (gsocket) {
 function createClient(to_connect) {
 	console.log("attempting a connec tto " + to_connect);
 	var client = socketclient(to_connect, {
-		secure: true
+		secure: true,
+		transports:['websocket']
 	});
 	patch(client);
 	var client_handles = {

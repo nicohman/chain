@@ -1,7 +1,7 @@
 #!/bin/bash
 DEMENSES_DIR=/home/nicohman/chain
-forever $DEMENSES_DIR/app.js 0 &
-forever $DEMENSES_DIR/app.js 1 &
-forever $DEMENSES_DIR/app.js 2 &
-forever $DEMENSES_DIR/demenses.js &
+pm2 start $DEMENSES_DIR/app.js --name "Dragon"  -- 0
+pm2  start   $DEMENSES_DIR/app.js --name "Defiant" -- 1
+pm2 start  $DEMENSES_DIR/app.js --name "Dragon's Teeth"  -- 2
+pm2 start $DEMENSES_DIR/demenses.js &
 

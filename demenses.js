@@ -47,13 +47,25 @@ Caman.Filter.register("convertToC", function (cur, to) {
       return rgba;
    });
 });
-client = client("https://demenses.net:3000");
+var initiateResetPassword = function (req, res) {
+   jwt.verify(req.params.token, config.emailSecret, function (err) {
+      if (err) {
+         return res.status(404).send();
+      }
+      res.sendFile("./reset.html", {
+         root: __dirname
+      });
+   });
+};
+
+client = client("https://demenses.net:3000",{secure:true});
+
 client.on("connect", function () {
       //  Install middleware
       app.use(bodyParser.urlencoded({
          extended: true
       }));
-      app.use(express.static(path.join(__dirname, 'public')));
+	app.use(express.static(path.join("/home/nicohman/chain/public","")));
       app.use(function (req, res, next) {
          console.log("TIME:" + Date.now() + "\nIP:" + req.ip);
          next();
@@ -151,18 +163,9 @@ client.on("connect", function () {
       });
       htt.listen(80);
       //app.listen(80);
+
    })
    //  PRIVATE FUNCTIONS
-var initiateResetPassword = function (req, res) {
-   jwt.verify(req.params.token, config.emailSecret, function (err) {
-      if (err) {
-         return res.status(404).send();
-      }
-      res.sendFile("./reset.html", {
-         root: __dirname
-      });
-   });
-};
 var resetPassword = function (req, res) {
    console.log("RECIEVED 'RESET_PASSWORD' request");
    jwt.verify(req.params.token, config.emailSecret, function (err, un) {
