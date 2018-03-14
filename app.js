@@ -12,6 +12,8 @@ var io = require('socket.io'),
 	names = ["dragon", "defiant", "dragon's teeth", "saint", "weaver"],
 	semaphore = require('semaphore'),
 	sem = semaphore(1),
+	Youtube = require("youtube-node"),
+	youtube = Youtube(),
 	DEMPATH = "/home/nicohman/.demenses/",
 	san = require("sanitizer"),
 	events = require('events'),
@@ -31,6 +33,7 @@ var io = require('socket.io'),
 	posts = require(DEMPATH + 'posts_' + name + '.json'),
 	users = require(DEMPATH + "users_" + name + ".json"),
 	port = ports[commandArg - 1],
+	ytChannels = ["UURrWaIO7p-1fmJrb95gBZwA"],
 	curations = require(DEMPATH + "curations_" + name + ".json"),
 	secret = config.secret,
 	emailSecret = config.emailSecret,
@@ -49,6 +52,7 @@ var io = require('socket.io'),
 	rec = {},
 	logged = {};
 var https = require("https");
+youtube.setKey(config.yt);
 //Startup logs.
 console.log(
 	"________                                                     \n\\______ \\   ____   _____   ____   ____   ______ ____   ______\n |    |  \\_/ __ \\ /     \\_/ __ \\ /    \\ /  ___// __ \\ /  ___/\n |    `   \\  ___/|  Y Y  \\  ___/|   |  \\___ \\  ___/ \\___ \\ \n/_______  /\\__  >__|_|  /\\___  >___|  /____  >\\___  >____  >\n        \\/     \\/      \\/     \\/     \\/     \\/     \\/     \\/ "
@@ -180,6 +184,45 @@ function fulfill(name, condition, func, auth, amal, easy) {
 	return doneFunc;
 }
 var time = moment(fs.readFileSync("/home/nicohman/.demenses/timer"), 'x');
+var lastYts = require("/home/nicohman/.demenses/lastyts.json");
+var lastX = require("/home/nicohman/.demenses/lastX")
+if (!lastYts) {
+	lastYts = {};
+}
+
+function writeLast() {
+	fs.writeFile("/home/nicohman/.demenses/lastyts.json", JSON.stringify(lastYts),
+		function () {})
+}
+
+function checkYt() {
+	ytChannels.forEach(function (item) {
+		youtube.getPlayListsItemsById(item, function (err, res) {
+			if (err) {
+				console.error(err);
+			} else {
+				if (res.items[0]) {
+					console.log(res.items[0]);
+					var uid = "johnnyfiveisalive"
+					var vid = res.items[0].snippet;
+					if (vid.resourceId.videoId.trim() != lastYts[item].trim()) {
+						createPost({
+							title: vid.title,
+							content: "https://youtube.com/watch?v=" + vid.resourceId.videoId,
+							auth: "yt_bot",
+							uid: uid,
+							tags: ["yt_bot", "bot", "videos"]
+						});
+						lastYts[item] = vid.resourceId.videoId;
+						writeLast();
+					} else {
+						console.log("NO NEW VIDEO FOR " + item)
+					}
+				}
+			}
+		});
+	});
+}
 /*var get_posts_top = new indefinite("get_posts_top", function(req){
 	var check = Object.keys(posts).map(function(m) {
 		return posts[m];
@@ -268,6 +311,33 @@ function verify(token, cb) {
 		} else {
 			cb(decode);
 		}
+	});
+}
+
+function checkX() {
+	https.get("https://xkcd.com/info.0.json", function (res) {
+		var data = '';
+		res.on('data', function (bit) {
+			data += bit;
+		});
+		res.on('end', function () {
+			data = JSON.parse(data);
+			if (data.num != lastX) {
+				var uid = ""
+				data = JSON.parse(data);
+				createPost({
+					title: "XKCD #" + data.num + " " + data.title,
+					content: data.img,
+					auth: "xkcd_bot",
+					uid: uid,
+					tags: ["xkcd", "bot", "comics"]
+				});
+				lastX = data.num;
+				fs.writeFile("/home/nicohman/.demenses/lastX", data.num, function () {
+					console.log("XKCD Last updated!");
+				});
+			}
+		})
 	});
 }
 var checkMe = function () {
@@ -1882,7 +1952,7 @@ var serv_handles = {
 		get_curation_posts(req.cur, function (posts) {
 			var got = false;
 			if (!got) {
-				posts =  checkFavs(users[logged[req.cid]].favorites, posts);
+				posts = checkFavs(users[logged[req.cid]].favorites, posts);
 				io.to(req.cid).emit("c_got_cur_posts_" + req.cur + "_" + req.time,
 					posts);
 				console.log("EMITTING EVENT C: " + req.time);
@@ -2312,8 +2382,8 @@ var serv_handles = {
 	},
 	"c_get_post_by_id": function (req) {
 		get_post_by_id(req.pid, function (res) {
-			if(logged[req.cid]){
-				if(users[logged[req.cid]].favorites[req.pid] === true){
+			if (logged[req.cid]) {
+				if (users[logged[req.cid]].favorites[req.pid] === true) {
 					res.favorited = true;
 				}
 			}
@@ -2472,5 +2542,9 @@ function createClient(to_connect) {
 }
 if (process.argv[2] == "1") {
 	setTimeout(checkMe, 1000);
-	setInterval(checkMe, 30000)
+	setTimeout(checkYt, 2000);
+	setTimeout(checkX, 3000);
+	setInterval(checkX, 1200000)
+	setInterval(checkYt, 1200000);
+	setInterval(checkMe, 60000)
 }
