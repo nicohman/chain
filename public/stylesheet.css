@@ -17,6 +17,10 @@
         list-style-type: none;
 	color:var(--text);
 }
+#home {
+	display:block;
+}
+
 #big-buttons button {
 	background: none;
 	color: var(--text);
@@ -27,9 +31,12 @@
 	background:none;
 	border:none;
 }
+.post-container {
+	position:absolute;
+	display:block;
+}
 #home {
-	flex-wrap:wrap;
-	display:flex;
+
 	position: relative;
 	margin-left:15%;
 }
@@ -48,18 +55,15 @@
 	cursor:pointer;
 }
 .post {
-        width: 30%;
-        height: 200%;
+        width: 100%;
+        height: 100%;
         border: 5px var(--border) solid;
         background: var(--sec-bg);
         display: flex;
-				position: absolute;
+				position: relative;
         color: var(--text);
         flex-direction: column;
         justify-content: center;
-        margin-left: 25px;
-        margin-top: 20px;
-        margin-bottom: 20px;
         padding-right: 10px;
         padding-left: 10px;
 }
@@ -89,7 +93,7 @@
 }
 .load {
 	        width: 20%;
-        height: 200%;
+        height: aut%;
         border: 5px var(--border) solid;
         background: var(--sec-bg);;
         display: flex;
@@ -177,11 +181,13 @@ button {
 #main a {
 	color: var(--follow) !important;
 }
+
 #navbar ul {
         left: 0;
         list-style-type: none;
         margin: 0;
         top: 0;
+	z-index:80;
         width: 100%;
         position: fixed;
 	border-bottom:2px var(--border) solid;
@@ -772,6 +778,7 @@ transform: translate(-50%, 0%) !important;
 	color:var(--text);
 	border:none;
 }
+
 #big-share {
 	background:none;
 	cursor:pointer;
@@ -824,6 +831,11 @@ transform: translate(-50%, 0%) !important;
 	justify-content:space-between;
 	color: var(--text);
 
+}
+.post-container {
+	height:auto;
+	margin:1.25%;
+	width:300px;
 }
 .big-tag {
 	border:1px var(--border) solid !important;
@@ -931,6 +943,7 @@ height:40%;
 	display:flex;
 	top:90%;
 	left:0%;
+	z-index:80;
 	bottom:0%;
 	justify-content:flex-start;
 	flex-wrap:wrap;

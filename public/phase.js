@@ -2,15 +2,49 @@ window.onload = function () {
 	var client = io("https://demenses.net:3000", {
 		secure: true
 	});
+	Muuri.defaultOptions.layout = {
+		fillGaps:true,
+		rounding:false
+	}
+	Muuri.defaultOptions.layoutDuration = 0;
 	var loggedin = {};
 	var resultsTag;
-	var homePage = new Muuri("#home");
+	var homePage = new Muuri(document.getElementById("home"), {
+	});
+	var feedPage = new Muuri(document.getElementById("posts"), {
+
+	});
+		var resultsPage = new Muuri(document.getElementById("results-posts"), {
+			
+	});
+	
+			var selfGrid = new Muuri(document.getElementById("resu"), {
+	});
+			var favGrid = new Muuri(document.getElementById("fav"), {
+			
+	});
+	console.log(homePage);
+	setInterval(homePage.layout, 1000);
 	var home_num = 10;
 	var cur_show = "home";
 	var resCur = false;
 	var bigPost = "";
 	var curBig = false;
 	var useYt = false;
+	function removeGrid(grid){
+		var its = grid.getItems();
+		if(its){
+			its = its.filter(function(x){
+				if(x._element.parentNode){
+					return true;
+				}else {
+					return false;
+				};
+			});
+			console.log(its);
+		grid.remove(its, {removeElements:true});
+		}
+	}
 	var enDub = false;
 	var pdate = function (posts) {
 		return function (p1, p2) {
@@ -858,7 +892,7 @@ window.onload = function () {
 			var banBut = document.createElement("button");
 			banBut.className = "ban-post";
 			banBut.type = "button";
-			chain.check_banned(post.uid, function (res) {
+			/*chain.check_banned(post.uid, function (res) {
 				if (res && !res.banned) {
 					banBut.innerHTML = "Ban User";
 				} else if (res) {
@@ -883,7 +917,7 @@ window.onload = function () {
 						});
 					}
 				});
-			});
+			});*/
 			//buttons.appendChild(banBut);
 		}
 		var bigBut = document.createElement("button");
@@ -1077,7 +1111,7 @@ window.onload = function () {
 		}
 	}
 
-	function makeLoad(toAppend, cb) {
+	function makeLoad(grid, cb) {
 		var load = document.createElement("div");
 		load.className = "load";
 		var button = document.createElement("button");
@@ -1087,14 +1121,17 @@ window.onload = function () {
 			cb(load, e);
 		});
 		load.appendChild(button);
-		toAppend.appendChild(load);
+		grid.add(load)
+	
 	}
 
 	function makeFake(text) {
 		var fake = document.createElement("div");
 		fake.className = "fake-post";
 		fake.innerHTML = text;
-		return fake;
+		var con = document.createElement("div");
+		con.appendChild(fake);
+		return con;
 	}
 
 	function dispPostsU(posts) {
@@ -1102,20 +1139,20 @@ window.onload = function () {
 		document.getElementById("resu").style.display = "block";
 		Object.keys(posts).forEach(function (key) {
 			var post = posts[key];
-			show_post(post, document.getElementById("resu"));
+			selfGrid.add(makePost(post));	
 		});
 	}
 	var mains = {
 		"home": function () {
 			home_num = 20;
 			var max = 0;
-			if (enDub) {
+			/*if (enDub) {
 				document.getElementById("home").style.display = "flex";
 			} else {
 				document.getElementById("home").style["margin-left"] = "0";
-			}
+			}*/
 			var gotter = {};
-			removeFrom(document.getElementById("home"));
+			removeGrid(homePage);
 			chain.get_top(function (posts) {
 				console.log(posts);
 				var sorted = Object.keys(posts).sort(function (post1, post2) {
@@ -1143,14 +1180,14 @@ window.onload = function () {
 						gotter[post.id] = true;
 						console.log(post);
 						if (post.title) {
-							show_post(post, document.getElementById("home"));
+							homePage.add([makePost(post)]);
 						}
 					}
 					inc++
 				});
 				if (sorted.length >= 10) {
 					max = 10;
-					makeLoad(document.getElementById("home"), function (load) {
+					makeLoad(homePage, function (load) {
 						console.log("LOADING MORE OF " + home_num + "|" + max + "|" +
 							sorted.length)
 						chain.get_top(function (posts) {
@@ -1186,10 +1223,10 @@ window.onload = function () {
 								console.log(post);
 								gotter[post.id] = true;
 								if (post.title) {
-									document.getElementById("home").insertBefore(makePost(post),
-										load);
+							homePage.add(makePost(post));	
 								}
 							});
+							homePage.move(load, -1);
 							max += sorted.length;
 							home_num += 100;
 						}, home_num + 20);
@@ -1324,40 +1361,46 @@ window.onload = function () {
 			});
 		},
 		"favs": function () {
-			removeFrom(document.getElementById("fav"));
-			document.getElementById("fav").appendChild(makeFake("No favorited posts!"));
+			//removeGrid(favGrid);
+			favGrid.add(makeFake("No favorited posts!"));
 			chain.get_favorites(function (favs) {
-				removeFrom(document.getElementById("fav"));
+
+			removeGrid(favGrid);
 				favs.forEach(function (fav) {
+					if(fav){
 					fav.favorited = true;
-					show_post(fav, document.getElementById("fav"));
+					favGrid.add(makePost(fav));
+					}
 				});
 				if (favs.length == 0) {
-					document.getElementById("fav").appendChild(makeFake(
-						"No favorited posts!"));
+
+
+			favGrid.add(makeFake("No favorited posts!"));
 				}
 			});
 		},
 		"feed": function () {
 			var max_feed = 20;
 			var postI = document.getElementById("posts");
-			removeFrom(postI);
+			//removeGrid(feedPage);
 			var coll = {};
 			var max = 0; //eslint-disable-line
-			postI.appendChild(makeFake("No found posts!"));
+			feedPage.add(makeFake("No found posts!"));
 			chain.get_feed(function (posts) {
 				console.log("GOT FEED POSTS");
-				removeFrom(postI);
+
+			removeGrid(feedPage);
 				Object.keys(posts).sort(pdate(posts)).forEach(function (key) {
 					coll[key] = true;
-					show_post(posts[key], postI);
+					feedPage.add(makePost(posts[key]));
 				});
 				max += Object.keys(posts).length;
 				if (Object.keys(posts).length == 0) {
-					postI.appendChild(makeFake("No found posts!"));
+
+			feedPage.add(makeFake("No found posts!"));
 				}
 				if (Object.keys(posts).length >= 10) {
-					makeLoad(postI, function (load) {
+					makeLoad(feedPage, function (load) {
 						console.log("getting");
 						chain.get_feed(function (posts2) {
 							var arr = Object.keys(posts2);
@@ -1512,7 +1555,8 @@ window.onload = function () {
 		var max = 0; //eslint-disable-line
 		chain.get_cur_posts(cur, function (posts) {
 			console.log("CUR POSTS CALLED");
-			removeFrom(document.getElementById("results-posts"));
+	
+			removeGrid(resultsPage);
 			removeFrom(document.getElementById("cur-mod-tags-list"));
 			document.getElementById("results").style.display = "block";
 			hideall();
@@ -1522,18 +1566,18 @@ window.onload = function () {
 				max++;
 				console.log("CUR:");
 				console.log(posts);
-				show_post(post, document.getElementById("results-posts"));
+				resultsPage.add(makePost(post));
 			});
 			if (Object.keys(posts).length >= 10) {
-				makeLoad(document.getElementById("results-posts"), function (load) {
+				makeLoad(resultsPage, function (load) {
 					chain.get_cur_posts(cur, function (posts2) {
 						var arr = Object.keys(posts2);
 						arr.forEach(function (key) {
 							if (!coll[key]) {
 								max++;
 								coll[key] = true;
-								document.getElementById("results-posts").insertBefore(makePost(
-									posts2[key]), load);
+								resultsPage.add(makePost(
+									posts2[key]));
 							}
 						});
 						max_res += 20;
@@ -1581,6 +1625,7 @@ window.onload = function () {
 			});
 			resCur = true;
 			resultsTag = cur;
+			resultsPage.layout();
 			checkRes();
 		}, 20);
 	}
@@ -1609,7 +1654,7 @@ window.onload = function () {
 		var max = 0; //eslint-disable-line
 		console.log("trigged tag");
 		chain.get_posts("tag", [tag], function (posts) {
-			removeFrom(document.getElementById("results-posts"));
+			removeGrid(resultsPage);
 			console.log(":TUREND ON RESULTS");
 			document.getElementById("results").style.display = "block";
 			hideall();
@@ -1618,10 +1663,10 @@ window.onload = function () {
 				var post = posts[key];
 				coll[key] = true;
 				max++;
-				show_post(post, document.getElementById("results-posts"));
+				resultsPage.add(makePost(post));
 			});
 			if (Object.keys(posts).length >= 10) {
-				makeLoad(document.getElementById("results-posts"), function (load) {
+				makeLoad(resultsPage, function (load) {
 					chain.get_posts("tag", [tag], function (posts2) {
 						var arr = Object.keys(posts2);
 						arr.forEach(function (key) {
@@ -1642,6 +1687,7 @@ window.onload = function () {
 			resultsTag = tag;
 			resCur = false;
 			console.log("TOTAL TAG: ") + tag;
+			resultsPage.layout();
 			checkRes();
 		}, 20);
 	}
