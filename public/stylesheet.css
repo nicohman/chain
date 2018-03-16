@@ -1011,4 +1011,8 @@ height:40%;
     #tags-find {
     	margin-top:20% !important;
     }
+
+	.post-container {
+		width:100%;
+	}
 }

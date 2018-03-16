@@ -726,7 +726,7 @@ window.onload = function () {
 		}
 	}
 
-	function createContent(content, toAppend) {
+	function createContent(content, toAppend, grid) {
 		var e = checkUrl(content.trim());
 		var res = e.res;
 		var img;
@@ -753,13 +753,20 @@ window.onload = function () {
 		}
 		toAppend.innerHTML = links.replace("\n", "<br>");
 		if (img) {
+			img.addEventListener("loadend", function () {
+				if(grid){
+					console.log("layoutting");
+					grid.layout();
+				}
+			});
+			img.alt = "An image should be here, but is not.";
 			toAppend.appendChild(img);
 			img.src = ilink
-			img.onload = function () {}
+
 		}
 	}
 
-	function makePost(post) {
+	function makePost(post, grid) {
 		if (!post.title) {
 			return;
 		}
@@ -779,7 +786,7 @@ window.onload = function () {
 		if (post.content) {
 			var content = document.createElement("div");
 			content.className = "post-content";
-			createContent(post.content, content);
+			createContent(post.content, content, grid);
 		}
 		var bar = document.createElement("div");
 		bar.className = "post-bar";
@@ -1118,7 +1125,13 @@ window.onload = function () {
 		button.className = "load-button";
 		button.innerHTML = "Load More";
 		button.addEventListener("click", function (e) {
-			cb(load, e);
+
+			cb(load, function(){
+						grid.layout();
+			grid.move(load, -1);
+
+			}, e);
+
 		});
 		load.appendChild(button);
 		grid.add(load)
@@ -1139,7 +1152,7 @@ window.onload = function () {
 		document.getElementById("resu").style.display = "block";
 		Object.keys(posts).forEach(function (key) {
 			var post = posts[key];
-			selfGrid.add(makePost(post));	
+			selfGrid.add(makePost(post, selfGrid));	
 		});
 	}
 	var mains = {
@@ -1180,14 +1193,14 @@ window.onload = function () {
 						gotter[post.id] = true;
 						console.log(post);
 						if (post.title) {
-							homePage.add([makePost(post)]);
+							homePage.add([makePost(post, homePage)]);
 						}
 					}
 					inc++
 				});
 				if (sorted.length >= 10) {
 					max = 10;
-					makeLoad(homePage, function (load) {
+					makeLoad(homePage, function (load, cb) {
 						console.log("LOADING MORE OF " + home_num + "|" + max + "|" +
 							sorted.length)
 						chain.get_top(function (posts) {
@@ -1223,10 +1236,10 @@ window.onload = function () {
 								console.log(post);
 								gotter[post.id] = true;
 								if (post.title) {
-							homePage.add(makePost(post));	
+							homePage.add(makePost(post, homePage));	
 								}
 							});
-							homePage.move(load, -1);
+							cb();
 							max += sorted.length;
 							home_num += 100;
 						}, home_num + 20);
@@ -1369,7 +1382,7 @@ window.onload = function () {
 				favs.forEach(function (fav) {
 					if(fav){
 					fav.favorited = true;
-					favGrid.add(makePost(fav));
+					favGrid.add(makePost(fav, favGrid));
 					}
 				});
 				if (favs.length == 0) {
@@ -1392,7 +1405,7 @@ window.onload = function () {
 			removeGrid(feedPage);
 				Object.keys(posts).sort(pdate(posts)).forEach(function (key) {
 					coll[key] = true;
-					feedPage.add(makePost(posts[key]));
+					feedPage.add(makePost(posts[key], feedPage));
 				});
 				max += Object.keys(posts).length;
 				if (Object.keys(posts).length == 0) {
@@ -1400,14 +1413,14 @@ window.onload = function () {
 			feedPage.add(makeFake("No found posts!"));
 				}
 				if (Object.keys(posts).length >= 10) {
-					makeLoad(feedPage, function (load) {
+					makeLoad(feedPage, function (load, cb) {
 						console.log("getting");
 						chain.get_feed(function (posts2) {
 							var arr = Object.keys(posts2);
 							console.log(posts2);
 							console.log("_");
 							console.log(posts);
-							arr.sort(pdate(posts));
+							arr.sort(pdate(posts2));
 							arr.forEach(function (key) {
 								if (coll[key]) {
 									console.log(key);
@@ -1415,9 +1428,10 @@ window.onload = function () {
 									max++;
 									console.log("DISPLAYING");
 									coll[key] = true;
-									postI.insertBefore(makePost(posts2[key]), load);
+									feedPage.add(makePost(posts2[key], feedPage));
 								}
 							});
+							cb()
 							max_feed += 20;
 						}, max_feed + 20);
 					});
@@ -1566,10 +1580,10 @@ window.onload = function () {
 				max++;
 				console.log("CUR:");
 				console.log(posts);
-				resultsPage.add(makePost(post));
+				resultsPage.add(makePost(post, resultsPage));
 			});
 			if (Object.keys(posts).length >= 10) {
-				makeLoad(resultsPage, function (load) {
+				makeLoad(resultsPage, function (loa, cbd) {
 					chain.get_cur_posts(cur, function (posts2) {
 						var arr = Object.keys(posts2);
 						arr.forEach(function (key) {
@@ -1577,9 +1591,10 @@ window.onload = function () {
 								max++;
 								coll[key] = true;
 								resultsPage.add(makePost(
-									posts2[key]));
+									posts2[key], resultsPage));
 							}
 						});
+						cb()
 						max_res += 20;
 					}, max_res + 20);
 				});
@@ -1663,10 +1678,10 @@ window.onload = function () {
 				var post = posts[key];
 				coll[key] = true;
 				max++;
-				resultsPage.add(makePost(post));
+				resultsPage.add(makePost(post, resultsPage));
 			});
 			if (Object.keys(posts).length >= 10) {
-				makeLoad(resultsPage, function (load) {
+				makeLoad(resultsPage, function (load, cb) {
 					chain.get_posts("tag", [tag], function (posts2) {
 						var arr = Object.keys(posts2);
 						arr.forEach(function (key) {
@@ -1676,10 +1691,12 @@ window.onload = function () {
 								max++;
 								console.log("DISPLAYING");
 								coll[key] = true;
-								document.getElementById("results-posts").insertBefore(makePost(
-									posts2[key]), load);
+								resultsPage.add(makePost(posts2[key], resultsPage));
+								//document.getElementById("results-posts").insertBefore(makePost(
+							//		posts2[key]), load);
 							}
 						});
+						cb()
 						max_res += 20;
 					}, max_res + 20);
 				});
