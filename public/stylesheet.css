@@ -336,6 +336,9 @@ body {
 	left:50%;
 	transform:translate(-50%,-100%);
 }
+.follow-col {
+	color:var(--follow);
+}
 #cur-seperator ul {
         margin-left: 5px;
         list-style-position: outside;

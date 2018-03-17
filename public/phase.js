@@ -592,7 +592,8 @@ window.onload = function () {
 	function createComment(comment, post, commentsCon) {
 		var el = document.createElement("li");
 		el.className = "comment";
-		el.innerHTML = comment.content;
+		var cont = onlyLinks(comment.content);
+		el.innerHTML = cont;
 		var au = document.createElement("span");
 		au.className = "comment-author";
 		var auT = comment.auth;
@@ -725,8 +726,19 @@ window.onload = function () {
 			return "";
 		}
 	}
+	function onlyLinks(content){
+		var res = /(https*:\/\/\S+\.\S+)/;
+		var repl = content.replace(res, function(match){
+			return "<a target='_blank' class='follow-col' href='"+match+"'>"+match+"</a>";
+		});
+		if(repl){
+			return repl;
+		} else {
+			return "";
+		}
 
-	function createContent(content, toAppend, grid) {
+	}
+	function createContent(content, toAppend, grid, alt) {
 		var e = checkUrl(content.trim());
 		var res = e.res;
 		var img;
@@ -755,11 +767,19 @@ window.onload = function () {
 		if (img) {
 			img.addEventListener("loadend", function () {
 				if(grid){
-					console.log("layoutting");
-					grid.layout();
+					setTimeout(function(){
+						console.log(grid);
+						console.log("refreshing");
+						grid.refreshItems();
+					}, 75);
 				}
 			});
-			img.alt = "An image should be here, but is not.";
+			img.addEventListener("error", function(){
+				img.alt = ilink;
+			});
+			if(alt){
+				img.alt = alt;
+			}
 			toAppend.appendChild(img);
 			img.src = ilink
 
@@ -786,7 +806,7 @@ window.onload = function () {
 		if (post.content) {
 			var content = document.createElement("div");
 			content.className = "post-content";
-			createContent(post.content, content, grid);
+			createContent(post.content, content, grid, post.alt);
 		}
 		var bar = document.createElement("div");
 		bar.className = "post-bar";
@@ -1006,7 +1026,10 @@ window.onload = function () {
 			var bigCont = document.getElementById("big-content");
 			var bImg = document.getElementById("big-img");
 			if (img) {
-				bImg.src = ilink
+				bImg.src = ilink;
+				if(post.alt){
+					bImg.alt = post.alt;
+				}
 			}
 			if (links.length > 0) {
 				if(links.length < 240){
@@ -1583,7 +1606,7 @@ window.onload = function () {
 				resultsPage.add(makePost(post, resultsPage));
 			});
 			if (Object.keys(posts).length >= 10) {
-				makeLoad(resultsPage, function (loa, cbd) {
+				makeLoad(resultsPage, function (loa, cb) {
 					chain.get_cur_posts(cur, function (posts2) {
 						var arr = Object.keys(posts2);
 						arr.forEach(function (key) {

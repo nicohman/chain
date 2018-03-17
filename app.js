@@ -186,7 +186,7 @@ function fulfill(name, condition, func, auth, amal, easy) {
 }
 var time = moment(fs.readFileSync("/home/nicohman/.demenses/timer"), 'x');
 var lastYts = require("/home/nicohman/.demenses/lastyts.json");
-var lastX = require("/home/nicohman/.demenses/lastX")
+var lastX = fs.readFileSync("/home/nicohman/.demenses/lastX");
 if (!lastYts) {
 	lastYts = {};
 }
@@ -338,12 +338,16 @@ function checkX() {
 					content: data.img,
 					auth: "xkcd_bot",
 					uid: uid,
+					alt:data.alt,
 					tags: ["xkcd", "bot", "comics"]
 				});
 				lastX = data.num;
 				fs.writeFile("/home/nicohman/.demenses/lastX", data.num, function () {
 					console.log("XKCD Last updated!");
 				});
+			} else {
+				console.log("NO XKCD")
+				console.log(data.num +""+lastX) ;
 			}
 		})
 	});
@@ -645,6 +649,7 @@ function createPost(post) {
 		id: id,
 		title: san.escape(post.title),
 		auth: auth,
+		alt:post.alt,
 		color: color,
 		uid: post.uid,
 		date: Date.now(),
@@ -2552,7 +2557,7 @@ if (process.argv[2] == "1") {
 	setTimeout(checkMe, 1000);
 	setTimeout(checkYt, 2000);
 	setTimeout(checkX, 3000);
-	setInterval(checkX, 1200000)
+	setInterval(checkX, 60000)
 	setInterval(checkYt, 1200000);
 	setInterval(checkMe, 60000)
 }
