@@ -15,13 +15,13 @@ window.onload = function () {
 
 	});
 		var resultsPage = new Muuri(document.getElementById("results-posts"), {
-			
+
 	});
-	
+
 			var selfGrid = new Muuri(document.getElementById("resu"), {
 	});
 			var favGrid = new Muuri(document.getElementById("fav"), {
-			
+
 	});
 	console.log(homePage);
 	setInterval(homePage.layout, 1000);
@@ -310,6 +310,17 @@ window.onload = function () {
 					cb(me);
 				});
 			}
+		},
+		delete_curation: function (cur, cb){
+			client.emit("c_delete_curation", {
+				cur:cur,
+				cid:client.id,
+				token:token
+			});
+			client.once("c_deleted_curation", function(res){
+				console.log(res);
+				cb(res)
+			});
 		},
 		get_favorites: function get_favorites(cb) {
 			if (loggedin.uid && token) {
@@ -1158,7 +1169,7 @@ window.onload = function () {
 		});
 		load.appendChild(button);
 		grid.add(load)
-	
+
 	}
 
 	function makeFake(text) {
@@ -1175,7 +1186,7 @@ window.onload = function () {
 		document.getElementById("resu").style.display = "block";
 		Object.keys(posts).forEach(function (key) {
 			var post = posts[key];
-			selfGrid.add(makePost(post, selfGrid));	
+			selfGrid.add(makePost(post, selfGrid));
 		});
 	}
 	var mains = {
@@ -1259,7 +1270,7 @@ window.onload = function () {
 								console.log(post);
 								gotter[post.id] = true;
 								if (post.title) {
-							homePage.add(makePost(post, homePage));	
+							homePage.add(makePost(post, homePage));
 								}
 							});
 							cb();
@@ -1592,7 +1603,7 @@ window.onload = function () {
 		var max = 0; //eslint-disable-line
 		chain.get_cur_posts(cur, function (posts) {
 			console.log("CUR POSTS CALLED");
-	
+
 			removeGrid(resultsPage);
 			removeFrom(document.getElementById("cur-mod-tags-list"));
 			document.getElementById("results").style.display = "block";
@@ -2199,6 +2210,14 @@ window.onload = function () {
 						notify("Couldn't delete post");
 					}
 				});
+			});
+			document.getElementById("delete-cur").addEventListener("click", function(){
+				if(resCur && resultsTag){
+					chain.delete_curation(resultsTag, function(){
+						notify("Deleted curation "+resultsTag);
+						reloadCur();
+					});
+				}
 			});
 			document.getElementById("results-unfollow").addEventListener("click",
 				function () {

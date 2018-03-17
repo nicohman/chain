@@ -1201,6 +1201,22 @@ var favsUpdate = new fulfill("update_favs", function (req) {
 	}
 	return true;
 }, false, "once", true);
+var delete_curation = new fulfill("delete_curation", function(req){
+	if(curations[req.cur]){
+		return true;
+	} else {
+		return false;
+	}
+}, function(req){
+	if(req.uid == curations[req.cur].own){
+		delete curations[req.cur];
+		take_cur_own({cid:req.cur, token:req.token}, function(){});
+		updateCurs(curations[req.cur]);
+		return true;
+	} else {
+		return false;
+	}
+}, true, "once", true);
 var delete_comment = new fulfill("delete_comment", function (req) {
 	return posts[req.pid];
 }, function (req) {
@@ -1431,6 +1447,16 @@ var add_cur_own = new fulfill("add_cur_own", function (req) {
 	return false;
 }, function (req) {
 	users[req.uid].curations_owned[req.cid] = true;
+	updateUsers(users[req.uid]);
+	return true;
+}, true, "once", true);
+var take_cur_own = new fulfill("take_cur_own", function (req) {
+	if (users[req.uid]) {
+		return users[req.uid]
+	}
+	return false;
+}, function (req) {
+	users[req.uid].curations_owned[req.cid] = false;
 	updateUsers(users[req.uid]);
 	return true;
 }, true, "once", true);
@@ -2055,6 +2081,28 @@ var serv_handles = {
 			//	});
 		}
 	},
+	"delete_curation":delete_curation,
+	"c_delete_curation":function(req){
+		if(logged[req.cid]){
+			jwt.verify(req.token, secret, function(err, decode){
+				if(!err){
+					get_curation_by_name(req.cur, function(cur){
+						if(cur.own == decode.uid){
+							delete_curation.easy({token:req.token, cur:req.cur}, function(res){
+								io.to(req.cid).emit("c_deleted_curation", res);
+							});
+						} else {
+							io.to(req.cid).emit("c_deleted_curation", false);
+						}
+					});
+				} else {
+					io.to(req.cid).emit("c_deleted_curation", false);
+				}
+
+			});
+
+		}
+	},
 	"delete_post": deletePost,
 	"c_delete_post": function (req) {
 		jwt.verify(req.token, secret, function (err, decode) {
@@ -2393,6 +2441,7 @@ var serv_handles = {
 			}
 		})
 	},
+	"take_cur_own":take_cur_own,
 	"c_get_post_by_id": function (req) {
 		get_post_by_id(req.pid, function (res) {
 			if (logged[req.cid]) {
