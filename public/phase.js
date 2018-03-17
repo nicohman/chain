@@ -657,7 +657,16 @@ window.onload = function () {
 			createComment(comment, post, commentsCon);
 		});
 	}
-
+	function upGrid(grid){
+		var eles = grid.getItems();
+		eles.forEach(function(ele){
+			var id = ele.getElementsByClassName("post-id")[0].innerHTML;
+			chain.get_post_by_id(id, function(post){
+				var madePost = makePost(post);
+				ele.outerHTML = madePost.outerHTML;
+			})
+		});
+	}
 	function checkUrl(url) {
 		var res = /(https*:\/\/\S+\.\S+)/
 		var is = url.match(res);
@@ -1498,7 +1507,14 @@ window.onload = function () {
 				show_big_post(res);
 			});
 		} else {
-			showblocking(cur_show);
+			switch(cur_show){
+				case 'home':
+					upGrid(homePage);
+					break;
+				default:
+				showblocking(cur_show);
+break;
+			}
 		}
 	}
 
