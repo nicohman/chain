@@ -2359,7 +2359,15 @@ var serv_handles = {
 							});
 						} else {
 							console.log("does not own curation");
-							io.to(req.cid).emit("c_got_cur_mod_" + req.cur, false);
+							//io.to(req.cid).emit("c_got_cur_mod_" + req.cur, false);
+							get_curation_by_name(req.cur, function(cur){
+															io.to(req.cid).emit("c_got_cur_mod_" + req.cur, {
+
+									favs: cur.favs
+								});
+
+							
+							});
 						}
 					})
 				}

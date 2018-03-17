@@ -188,6 +188,7 @@ button {
         margin: 0;
         top: 0;
 	z-index:80;
+	margin-bottom:5%;
         width: 100%;
         position: fixed;
 	border-bottom:2px var(--border) solid;
