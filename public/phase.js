@@ -485,7 +485,7 @@ window.onload = function () {
 				cid: client.id,
 				pid: id
 			});
-			client.once("c_got_post_by_id", cb);
+			client.once("c_got_post_by_id_"+id, cb);
 		},
 		sticky: function (pid, cb) {
 			client.emit("c_sticky", {
@@ -659,12 +659,23 @@ window.onload = function () {
 	}
 	function upGrid(grid){
 		var eles = grid.getItems();
-		eles.forEach(function(ele){
-			var id = ele.getElementsByClassName("post-id")[0].innerHTML;
-			chain.get_post_by_id(id, function(post){
+		eles.forEach(function(ele, ind){
+			console.log(ele);
+			var id = ele._element.children.item(0).children.item(4).innerHTML;
+				if(id.length > 0){
+					console.log(id);
+			 			chain.get_by_id(id, function(post){
+							if(post){
+				console.log(post);
 				var madePost = makePost(post);
-				ele.outerHTML = madePost.outerHTML;
+				grid.add(madePost);
+				grid.remove(ele, {removeElements:true});
+				grid.move(madePost, ind)
+							} else {
+								grid.remove(ele, {removeElements:true});
+							}
 			})
+				}
 		});
 	}
 	function checkUrl(url) {
@@ -1510,6 +1521,12 @@ window.onload = function () {
 			switch(cur_show){
 				case 'home':
 					upGrid(homePage);
+					break;
+				case "feed":
+					upGrid(feedPage);
+					break;
+				case "favs":
+					upGrid(favGrid);
 					break;
 				default:
 				showblocking(cur_show);

@@ -2457,7 +2457,7 @@ var serv_handles = {
 					res.favorited = true;
 				}
 			}
-			io.to(req.cid).emit("c_got_post_by_id", res);
+			io.to(req.cid).emit("c_got_post_by_id_"+req.pid, res);
 		});
 	},
 	"create_post": createPost,
