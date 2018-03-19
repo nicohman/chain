@@ -817,7 +817,16 @@ window.onload = function () {
 
 		}
 	}
-
+	function refreshPost(post, grid){
+		var id = post.getElementsByClassName("post-id")[0].innerHTML;
+		if(id){
+			chain.get_by_id(id, function(p){
+				post.outerHTML = makePost(p, grid);
+			});	
+		} else {
+			console.log("Invalid post element!");
+		}
+	}
 	function makePost(post, grid) {
 		if (!post.title) {
 			return;
@@ -1302,6 +1311,16 @@ window.onload = function () {
 				}
 			}, 40);
 		},
+		"notifications":function(){
+			refreshNotifs(function(notifs){
+				removeFrom(document.getElementById("notif-div"));
+				notifs.forEach(function(not){
+					document.getElementById("notif-div").appendChild(makeNotification(not));
+				});
+			});
+
+		
+		},
 		"curations": function () {
 			removeFrom(document.getElementById("fol-curs"));
 			var li = document.createElement("li");
@@ -1534,7 +1553,36 @@ break;
 			}
 		}
 	}
-
+	function makeNotification (not){
+		var notif = document.createElement("div");
+		var notTitle = document.createElement("div");
+		var buttons = document.createElement("div");
+		var read = document.createElement("button");
+		read.type = "button";
+		read.className = "read-button";
+		read.innerHTML = "Mark as Read";
+		notif.className = "notification";
+		notTitle.className = "notif-title";
+		buttons.appendChild(read);
+		notif.appendChild(notTitle);
+		notif.appendChild(notContent);
+		notif.appendChild(buttons);
+	}
+	function refreshNotifs(cb){
+		chain.get_notifs(function(notifs){
+			var nSpans = document.getElementsByClassName("notif-num");
+			for(var i = 0; i < nSpans.length; i++){
+				nSpans.item(i).innerHTML = notifs.length;
+			}
+			if(notifs.length > totNot){
+				notify("You have "+notifs.length - totNot+" new notifications!");
+			}
+			totNot = notifs.length;
+			if(cb){
+				cb(notifs);
+			}
+		});
+	}
 	function logout() {
 		var ls = document.getElementsByClassName("loggedout");
 		var li = document.getElementsByClassName("loggedin");

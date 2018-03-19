@@ -21,7 +21,7 @@
 				<li><a href="#favs" class="nav">Favorites</a></li>
 				<li><a href="#curations" class="nav">Curations</a></li>
 				<li id="manage-curs-nav"><a href="#manage" class="nav" >Manage Curations</a></li>
-				<li class="loggedin"><a href="#settings" class="nav username">Couldn't retrieve username</a></li>
+				<li class="loggedin"><a href="#settings" class="nav username">Couldn't retrieve username</a><button id="notif-button" type="button" class="notif-num">0</button></li>
 				<li class="loggedin"><a href="#logout" id="logout">Log out</a></li>
 				<li class="loggedout"><a href="login.html">Log in</a></li>
 			</ul>
@@ -30,6 +30,12 @@
 			<img class="large-logo" src="/logo.png" id="stay" alt="">
 			<img class="small-logo" src="/small.png" id="small-l" alt="">
 			<div id="home">
+			</div>
+			<div id="notifications">
+				<div id="notif-cont" class="centered main-con">
+					<div id="notif-label">You have <span class="notif-num">0</span> Notifications</div>
+					<div id="notif-div"></div>
+				</div>
 			</div>
 			<div id="settings" >
 				<div class="centered main-con">
@@ -325,8 +331,7 @@
 				<button id="copy-x" type="button">x</button>
 				<div id="copy-fill"></div>
 			</div>
-			<div id="notifications">
-			</div>
+
 			<div id="about"><a href="/info.html">About Demenses</a></div>
 	</body>
 
