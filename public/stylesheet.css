@@ -214,7 +214,11 @@ a {
 .post-bar div {
         padding: 0 5px 0 5px;
 }
-
+#notif-button {
+	background:none;
+	color:var(--text);
+	border:none;
+}
 #navbar .loggedin {
 
         margin-left: auto;

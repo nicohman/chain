@@ -268,6 +268,14 @@ window.onload = function () {
 				name: name
 			});
 			client.once("c_created_curation", cb);
+		
+		},
+		get_notifs:function(cb){
+			chain.emit("c_get_notifs", {
+				cid:client.id,
+				token:token
+			});
+			chain.once("c_got_notifs", cb);
 		},
 		add_comment: function (content, id, cb) {
 			client.emit("c_add_comment", {
@@ -796,7 +804,7 @@ window.onload = function () {
 		}
 		toAppend.innerHTML = links.replace("\n", "<br>");
 		if (img) {
-			img.addEventListener("loadend", function () {
+			img.addEventListener("load", function () {
 				if(grid){
 					setTimeout(function(){
 						console.log(grid);
@@ -1473,6 +1481,10 @@ window.onload = function () {
 				}
 			});
 		},
+		"notifications":function(){
+			removeFrom(document.getElementById("notif-div"));
+			chain.get
+		},
 		"feed": function () {
 			var max_feed = 20;
 			var postI = document.getElementById("posts");
@@ -2068,6 +2080,9 @@ break;
 				logout()
 				localStorage.removeItem("auth_token");
 				location.reload();
+			});
+			document.getElementById("notify-button").addEventListener("click", function(){
+				showblocking("notifications");
 			});
 			document.getElementById("createformtags").addEventListener("submit",
 				function (e) {
