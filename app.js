@@ -1385,6 +1385,55 @@ var unfavorite = new fulfill("unfavorite", function (req) {
 	}, function () {});
 	return true;
 }, true, "once", true);
+var add_notif = new fulfill("add_notif", function(req){
+	if(users[req.uid]){
+		return users[req.uid].original;
+	}
+	return false;
+
+}, function(req){
+	console.log("notif");
+	var id = hash(req.notif.title + req.notif.content + req.uid);
+	if(users[req.uid].notifs){
+		users[req.uid].notifs[id] = req.notif
+	} else {
+		users[req.uid].notifs = {
+			id:req.notif
+		}
+	}
+	updateUsers(users[req.uid]);
+	return true;
+}, true, "once", true);
+var rm_notif = new fulfill("rm_notif", function(req){
+
+	if(users[req.uid]){
+			return users[req.uid].original;
+	}
+	return false;
+
+}, function(req){
+	if(users[req.uid].notifs){
+		delete users[req.uid].notifs[req.nid];
+	}
+	console.log(users[req.uid].notifs);
+	console.log(req.nid);
+	updateUsers(users[req.uid]);
+	return true;
+}, true, "once", true);
+var get_notifs = new fulfill("get_notifs", function(req){
+	if(users[req.uid]){
+		return users[req.uid].original;
+	}
+	return false;
+}, function(req){
+	if(users[req.uid].notifs){
+		return users[req.uid].notifs;
+	} else {
+		users[req.uid].notifs = {};
+		updateUsers(users[req.uid]);
+		return {}
+	}
+}, true, "once", true);
 var add_comment = new fulfill("add_comment", function (req) {
 	if (posts[req.pid]) {
 		return posts[req.pid];
@@ -1787,6 +1836,21 @@ var serv_handles = {
 			}
 		});
 	},
+	"add_notif":add_notif,
+	"rm_notif":rm_notif,
+	"c_rm_notif":function(req){
+		jwt.verify(req.token, secret, function(err, dec){
+			if(err){
+				console.log("TOKEN ERROR");
+			io.to(req.cid).emit("c_rmed_notif_"+req.id, false);
+			} else {
+				rm_notif.easy({token:req.token, nid:req.id}, function(res){
+					io.to(req.cid).emit("c_rmed_notif_"+req.id, res);
+				});
+			}
+		});
+	},
+	"get_notifs":get_notifs,
 	"c_unban": function (req) {
 		jwt.verify(req.token, secret, function (err, dec) {
 			if (!err) {
@@ -2460,6 +2524,20 @@ var serv_handles = {
 			io.to(req.cid).emit("c_got_post_by_id_"+req.pid, res);
 		});
 	},
+	"c_get_notifs":function(req){
+		jwt.verify(req.token, secret, function(err, dec){
+
+			if(err){
+				io.to(req.cid).emit("c_got_notifs", false);
+			} else {
+
+			console.log(dec);
+				get_notifs.easy({token:req.token}, function(res){
+					io.to(req.cid).emit("c_got_notifs", res);
+				});
+			}
+		});
+	},
 	"create_post": createPost,
 	"add_neighbor": function (toAdd) {
 		console.log("NEIGHBOR ADDING");
@@ -2614,6 +2692,9 @@ if (process.argv[2] == "1") {
 	setTimeout(checkMe, 1000);
 	setTimeout(checkYt, 2000);
 	setTimeout(checkX, 3000);
+	setTimeout(function(){
+		console.log("ADD");
+	}, 4000);
 	setInterval(checkX, 60000)
 	setInterval(checkYt, 1200000);
 	setInterval(checkMe, 60000)

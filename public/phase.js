@@ -271,11 +271,11 @@ window.onload = function () {
 		
 		},
 		get_notifs:function(cb){
-			chain.emit("c_get_notifs", {
+			client.emit("c_get_notifs", {
 				cid:client.id,
 				token:token
 			});
-			chain.once("c_got_notifs", cb);
+			client.once("c_got_notifs", cb);
 		},
 		add_comment: function (content, id, cb) {
 			client.emit("c_add_comment", {
@@ -343,6 +343,14 @@ window.onload = function () {
 			} else {
 				console.log("not logged in");
 			}
+		},
+		rm_notif:function (id, cb){
+			client.emit("c_rm_notif", {
+				cid:client.id,
+				token:token,
+				id:id
+			});
+			client.once("c_rmed_notif_"+id, cb);
 		},
 		createUser: function createUser(username, password, cb) {
 			if (!loggedin.uid) {
@@ -1320,6 +1328,7 @@ window.onload = function () {
 			}, 40);
 		},
 		"notifications":function(){
+			console.log("SHOWING NOTIFIcATIONS");
 			refreshNotifs(function(notifs){
 				removeFrom(document.getElementById("notif-div"));
 				notifs.forEach(function(not){
@@ -1481,10 +1490,7 @@ window.onload = function () {
 				}
 			});
 		},
-		"notifications":function(){
-			removeFrom(document.getElementById("notif-div"));
-			chain.get
-		},
+
 		"feed": function () {
 			var max_feed = 20;
 			var postI = document.getElementById("posts");
@@ -1570,24 +1576,40 @@ break;
 		var notTitle = document.createElement("div");
 		var buttons = document.createElement("div");
 		var read = document.createElement("button");
+		var notContent = document.createElement("div");
 		read.type = "button";
 		read.className = "read-button";
 		read.innerHTML = "Mark as Read";
 		notif.className = "notification";
 		notTitle.className = "notif-title";
+		notContent.innerHTML = not.content;
+		notTitle.innerHTML = not.title;
+		read.addEventListener("click", function(){
+			console.log("rming");
+			chain.rm_notif(not.id, function(res){
+
+				reloadCur();
+			});	
+		});
 		buttons.appendChild(read);
 		notif.appendChild(notTitle);
 		notif.appendChild(notContent);
 		notif.appendChild(buttons);
+		return notif;
 	}
+	var totNot =  0
 	function refreshNotifs(cb){
+		console.log("GETTING NOTIFS");
 		chain.get_notifs(function(notifs){
+			notifs = Object.keys(notifs).map(function(x){
+				return notifs[x];
+			});
 			var nSpans = document.getElementsByClassName("notif-num");
 			for(var i = 0; i < nSpans.length; i++){
 				nSpans.item(i).innerHTML = notifs.length;
 			}
 			if(notifs.length > totNot){
-				notify("You have "+notifs.length - totNot+" new notifications!");
+				notify("You have "+(notifs.length - totNot)+" new notifications!");
 			}
 			totNot = notifs.length;
 			if(cb){
@@ -2081,7 +2103,7 @@ break;
 				localStorage.removeItem("auth_token");
 				location.reload();
 			});
-			document.getElementById("notify-button").addEventListener("click", function(){
+			document.getElementById("notif-button").addEventListener("click", function(){
 				showblocking("notifications");
 			});
 			document.getElementById("createformtags").addEventListener("submit",

@@ -643,12 +643,6 @@ transform: translate(-50%, 0%) !important;
         font-size: large;
 }
 
-#notifications {
-        position: fixed;
-        bottom: 0;
-        right: 0;
-}
-
 .notification {}
 
 .fake-post {
