@@ -84,6 +84,7 @@ function fulfill(name, condition, func, auth, amal, easy) {
 							cb(res)
 						} else if (done >= 2) {
 							cb(false);
+							console.log("TOO MANY RRES");
 							never(name + req.id);
 						}
 						break;
@@ -118,6 +119,7 @@ function fulfill(name, condition, func, auth, amal, easy) {
 			} else if (adjacent[flip(getDir(req.from))]) {
 				passAlong(name, req);
 			} else {
+				console.log("Hit end, going back");
 				onedir(name + req.id, false, getDir(req.from));
 			}
 		}
@@ -141,6 +143,7 @@ function fulfill(name, condition, func, auth, amal, easy) {
 							others();
 						}
 					} else {
+						console.log("BAD TOKEN");
 						if (cb) {
 							cb(false);
 						} else {
@@ -149,6 +152,7 @@ function fulfill(name, condition, func, auth, amal, easy) {
 					}
 				});
 			} else {
+				console.log("NO TOKEN");
 				if (cb) {
 					cb(false)
 				} else {
@@ -1386,26 +1390,30 @@ var unfavorite = new fulfill("unfavorite", function (req) {
 	return true;
 }, true, "once", true);
 var add_notif = new fulfill("add_notif", function(req){
-	if(users[req.uid]){
-		return users[req.uid].original;
+	if(users[req.Tuid]){
+		return users[req.Tuid].original;
+	} else {
+		console.log("no");
+		console.log(req.Tuid);
 	}
 	return false;
 
 }, function(req){
 	console.log("notif");
-	var id = hash(req.notif.title + req.notif.content + req.uid);
-	if(users[req.uid].notifs){
-		users[req.uid].notifs[id] = req.notif
+	var id = hash(req.notif.title + req.notif.content + req.Tuid);
+	if(users[req.Tuid].notifs){
+		users[req.Tuid].notifs[id] = req.notif
 	} else {
-		users[req.uid].notifs = {
-			id:req.notif
-		}
+		users[req.Tuid].notifs = {}
+		users[req.Tuid].notifs[id] = req.notif;
+		
 	}
-	updateUsers(users[req.uid]);
+	users[req.Tuid].notifs[id].id = id;
+	console.log(users[req.Tuid]);
+	updateUsers(users[req.Tuid]);
 	return true;
 }, true, "once", true);
 var rm_notif = new fulfill("rm_notif", function(req){
-
 	if(users[req.uid]){
 			return users[req.uid].original;
 	}
@@ -1894,6 +1902,41 @@ var serv_handles = {
 				auth: req.auth,
 				date: Date.now()
 			}, function (res) {
+				var reg  =/@(\w+)/
+				var match = reg.exec(req.content);
+				console.log(match);
+				if (match){
+					get_post_by_id(req.id, function(post){
+						var arr = [];
+						post.comments.forEach(function(com){
+							arr.push(com);
+						});
+						arr.push({auth:post.auth,uid:post.uid});
+						arr.filter(function(x){
+							if(x){
+								return true;
+							}
+						}).forEach(function(com){
+							if(com.auth == match[1]){
+								console.log("MATCHING");
+								console.log(com);
+								add_notif.easy({
+									notif:{
+									title:req.auth+" mentioned you in a post!",
+
+									content:"View this at <a href='https://demenses.net/index.html#post?postid="+req.id+"'>this post</a>",
+									date:Date.now()
+									},
+									Tuid:com.uid,
+									token:req.token,
+								}, function(res){
+									console.log("NOTIF MADE");
+									console.log(res);
+								});	
+							}
+						});
+					})
+				}
 				io.to(req.cid).emit("c_added_comment", res);
 			});
 		}

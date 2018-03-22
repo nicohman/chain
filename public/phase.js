@@ -283,7 +283,8 @@ window.onload = function () {
 				cid: client.id,
 				auth: loggedin.username,
 				content: content,
-				id: id
+				id: id,
+				token:token
 			});
 			client.once("c_added_comment", function (res) {
 				cb(res);
@@ -654,6 +655,7 @@ window.onload = function () {
 		}
 		el.appendChild(au);
 		commentsCon.appendChild(el);
+		
 	}
 
 	function show_comments(post) {
@@ -774,12 +776,16 @@ window.onload = function () {
 		}
 	}
 	function onlyLinks(content){
+		if(content){
 		var res = /(https*:\/\/\S+\.\S+)/;
 		var repl = content.replace(res, function(match){
 			return "<a target='_blank' class='follow-col' href='"+match+"'>"+match+"</a>";
 		});
 		if(repl){
 			return repl;
+		} else {
+			return "";
+		}
 		} else {
 			return "";
 		}
@@ -1586,6 +1592,7 @@ break;
 		notTitle.innerHTML = not.title;
 		read.addEventListener("click", function(){
 			console.log("rming");
+			console.log(not);
 			chain.rm_notif(not.id, function(res){
 
 				reloadCur();
@@ -1922,6 +1929,9 @@ break;
 		if (token) {
 			chain.attempt_token(token, function (res) {
 				if (res) {
+					setInterval(function(){
+						refreshNotifs(function(){});
+					}, 30000);
 					if (res.admin) {
 						console.log("ADMIN");
 					}
@@ -1947,6 +1957,7 @@ break;
 								});
 							});
 					}
+					refreshNotifs(function(){});
 				} else {
 					window.location.href = "./login.html";
 				}
