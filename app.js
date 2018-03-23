@@ -1924,7 +1924,7 @@ var serv_handles = {
 									notif:{
 									title:req.auth+" mentioned you in a post!",
 
-									content:"View this at <a href='https://demenses.net/index.html#post?postid="+req.id+"'>this post</a>",
+									content:"View this at <a target='_blank' href='https://demenses.net/index.html#post?postid="+req.id+"'>this post</a>",
 									date:Date.now()
 									},
 									Tuid:com.uid,
