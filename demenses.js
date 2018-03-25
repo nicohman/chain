@@ -159,7 +159,9 @@ client.on("connect", function () {
 	}, app);
 	app.use(function (req, res, next) {
 		res.status(404);
-		res.sendFile("./public/404.html");
+		res.sendFile("./public/404.html", {
+			root:__dirname
+		});
 	})
 	serv.listen(443);
 	htt.all("*", function (req, res) {

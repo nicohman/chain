@@ -38,7 +38,9 @@
 #home {
 
 	position: relative;
-	margin-left:15%;
+}
+#feed {
+	margin-top:15%;
 }
 .curbutx {
 	background:none;
@@ -225,7 +227,9 @@ a {
 
         justify-self: end;
 }
-
+.notfound-div a {
+	color:var(--follow);
+}
 #navbar .loggedout {
         justify-self: end;
         margin-left: auto;
@@ -671,7 +675,7 @@ transform: translate(-50%, 0%) !important;
         list-style-type: none;
         margin: 0;
         margin-bottom: 20px !important;
-        top: 3.0%;
+        top: 5.0%;
         width: 100%;
         position: fixed;
         padding: 0;
@@ -680,7 +684,12 @@ transform: translate(-50%, 0%) !important;
         display: flex;
         justify-content: flex-start;
 }
-
+#main > div  .post-container:nth-child(-n+3) {
+	margin-top:5%;
+}
+#home .post-container {
+	margin-top:0 !important;
+}
 #results-posts {
         margin-top: 20px;
 }

@@ -327,14 +327,20 @@ function verify(token, cb) {
 }
 
 function checkX() {
+	try {
 	https.get("https://xkcd.com/info.0.json", function (res) {
 		var data = '';
 		res.on('data', function (bit) {
 			data += bit;
 		});
+		res.on("err", function(err){
+			console.err(err);
+			data = {};
+		});
 		res.on('end', function () {
 			console.log(data);
 			data = JSON.parse(data);
+			if(data){
 			if (data.num > parseInt(lastX)) {
 				var uid = ""
 				createPost({
@@ -353,8 +359,12 @@ function checkX() {
 				console.log("NO XKCD")
 				console.log(data.num +""+lastX) ;
 			}
+			}
 		})
 	});
+	} catch(e){
+		console.err(e);
+	}
 }
 var checkMe = function () {
 	if (time.isBefore(moment(), 'day')) {
