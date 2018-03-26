@@ -2023,6 +2023,7 @@ window.onload = function () {
 						url: "/image/new",
 						success: function (res) {
 							console.log(res);
+							document.getElementById("content").innerHTML += ("https://demenses.net/cdn/"+res);
 						},
 						processData: false,
 						cache: false,

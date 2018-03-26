@@ -8,6 +8,7 @@ yarn-error.log*
 imgs
 public/logos/big/*
 public/logos/small*
+public/cdn/*
 imgs/*
 errs
 *.swo

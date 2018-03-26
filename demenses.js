@@ -3,6 +3,7 @@ var app = express();
 var htt = express();
 var fs = require("fs");
 var https = require("https");
+var formidable = require("formidable");
 var Caman = require("caman").Caman;
 var path = require("path");
 var shahash = require('crypto');
@@ -78,7 +79,8 @@ client = client("https://demenses.net:3000", {
 client.on("connect", function () {
 		//  Install middleware
 		app.use(bodyParser.urlencoded({
-			extended: true
+			extended: true,
+			uploadDir:"./public/cdn/"
 		}));
 		app.use(express.static(path.join("/home/nicohman/chain/public", "")));
 		app.use(function (req, res, next) {
@@ -89,13 +91,22 @@ client.on("connect", function () {
 		app.get("/reset/:token", initiateResetPassword);
 		app.post("/reset/:token", resetPassword);
 		app.post("/image/new", function (req, res) {
-			var image = req.body.upload;
-			var id = hash(Date.now());
-			fs.writeFile("./public/cdn/" + id, decodeBase64Image(image).data,
-				function (resF) {
-					console.log(resF);
-					res.status(201).send(id);
-				});
+			console.log(req.body);
+			var id = hash(Date.now() + ""+req.ip);
+			var ext ="";
+			var form = new formidable.IncomingForm();
+			form.on('fileBegin', function(name, file){
+				ext = file.name.substr(file.name.length - 4);
+				file.path = __dirname+"/public/cdn/" + id+ext;;
+			});
+			form.on('end', function(){
+			
+			res.status(201).send(id+ext);
+			});
+			form.parse(req, function(err,fields,files){
+			
+			});
+
 		});
 		//  Start server
 		app.get("/logo/big/:color1/:color2", function (req, res) {

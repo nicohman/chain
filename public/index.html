@@ -6,6 +6,7 @@
 		<link rel="stylesheet" href="stylesheet.css">
 		<link rel="icon" type="image/png" href="/favicon.png">
 		<script src="socket.js"></script>
+		<script src="jquery.js"></script>
 		<script src="web-animations.min.js"></script>
 		<script src="muuri.min.js"></script>
 		<script src="color.js"></script>
@@ -103,7 +104,7 @@
 							</div>
 							<div id="create-content">
 								content<br>
-								<textarea rows=10 cols=70 name="content" placeholder="Your content here!"></textarea>
+								<textarea rows=10 cols=70 name="content" id="content" placeholder="Your content here!"></textarea>
 							</div>
 							<div id="create-tags">
 								<div id="create-already-tags">
@@ -113,16 +114,18 @@
 								<input type="text" name="tag" form="createformtags">
 								<input type="submit" value="add tag" form="createformtags">
 							</div>
-							<div id="upload-div">
-								<form id="upload-form" action="/image/new" method="post" enctype="multipart/form-data">
-									<label for="upload">Upload an image</label>
-									<input type="file" accept="image/*" name="upload" id="upload">
-								</form>
-							</div>
+
 							<div id="create-bottom">
 								<input type="submit" value="Post">
 							</div>
 						</form>
+							<div id="upload-div">
+								<form id="upload-form" action="/image/new" method="post" enctype="multipart/form-data">
+									<label for="upload">Upload an image</label>
+									<input type="file" accept="image/*" name="upload" id="upload">
+									<button type="submit">Submit</button>
+								</form>
+							</div>
 					</div>
 				</div>
 				<div id="search">
