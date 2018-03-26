@@ -2107,6 +2107,7 @@ break;
 				function (e) {
 					if (e.target.tagName.toLowerCase() == "li") {
 						findByTag(e.target.innerHTML);
+
 					}
 				});
 			document.getElementById("logout").addEventListener("click", function () {
@@ -2116,6 +2117,9 @@ break;
 			});
 			document.getElementById("notif-button").addEventListener("click", function(){
 				showblocking("notifications");
+			});
+			document.getElementById("cur-x").addEventListener("click", function(){
+				document.getElementById("cur-mod").style.display = "none"
 			});
 			document.getElementById("createformtags").addEventListener("submit",
 				function (e) {

@@ -687,6 +687,17 @@ transform: translate(-50%, 0%) !important;
 #main > div  .post-container:nth-child(-n+3) {
 	margin-top:5%;
 }
+.curation-x {
+	position:relative;
+	border:none;
+	color:var(--follow);
+	top:0;
+	right:0;
+	margin-left:90%;
+	font-size:large;
+	background:none;
+	font-weight:bold;
+}
 #home .post-container {
 	margin-top:0 !important;
 }
