@@ -113,6 +113,12 @@
 								<input type="text" name="tag" form="createformtags">
 								<input type="submit" value="add tag" form="createformtags">
 							</div>
+							<div id="upload-div">
+								<form id="upload-form" action="/image/new" method="post" enctype="multipart/form-data">
+									<label for="upload">Upload an image</label>
+									<input type="file" accept="image/*" name="upload" id="upload">
+								</form>
+							</div>
 							<div id="create-bottom">
 								<input type="submit" value="Post">
 							</div>

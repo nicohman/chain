@@ -3,26 +3,17 @@ window.onload = function () {
 		secure: true
 	});
 	Muuri.defaultOptions.layout = {
-		fillGaps:true,
-		rounding:false
+		fillGaps: true,
+		rounding: false
 	}
 	Muuri.defaultOptions.layoutDuration = 0;
 	var loggedin = {};
 	var resultsTag;
-	var homePage = new Muuri(document.getElementById("home"), {
-	});
-	var feedPage = new Muuri(document.getElementById("posts"), {
-
-	});
-		var resultsPage = new Muuri(document.getElementById("results-posts"), {
-
-	});
-
-			var selfGrid = new Muuri(document.getElementById("resu"), {
-	});
-			var favGrid = new Muuri(document.getElementById("fav"), {
-
-	});
+	var homePage = new Muuri(document.getElementById("home"), {});
+	var feedPage = new Muuri(document.getElementById("posts"), {});
+	var resultsPage = new Muuri(document.getElementById("results-posts"), {});
+	var selfGrid = new Muuri(document.getElementById("resu"), {});
+	var favGrid = new Muuri(document.getElementById("fav"), {});
 	console.log(homePage);
 	setInterval(homePage.layout, 1000);
 	var home_num = 10;
@@ -31,18 +22,21 @@ window.onload = function () {
 	var bigPost = "";
 	var curBig = false;
 	var useYt = false;
-	function removeGrid(grid){
+
+	function removeGrid(grid) {
 		var its = grid.getItems();
-		if(its){
-			its = its.filter(function(x){
-				if(x._element.parentNode){
+		if (its) {
+			its = its.filter(function (x) {
+				if (x._element.parentNode) {
 					return true;
-				}else {
+				} else {
 					return false;
-				};
+				}
 			});
 			console.log(its);
-		grid.remove(its, {removeElements:true});
+			grid.remove(its, {
+				removeElements: true
+			});
 		}
 	}
 	var enDub = false;
@@ -268,12 +262,11 @@ window.onload = function () {
 				name: name
 			});
 			client.once("c_created_curation", cb);
-		
 		},
-		get_notifs:function(cb){
+		get_notifs: function (cb) {
 			client.emit("c_get_notifs", {
-				cid:client.id,
-				token:token
+				cid: client.id,
+				token: token
 			});
 			client.once("c_got_notifs", cb);
 		},
@@ -284,7 +277,7 @@ window.onload = function () {
 				auth: loggedin.username,
 				content: content,
 				id: id,
-				token:token
+				token: token
 			});
 			client.once("c_added_comment", function (res) {
 				cb(res);
@@ -320,13 +313,13 @@ window.onload = function () {
 				});
 			}
 		},
-		delete_curation: function (cur, cb){
+		delete_curation: function (cur, cb) {
 			client.emit("c_delete_curation", {
-				cur:cur,
-				cid:client.id,
-				token:token
+				cur: cur,
+				cid: client.id,
+				token: token
 			});
-			client.once("c_deleted_curation", function(res){
+			client.once("c_deleted_curation", function (res) {
 				console.log(res);
 				cb(res)
 			});
@@ -345,13 +338,13 @@ window.onload = function () {
 				console.log("not logged in");
 			}
 		},
-		rm_notif:function (id, cb){
+		rm_notif: function (id, cb) {
 			client.emit("c_rm_notif", {
-				cid:client.id,
-				token:token,
-				id:id
+				cid: client.id,
+				token: token,
+				id: id
 			});
-			client.once("c_rmed_notif_"+id, cb);
+			client.once("c_rmed_notif_" + id, cb);
 		},
 		createUser: function createUser(username, password, cb) {
 			if (!loggedin.uid) {
@@ -502,7 +495,7 @@ window.onload = function () {
 				cid: client.id,
 				pid: id
 			});
-			client.once("c_got_post_by_id_"+id, cb);
+			client.once("c_got_post_by_id_" + id, cb);
 		},
 		sticky: function (pid, cb) {
 			client.emit("c_sticky", {
@@ -655,11 +648,9 @@ window.onload = function () {
 		}
 		el.appendChild(au);
 		commentsCon.appendChild(el);
-		
 	}
 
 	function show_comments(post) {
-
 		hide_big_post();
 		var overlay = document.getElementById("overlay");
 		overlay.style.display = "block";
@@ -675,27 +666,33 @@ window.onload = function () {
 			createComment(comment, post, commentsCon);
 		});
 	}
-	function upGrid(grid){
+
+	function upGrid(grid) {
 		var eles = grid.getItems();
-		eles.forEach(function(ele, ind){
+		eles.forEach(function (ele, ind) {
 			console.log(ele);
 			var id = ele._element.children.item(0).children.item(4).innerHTML;
-				if(id.length > 0){
-					console.log(id);
-			 			chain.get_by_id(id, function(post){
-							if(post){
-				console.log(post);
-				var madePost = makePost(post);
-				grid.add(madePost);
-				grid.remove(ele, {removeElements:true});
-				grid.move(madePost, ind)
-							} else {
-								grid.remove(ele, {removeElements:true});
-							}
-			})
-				}
+			if (id.length > 0) {
+				console.log(id);
+				chain.get_by_id(id, function (post) {
+					if (post) {
+						console.log(post);
+						var madePost = makePost(post);
+						grid.add(madePost);
+						grid.remove(ele, {
+							removeElements: true
+						});
+						grid.move(madePost, ind)
+					} else {
+						grid.remove(ele, {
+							removeElements: true
+						});
+					}
+				})
+			}
 		});
 	}
+
 	function checkUrl(url) {
 		var res = /(https*:\/\/\S+\.\S+)/
 		var is = url.match(res);
@@ -775,22 +772,24 @@ window.onload = function () {
 			return "";
 		}
 	}
-	function onlyLinks(content){
-		if(content){
-		var res = /(https*:\/\/\S+\.\S+)/;
-		var repl = content.replace(res, function(match){
-			return "<a target='_blank' class='follow-col' href='"+match+"'>"+match+"</a>";
-		});
-		if(repl){
-			return repl;
-		} else {
-			return "";
-		}
-		} else {
-			return "";
-		}
 
+	function onlyLinks(content) {
+		if (content) {
+			var res = /(https*:\/\/\S+\.\S+)/;
+			var repl = content.replace(res, function (match) {
+				return "<a target='_blank' class='follow-col' href='" + match + "'>" +
+					match + "</a>";
+			});
+			if (repl) {
+				return repl;
+			} else {
+				return "";
+			}
+		} else {
+			return "";
+		}
 	}
+
 	function createContent(content, toAppend, grid, alt) {
 		var e = checkUrl(content.trim());
 		var res = e.res;
@@ -819,8 +818,8 @@ window.onload = function () {
 		toAppend.innerHTML = links.replace("\n", "<br>");
 		if (img) {
 			img.addEventListener("load", function () {
-				if(grid){
-					setTimeout(function(){
+				if (grid) {
+					setTimeout(function () {
 						console.log(grid);
 						console.log("refreshing");
 						grid.refreshItems();
@@ -828,27 +827,26 @@ window.onload = function () {
 					}, 75);
 				}
 			});
-			img.addEventListener("error", function(){
+			img.addEventListener("error", function () {
 				img.alt = ilink;
 			});
-			if(alt){
+			if (alt) {
 				img.alt = alt;
 			}
 			toAppend.appendChild(img);
 			img.src = ilink
-
 		}
 	}
-	function refreshPost(post, grid){
+	/*function refreshPost(post, grid) {
 		var id = post.getElementsByClassName("post-id")[0].innerHTML;
-		if(id){
-			chain.get_by_id(id, function(p){
+		if (id) {
+			chain.get_by_id(id, function (p) {
 				post.outerHTML = makePost(p, grid);
-			});	
+			});
 		} else {
 			console.log("Invalid post element!");
 		}
-	}
+	}*/
 	function makePost(post, grid) {
 		if (!post.title) {
 			return;
@@ -943,10 +941,11 @@ window.onload = function () {
 		shareBut.className = "share-post";
 		shareBut.type = "button";
 		shareBut.innerHTML = "Share";
-		shareBut.addEventListener("click", function(){
+		shareBut.addEventListener("click", function () {
 			var cdiv = document.getElementById("copy-div");
 			cdiv.style.display = "block";
-			document.getElementById("copy-fill").innerHTML = "https://demenses.net#post?postid="+post.id;
+			document.getElementById("copy-fill").innerHTML =
+				"https://demenses.net#post?postid=" + post.id;
 		});
 		if (loggedin.admin === true) {
 			var stickyBut = document.createElement("button");
@@ -1042,20 +1041,17 @@ window.onload = function () {
 		containerDiv.appendChild(postt);
 		return containerDiv;
 	}
-
-	function show_post(post, toAppend) {
+	/*function show_post(post, toAppend) {
 		var made = makePost(post);
 		if (made) {
 			toAppend.appendChild(made);
 		}
-	}
-
+	}*/
 	function make_big_post(post) {
 		curBig = true;
 		bigPost = post;
 		var title = document.getElementById("big-title-content")
-
-		title.innerHTML = post.title +" - "+ post.favs + "<br>" + post.auth;
+		title.innerHTML = post.title + " - " + post.favs + "<br>" + post.auth;
 		hide_comments();
 		document.getElementById("overlay").style.display = "block";
 		document.getElementById("big-container").style.display = "flex";
@@ -1090,13 +1086,13 @@ window.onload = function () {
 			var bImg = document.getElementById("big-img");
 			if (img) {
 				bImg.src = ilink;
-				if(post.alt){
+				if (post.alt) {
 					bImg.alt = post.alt;
 				}
 			}
 			if (links.length > 0) {
-				if(links.length < 240){
-					links = "<br>"+links+"<br>";
+				if (links.length < 240) {
+					links = "<br>" + links + "<br>";
 				}
 				bigCont.innerHTML = links;
 			}
@@ -1152,19 +1148,17 @@ window.onload = function () {
 			});
 		}
 		var deleteBut = document.getElementById("big-delete");
-
 		var banBut = document.getElementById("big-ban");
 		if (post.uid == loggedin.uid || loggedin.admin === true) {
-
 			deleteBut.style.display = "block";
 		} else {
 			deleteBut.style.display = "none";
 		}
-		var stickyBut =  document.getElementById("big-sticky");
-		if(loggedin.admin){
+		var stickyBut = document.getElementById("big-sticky");
+		if (loggedin.admin) {
 			stickyBut.style.display = "block";
 			banBut.style.display = "block";
-			if(post.stickied){
+			if (post.stickied) {
 				stickyBut.innerHTML = "Unsticky";
 			} else {
 				stickyBut.innerHTML = "Sticky";
@@ -1173,7 +1167,6 @@ window.onload = function () {
 			banBut.style.display = "none";
 			stickyBut.style.display = "none";
 		}
-
 		chain.check_banned(post.uid, function (res) {
 			if (res && !res.banned) {
 				banBut.innerHTML = "Ban User";
@@ -1183,8 +1176,8 @@ window.onload = function () {
 		});
 		removeFrom(document.getElementById("big-comments"));
 		post.comments.forEach(function (comment) {
-			if(comment){
-			createComment(comment, post, document.getElementById("big-comments"));
+			if (comment) {
+				createComment(comment, post, document.getElementById("big-comments"));
 			}
 		});
 	}
@@ -1211,17 +1204,13 @@ window.onload = function () {
 		button.className = "load-button";
 		button.innerHTML = "Load More";
 		button.addEventListener("click", function (e) {
-
-			cb(load, function(){
-						grid.layout();
-			grid.move(load, -1);
-
+			cb(load, function () {
+				grid.layout();
+				grid.move(load, -1);
 			}, e);
-
 		});
 		load.appendChild(button);
 		grid.add(load)
-
 	}
 
 	function makeFake(text) {
@@ -1322,7 +1311,7 @@ window.onload = function () {
 								console.log(post);
 								gotter[post.id] = true;
 								if (post.title) {
-							homePage.add(makePost(post, homePage));
+									homePage.add(makePost(post, homePage));
 								}
 							});
 							cb();
@@ -1333,16 +1322,15 @@ window.onload = function () {
 				}
 			}, 40);
 		},
-		"notifications":function(){
+		"notifications": function () {
 			console.log("SHOWING NOTIFIcATIONS");
-			refreshNotifs(function(notifs){
+			refreshNotifs(function (notifs) {
 				removeFrom(document.getElementById("notif-div"));
-				notifs.forEach(function(not){
-					document.getElementById("notif-div").appendChild(makeNotification(not));
+				notifs.forEach(function (not) {
+					document.getElementById("notif-div").appendChild(makeNotification(
+						not));
 				});
 			});
-
-		
 		},
 		"curations": function () {
 			removeFrom(document.getElementById("fol-curs"));
@@ -1461,8 +1449,8 @@ window.onload = function () {
 			chain.get_self(function (me) {
 				removeFrom(document.getElementById("owned-curs"));
 				console.log(me.curations_owned);
-				Object.keys(me.curations_owned).filter(function (x){
-					if(me.curations_owned[x]){
+				Object.keys(me.curations_owned).filter(function (x) {
+					if (me.curations_owned[x]) {
 						return true;
 					} else {
 						return false;
@@ -1481,41 +1469,34 @@ window.onload = function () {
 			//removeGrid(favGrid);
 			favGrid.add(makeFake("No favorited posts!"));
 			chain.get_favorites(function (favs) {
-
-			removeGrid(favGrid);
+				removeGrid(favGrid);
 				favs.forEach(function (fav) {
-					if(fav){
-					fav.favorited = true;
-					favGrid.add(makePost(fav, favGrid));
+					if (fav) {
+						fav.favorited = true;
+						favGrid.add(makePost(fav, favGrid));
 					}
 				});
 				if (favs.length == 0) {
-
-
-			favGrid.add(makeFake("No favorited posts!"));
+					favGrid.add(makeFake("No favorited posts!"));
 				}
 			});
 		},
-
 		"feed": function () {
 			var max_feed = 20;
-			var postI = document.getElementById("posts");
 			//removeGrid(feedPage);
 			var coll = {};
 			var max = 0; //eslint-disable-line
 			feedPage.add(makeFake("No found posts!"));
 			chain.get_feed(function (posts) {
 				console.log("GOT FEED POSTS");
-
-			removeGrid(feedPage);
+				removeGrid(feedPage);
 				Object.keys(posts).sort(pdate(posts)).forEach(function (key) {
 					coll[key] = true;
 					feedPage.add(makePost(posts[key], feedPage));
 				});
 				max += Object.keys(posts).length;
 				if (Object.keys(posts).length == 0) {
-
-			feedPage.add(makeFake("No found posts!"));
+					feedPage.add(makeFake("No found posts!"));
 				}
 				if (Object.keys(posts).length >= 10) {
 					makeLoad(feedPage, function (load, cb) {
@@ -1561,23 +1542,24 @@ window.onload = function () {
 				show_big_post(res);
 			});
 		} else {
-			switch(cur_show){
-				case 'home':
-					upGrid(homePage);
-					break;
-				case "feed":
-					upGrid(feedPage);
-					break;
-				case "favs":
-					upGrid(favGrid);
-					break;
-				default:
+			switch (cur_show) {
+			case 'home':
+				upGrid(homePage);
+				break;
+			case "feed":
+				upGrid(feedPage);
+				break;
+			case "favs":
+				upGrid(favGrid);
+				break;
+			default:
 				showblocking(cur_show);
-break;
+				break;
 			}
 		}
 	}
-	function makeNotification (not){
+
+	function makeNotification(not) {
 		var notif = document.createElement("div");
 		var notTitle = document.createElement("div");
 		var buttons = document.createElement("div");
@@ -1590,13 +1572,12 @@ break;
 		notTitle.className = "notif-title";
 		notContent.innerHTML = not.content;
 		notTitle.innerHTML = not.title;
-		read.addEventListener("click", function(){
+		read.addEventListener("click", function () {
 			console.log("rming");
 			console.log(not);
-			chain.rm_notif(not.id, function(res){
-
+			chain.rm_notif(not.id, function () {
 				reloadCur();
-			});	
+			});
 		});
 		buttons.appendChild(read);
 		notif.appendChild(notTitle);
@@ -1604,26 +1585,28 @@ break;
 		notif.appendChild(buttons);
 		return notif;
 	}
-	var totNot =  0
-	function refreshNotifs(cb){
+	var totNot = 0
+
+	function refreshNotifs(cb) {
 		console.log("GETTING NOTIFS");
-		chain.get_notifs(function(notifs){
-			notifs = Object.keys(notifs).map(function(x){
+		chain.get_notifs(function (notifs) {
+			notifs = Object.keys(notifs).map(function (x) {
 				return notifs[x];
 			});
 			var nSpans = document.getElementsByClassName("notif-num");
-			for(var i = 0; i < nSpans.length; i++){
+			for (var i = 0; i < nSpans.length; i++) {
 				nSpans.item(i).innerHTML = notifs.length;
 			}
-			if(notifs.length > totNot){
-				notify("You have "+(notifs.length - totNot)+" new notifications!");
+			if (notifs.length > totNot) {
+				notify("You have " + (notifs.length - totNot) + " new notifications!");
 			}
 			totNot = notifs.length;
-			if(cb){
+			if (cb) {
 				cb(notifs);
 			}
 		});
 	}
+
 	function logout() {
 		var ls = document.getElementsByClassName("loggedout");
 		var li = document.getElementsByClassName("loggedin");
@@ -1733,7 +1716,6 @@ break;
 		var max = 0; //eslint-disable-line
 		chain.get_cur_posts(cur, function (posts) {
 			console.log("CUR POSTS CALLED");
-
 			removeGrid(resultsPage);
 			removeFrom(document.getElementById("cur-mod-tags-list"));
 			document.getElementById("results").style.display = "block";
@@ -1754,8 +1736,7 @@ break;
 							if (!coll[key]) {
 								max++;
 								coll[key] = true;
-								resultsPage.add(makePost(
-									posts2[key], resultsPage));
+								resultsPage.add(makePost(posts2[key], resultsPage));
 							}
 						});
 						cb()
@@ -1858,7 +1839,7 @@ break;
 								coll[key] = true;
 								resultsPage.add(makePost(posts2[key], resultsPage));
 								//document.getElementById("results-posts").insertBefore(makePost(
-							//		posts2[key]), load);
+								//		posts2[key]), load);
 							}
 						});
 						cb()
@@ -1929,8 +1910,8 @@ break;
 		if (token) {
 			chain.attempt_token(token, function (res) {
 				if (res) {
-					setInterval(function(){
-						refreshNotifs(function(){});
+					setInterval(function () {
+						refreshNotifs(function () {});
 					}, 30000);
 					if (res.admin) {
 						console.log("ADMIN");
@@ -1957,7 +1938,7 @@ break;
 								});
 							});
 					}
-					refreshNotifs(function(){});
+					refreshNotifs(function () {});
 				} else {
 					window.location.href = "./login.html";
 				}
@@ -2006,12 +1987,13 @@ break;
 					alert("A comment must not be empty!");
 				}
 			});
-			document.getElementById("big-share").addEventListener("click", function(){
-							var cdiv = document.getElementById("copy-div");
-			cdiv.style.display = "block";
-			document.getElementById("copy-fill").innerHTML = "https://demenses.net#post?postid="+bigPost.id;
+			document.getElementById("big-share").addEventListener("click", function () {
+				var cdiv = document.getElementById("copy-div");
+				cdiv.style.display = "block";
+				document.getElementById("copy-fill").innerHTML =
+					"https://demenses.net#post?postid=" + bigPost.id;
 			});
-			document.getElementById("copy-x").addEventListener("click", function(){
+			document.getElementById("copy-x").addEventListener("click", function () {
 				document.getElementById("copy-div").style.display = "none";
 			});
 			document.getElementById("big-comment").addEventListener("submit",
@@ -2032,6 +2014,21 @@ break;
 					} else {
 						alert("A comment must not be empty!");
 					}
+				});
+			document.getElementById("upload-form").addEventListener("submit",
+				function (e) {
+					prevent(e);
+					$.ajax({
+						type: "POST",
+						url: "/image/new",
+						success: function (res) {
+							console.log(res);
+						},
+						processData: false,
+						cache: false,
+						data: new FormData(this),
+						contentType: false
+					});
 				});
 			document.getElementById("create-post").addEventListener("submit",
 				function (e) {
@@ -2107,7 +2104,6 @@ break;
 				function (e) {
 					if (e.target.tagName.toLowerCase() == "li") {
 						findByTag(e.target.innerHTML);
-
 					}
 				});
 			document.getElementById("logout").addEventListener("click", function () {
@@ -2115,10 +2111,11 @@ break;
 				localStorage.removeItem("auth_token");
 				location.reload();
 			});
-			document.getElementById("notif-button").addEventListener("click", function(){
-				showblocking("notifications");
-			});
-			document.getElementById("cur-x").addEventListener("click", function(){
+			document.getElementById("notif-button").addEventListener("click",
+				function () {
+					showblocking("notifications");
+				});
+			document.getElementById("cur-x").addEventListener("click", function () {
 				document.getElementById("cur-mod").style.display = "none"
 			});
 			document.getElementById("createformtags").addEventListener("submit",
@@ -2151,7 +2148,6 @@ break;
 						e.target.reset();
 					}
 				});
-
 			document.getElementById("view-own").addEventListener("click", function () {
 				chain.get_self_posts(function (posts) {
 					if (posts) {
@@ -2198,25 +2194,25 @@ break;
 				}
 			}
 			document.getElementById("big-sticky").addEventListener("click", function () {
-					if (bigPost.stickied) {
-						chain.unsticky(bigPost.id, function (res) {
-							if (res) {
-								notify("Post unstickied!");
-								reloadCur();
-							} else {
-								notify("Couldn't unsticky post");
-							}
-						});
-					} else {
-						chain.sticky(bigPost.id, function (res) {
-							if (res) {
-								notify("Post stickied!");
-								reloadCur();
-							} else {
-								notify("Couldn't sticky post");
-							}
-						});
-					}
+				if (bigPost.stickied) {
+					chain.unsticky(bigPost.id, function (res) {
+						if (res) {
+							notify("Post unstickied!");
+							reloadCur();
+						} else {
+							notify("Couldn't unsticky post");
+						}
+					});
+				} else {
+					chain.sticky(bigPost.id, function (res) {
+						if (res) {
+							notify("Post stickied!");
+							reloadCur();
+						} else {
+							notify("Couldn't sticky post");
+						}
+					});
+				}
 			});
 			document.getElementById("createmodtag").addEventListener("submit",
 				function (e) {
@@ -2345,7 +2341,7 @@ break;
 				chain.delete_post(bigPost.id, function (res) {
 					if (res) {
 						notify("Deleted post");
-						curBig  = false;
+						curBig = false;
 						reloadCur();
 						hide_big_post();
 					} else {
@@ -2353,10 +2349,10 @@ break;
 					}
 				});
 			});
-			document.getElementById("delete-cur").addEventListener("click", function(){
-				if(resCur && resultsTag){
-					chain.delete_curation(resultsTag, function(){
-						notify("Deleted curation "+resultsTag);
+			document.getElementById("delete-cur").addEventListener("click", function () {
+				if (resCur && resultsTag) {
+					chain.delete_curation(resultsTag, function () {
+						notify("Deleted curation " + resultsTag);
 						reloadCur();
 					});
 				}
