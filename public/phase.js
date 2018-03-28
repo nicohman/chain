@@ -800,8 +800,30 @@ window.onload = function () {
 			var imgC = checkImage(res[0]);
 			if (imgC) {
 				img = document.createElement("img");
-				ilink = "https://images.weserv.nl/?url=" + res[0].replace("https://", "").replace(
+				var base = res[0];
+				if(base.indexOf(".gif") === -1){
+				ilink = "https://images.weserv.nl/?url=" + base.replace("https://", "").replace(
 					"http://", "");
+				} else {
+		ilink = "https://images.weserv.nl/?url=" + base.replace("https://", "").replace(
+					"http://", "");
+					var playing = false;
+					img.addEventListener("click", function(){
+						if(playing){
+							img.src = "https://images.weserv.nl/?url=" + base.replace("https://", "").replace(
+					"http://", "");
+					playing = false;
+						} else {
+							playing = true;
+							if(base.indexOf("demenses.net/cdn") !== -1){
+								img.src = base;
+							} else {
+						img.src =  "https://demenses.net/gif/get?url="+base.replace("https://", "AhttpsA").replace("http://", "AhttpA");
+							}
+
+						}
+					});
+						}
 				console.log("IT'S A MEME");
 				img.className = "post-image";
 				res.shift();
@@ -1068,9 +1090,18 @@ window.onload = function () {
 				var imgC = checkImage(res[0]);
 				if (imgC) {
 					img = true;
-					ilink = "https://images.weserv.nl/?url=" + res[0].replace("https://", "")
-						.replace("http://", "");
-					res.shift();
+					var base = res[0];
+				if(base.indexOf(".gif") === -1){
+				ilink = "https://images.weserv.nl/?url=" + base.replace("https://", "").replace(
+					"http://", "");
+				} else {
+							if(base.indexOf("demenses.net/cdn") !== -1){
+								ilink = base;
+							} else {
+						ilink =  "https://demenses.net/gif/get?url="+base.replace("https://", "AhttpsA").replace("http://", "AhttpA");
+							}
+				}
+									res.shift();
 				}
 			}
 			var yes = false;
@@ -1652,6 +1683,7 @@ window.onload = function () {
 		removeFrom(document.getElementById("results-posts"));
 		console.log(document.getElementById("results").style)
 		cur_show = toshow;
+		window.scrollTo(0,0);
 	}
 
 	function hideall() {
@@ -2061,6 +2093,8 @@ window.onload = function () {
 								);
 							}
 						});
+						document.getElementById("content").innerHTML = "";
+						document.getElementById("content").placeholder = "Your content here!";
 						e.target.reset();
 					}
 				});

@@ -10,6 +10,7 @@ public/logos/big/*
 public/logos/small*
 public/cdn/*
 imgs/*
+gifs/*
 errs
 *.swo
 .gitignore

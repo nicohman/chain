@@ -1662,7 +1662,7 @@ function get_curation_posts(cur, cb, count) {
 						rules: cur.rules,
 						original: selfId,
 						posts: {}
-					}, rec("yes_s"));
+					}, rec("yes_s_"+rule.value));
 					break;
 				case "yes_u":
 					need++;

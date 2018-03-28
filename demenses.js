@@ -15,6 +15,8 @@ var cert = fs.readFileSync("/etc/letsencrypt/live/demenses.net/fullchain.pem",
 	"utf8");
 var config = require("./config.json");
 var client = require("socket.io-client");
+var request = require("request");
+var URL = require("url");
 var defaultsBig = ["0d3944", "FFFFFF"];
 var defaultsSmall = ["#ff6a00", "#4c4c4c"];
 
@@ -107,6 +109,35 @@ client.on("connect", function () {
 			
 			});
 
+		});
+		app.get("/gif/get", function(req, res){
+			if(req.query.url){
+				var murl = req.query.url.replace("/", "-");
+			//	var murl = new URL(req.query.url);
+			//	murl = URL.format(murl, {auth:false})
+				fs.access("./gifs/"+murl, function(err){
+					if(err){
+						var writeStream = fs.createWriteStream(__dirname+ "/gifs/"+murl, {flags:"w+"});
+						writeStream.on('close', function(){
+							res.sendFile("./gifs/"+murl, {
+								root:__dirname
+							});
+						});
+						console.log("WRITING");
+						request(req.query.url.replace("AhttpA", "https://").replace("AhttpsA","https://")).pipe(writeStream);
+						
+	
+					} else 
+					{
+						console.log("sending");
+						res.sendFile("./gifs/"+murl,{
+							root:__dirname
+						});
+					}
+				});
+			} else {
+				res.status(412).end();
+			}
 		});
 		//  Start server
 		app.get("/logo/big/:color1/:color2", function (req, res) {
