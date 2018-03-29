@@ -794,6 +794,7 @@ window.onload = function () {
 		var e = checkUrl(content.trim());
 		var res = e.res;
 		var img;
+		var gifIs = false;
 		var ilink;
 		if (res) {
 			console.log("URLRL");
@@ -805,14 +806,17 @@ window.onload = function () {
 				ilink = "https://images.weserv.nl/?url=" + base.replace("https://", "").replace(
 					"http://", "");
 				} else {
+					gifIs = true;
 		ilink = "https://images.weserv.nl/?url=" + base.replace("https://", "").replace(
 					"http://", "");
 					var playing = false;
-					img.addEventListener("click", function(){
+					toAppend.addEventListener("click", function(){
 						if(playing){
 							img.src = "https://images.weserv.nl/?url=" + base.replace("https://", "").replace(
 					"http://", "");
 					playing = false;
+
+							toAppend.getElementsByClassName("after")[0].style.display = "block";
 						} else {
 							playing = true;
 							if(base.indexOf("demenses.net/cdn") !== -1){
@@ -820,6 +824,7 @@ window.onload = function () {
 							} else {
 						img.src =  "https://demenses.net/gif/get?url="+base.replace("https://", "AhttpsA").replace("http://", "AhttpA");
 							}
+							toAppend.getElementsByClassName("after")[0].style.display = "none";
 
 						}
 					});
@@ -856,6 +861,12 @@ window.onload = function () {
 				img.alt = alt;
 			}
 			toAppend.appendChild(img);
+			if (gifIs){
+				var aft = document.createElement("div");
+				aft.className = "after";
+				aft.innerHTML = "||";
+				toAppend.appendChild(aft);
+			}
 			img.src = ilink
 		}
 	}

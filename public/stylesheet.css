@@ -687,6 +687,22 @@ transform: translate(-50%, 0%) !important;
 #main > div  .post-container:nth-child(-n+3) {
 	margin-top:5%;
 }
+.post-content {
+	position:relative;
+
+}
+.post-content .after {
+	position:absolute;
+	top:45%;
+	left:45%;
+	width:100%;
+	height:100%;
+	display:inline-block;
+	cursor:pointer;
+	color:black;
+	font-weight:bold;
+	font-size:x-large;
+}
 .curation-x {
 	position:relative;
 	border:none;
