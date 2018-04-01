@@ -32,6 +32,7 @@ var io = require('socket.io'),
 	name = names[commandArg],
 	posts = require(DEMPATH + 'posts_' + name + '.json'),
 	users = require(DEMPATH + "users_" + name + ".json"),
+	deals = require(DEMPATH + "deals.json"),
 	port = ports[commandArg - 1],
 	ytChannels = ["UUQD3awTLw9i8Xzh85FKsuJA"],
 	curations = require(DEMPATH + "curations_" + name + ".json"),
@@ -342,7 +343,7 @@ function checkX() {
 			data = JSON.parse(data);
 			if(data){
 			if (data.num > parseInt(lastX)) {
-				var uid = ""
+				var uid = "johnnyfiveisalive"
 				createPost({
 					title: "XKCD #" + data.num + " " + data.title,
 					content: data.img,
@@ -365,6 +366,39 @@ function checkX() {
 	} catch(e){
 		console.err(e);
 	}
+}
+var checkGames = function (){
+	console.log("Checking /r/gamedeals!");
+	https.get("https://www.reddit.com/r/GameDeals/hot/.json?count=1&limit=1",
+		function(res){
+			var data = "";
+			res.on("data", function(bit){
+				data +=bit;
+			});
+			res.on("end", function(){
+				console.log(data);
+				data = JSON.parse(data);
+				var uid = "domoarigato";
+				var post = data.data.children[0].data;
+				if(post.title.toLowerCase().indexOf("(free)") != -1){
+					if(!deals[post.url]){
+				createPost({
+					title:post.title.replace("(Free)", ""),
+					content:post.url,
+					auth:"gamedeals_free_bot",
+					uid:uid,
+					tags:["gamedeals","free_games","bot"]
+				});
+						deals[post.url] = true;
+						fs.writeFile("/home/nicohman/.demenses/deals.json", JSON.stringify(deals), function(){
+							console.log("Wrote updated deals");
+						})
+					}
+				} else {
+					console.log("Not free");
+				}
+			});
+		});
 }
 var checkMe = function () {
 	if (time.isBefore(moment(), 'day')) {
@@ -2748,6 +2782,8 @@ if (process.argv[2] == "1") {
 	setTimeout(function(){
 		console.log("ADD");
 	}, 4000);
+	setTimeout(checkGames, 4000);
+	setInterval(checkGames, 60000);
 	setInterval(checkX, 60000)
 	setInterval(checkYt, 1200000);
 	setInterval(checkMe, 60000)

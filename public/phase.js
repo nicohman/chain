@@ -842,7 +842,17 @@ window.onload = function () {
 		if (!links) {
 			links = "";
 		}
-		toAppend.innerHTML = links.replace("\n", "<br>");
+		 links =  links.replace("\n", "<br>");
+var res = /(https*:\/\/\S+\.\S+)/;
+		var test = content.replace(res, function(){
+			return "";
+		});
+		if(test != "" || links.indexOf("iframe") != -1){
+			console.log("NOT ONLY LINKS");
+			console.log(links);
+			console.log(content);
+		toAppend.innerHTML = links;
+		}
 		if (img) {
 			img.addEventListener("load", function () {
 				if (grid) {
@@ -869,6 +879,12 @@ window.onload = function () {
 			}
 			img.src = ilink
 		}
+		if(test == "" && !img && links.indexOf("iframe") == -1){
+			console.log("LINK ONLY");
+			toAppend.innerHTML = "";
+			return content;
+		}
+
 	}
 	/*function refreshPost(post, grid) {
 		var id = post.getElementsByClassName("post-id")[0].innerHTML;
@@ -900,7 +916,12 @@ window.onload = function () {
 		if (post.content) {
 			var content = document.createElement("div");
 			content.className = "post-content";
-			createContent(post.content, content, grid, post.alt);
+			var all = createContent(post.content, content, grid, post.alt);
+			if(all){
+				console.log("ONLY LINK");
+				title.innerHTML = "<a href ='"+all+"' target='_blank'>"+post.title+" - "+post.favs +"</a>";
+				content.style.display = "none";
+			}
 		}
 		var bar = document.createElement("div");
 		bar.className = "post-bar";
