@@ -21,6 +21,13 @@ var schemes = {
 		"text": "#93a1a1",
 		"follow": "#657b83"
 	},
+	"elephantine":{
+		"main-bg":"#1f232b",
+		"sec-bg":"#282c37",
+		"border":"#9baec8",
+		"text":"#d9e1e8",
+		"follow":"#2b90d9"
+	},
 	"jackson": {
 		"main-bg": "#C6CAD1",
 		"sec-bg": "#D15000",
