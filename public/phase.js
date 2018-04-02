@@ -921,6 +921,19 @@ var res = /(https*:\/\/\S+\.\S+)/;
 				console.log("ONLY LINK");
 				title.innerHTML = "<a href ='"+all+"' target='_blank'>"+post.title+" - "+post.favs +"</a>";
 				content.style.display = "none";
+			} else {
+				if(post.content.length > 300) {
+					content.innerHTML = content.innerHTML.substring(0, 300)+"...<br>";
+					var readMore = document.createElement("button");
+					readMore.className = "read-more";
+					readMore.innerHTML = "Read More";
+					readMore.addEventListener("click", function(){
+					
+			show_big_post(post);
+					});
+
+						content.appendChild(readMore);
+				}
 			}
 		}
 		var bar = document.createElement("div");
@@ -2060,6 +2073,9 @@ var res = /(https*:\/\/\S+\.\S+)/;
 			document.getElementById("copy-x").addEventListener("click", function () {
 				document.getElementById("copy-div").style.display = "none";
 			});
+			var stSheet = document.createElement("style");
+			stSheet.innerHTML = "#main > div .post-container:nth-child(-n+"+(Math.floor($(window).width() / 300 * 0.6) - 1 )+") { margin-top:5%}";
+			document.getElementById("head").appendChild(stSheet);
 			document.getElementById("big-comment").addEventListener("submit",
 				function (e) {
 					prevent(e);
@@ -2113,7 +2129,7 @@ var res = /(https*:\/\/\S+\.\S+)/;
 							return false;
 						}
 					});
-					if (title.length < 140 && content.length < 1000 && title.length > 0) {
+					if (title.length < 140 && content.length < 10000 && title.length > 0) {
 						removeFrom(document.getElementById("create-already-tags"));
 						chain.create_post(title, content, tags, function (res) {
 							if (res) {

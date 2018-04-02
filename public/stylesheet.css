@@ -703,6 +703,16 @@ transform: translate(-50%, 0%) !important;
 	font-weight:bold;
 	font-size:x-large;
 }
+.read-more {
+	background:none;
+	color:var(--follow);
+	border:none;
+	font-size:medium;
+}
+.muuri {
+	margin-left:15%;
+	margin-right:15%;
+}
 .curation-x {
 	position:relative;
 	border:none;
