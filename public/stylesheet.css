@@ -94,16 +94,18 @@
 	font-size:large;
 }
 .load {
-	        width: 20%;
-        height: aut%;
+	        width: 300px;
+        height: auto;
         border: 5px var(--border) solid;
         background: var(--sec-bg);;
         display: flex;
         color: var(--text);
         flex-direction: column;
         justify-content: center;
-        margin-left: 25px;
-        margin-top: 20px;
+        margin-left: 2.25%;
+        margin-top: 1.25%;
+	margin-right:1.25%;
+	position:absolute;
         margin-bottom: 20px;
         padding-right: 10px;
         padding-left: 10px;
@@ -710,8 +712,8 @@ transform: translate(-50%, 0%) !important;
 	font-size:medium;
 }
 .muuri {
-	margin-left:15%;
-	margin-right:15%;
+	margin-left:10%;
+	margin-right:10%;
 }
 .curation-x {
 	position:relative;
@@ -882,7 +884,9 @@ transform: translate(-50%, 0%) !important;
 }
 .post-container {
 	height:auto;
-	margin:1.25%;
+	margin:2.25%;
+	margin-top:1.25%;
+	margin-bottom:1.25%;
 	width:300px;
 }
 .big-tag {

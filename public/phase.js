@@ -1276,6 +1276,8 @@ var res = /(https*:\/\/\S+\.\S+)/;
 	function makeLoad(grid, cb) {
 		var load = document.createElement("div");
 		load.className = "load";
+		var div = document.createElement("div");
+
 		var button = document.createElement("button");
 		button.className = "load-button";
 		button.innerHTML = "Load More";
@@ -1285,7 +1287,8 @@ var res = /(https*:\/\/\S+\.\S+)/;
 				grid.move(load, -1);
 			}, e);
 		});
-		load.appendChild(button);
+		div.appendChild(button);
+		load.appendChild(div);
 		grid.add(load)
 	}
 
