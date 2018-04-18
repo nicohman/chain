@@ -334,8 +334,8 @@ function checkX() {
 		res.on('data', function (bit) {
 			data += bit;
 		});
-		res.on("err", function(err){
-			console.err(err);
+		res.on("error", function(err){
+			console.error(err);
 			data = {};
 		});
 		res.on('end', function () {
