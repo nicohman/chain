@@ -329,7 +329,7 @@ function verify(token, cb) {
 
 function checkX() {
 	try {
-	https.get("https://xkcd.com/info.0.json", function (res) {
+	var req = https.get("https://xkcd.com/info.0.json", function (res) {
 		var data = '';
 		res.on('data', function (bit) {
 			data += bit;
@@ -363,13 +363,16 @@ function checkX() {
 			}
 		})
 	});
+	req.on('error', function(e){
+		console.error(e);
+	});
 	} catch(e){
-		console.err(e);
+		console.error(e);
 	}
 }
 var checkGames = function (){
 	console.log("Checking /r/gamedeals!");
-	https.get("https://www.reddit.com/r/GameDeals/hot/.json?count=1&limit=1",
+	var req = https.get("https://www.reddit.com/r/GameDeals/hot/.json?count=1&limit=1",
 		function(res){
 			var data = "";
 			res.on("data", function(bit){
@@ -399,6 +402,9 @@ var checkGames = function (){
 				}
 			});
 		});
+	req.on('error', function(e){
+		console.error(e);
+	});
 }
 var checkMe = function () {
 	if (time.isBefore(moment(), 'day')) {
@@ -406,7 +412,7 @@ var checkMe = function () {
 		time = moment();
 		fs.writeFile("/home/nicohman/.demenses/timer", time.valueOf(), "utf-8",
 			function () {
-				https.get("https://www.reddit.com/r/me_irl/top/.json?count=1&limit=1",
+				var req = https.get("https://www.reddit.com/r/me_irl/top/.json?count=1&limit=1",
 					function (res) {
 						var data = "";
 						res.on("data", function (bit) {
@@ -431,6 +437,9 @@ var checkMe = function () {
 							});
 						});
 					});
+				req.on('error', function(e){
+					console.error(e);
+				});
 			});
 	} else {
 		console.log("A day has not passed. " + time.toNow(true));
