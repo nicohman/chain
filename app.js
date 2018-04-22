@@ -845,6 +845,28 @@ function cmpfavs(post1, post2) {
 		return 0;
 	}
 }
+function cmpfavsD(post1, post2) {
+	var a2bo = 0;
+	var a1bo = 0;
+	if (post1.stickied) {
+		a1bo += 2000;
+	}
+	if (post2.stickied) {
+		a2bo += 2000;
+	}
+	var p1d = moment(post1.date);
+	var p2d = moment(post2.date);
+	var now = moment();
+	a1bo += p1d.diff(now, 'days');
+	a2bo += p2d.diff(now, 'days');
+	if (post1.favs + a1bo < post2.favs + a2bo) {
+		return 1;
+	} else if (post1.favs + a1bo > post2.favs + a2bo) {
+		return -1;
+	} else {
+		return 0;
+	}
+}
 //Checks a post against a given set of curation rules to see whether it is allowed in.
 function checkRules(post, rules) {
 	var ok = true;
@@ -950,7 +972,7 @@ function get_posts(criterion, cb) {
 		if (Object.keys(criterion.posts).length < criterion.count) {
 			var check = Object.keys(posts).map(function (m) {
 				return posts[m];
-			}).sort(cmpfavs).splice(0, criterion.count);
+			}).sort(cmpfavsD).splice(0, criterion.count);
 			check.forEach(function (check2, index) {
 				if (criterion.posts[check2.id]) {
 					check = check.splice(index, 1);
@@ -962,7 +984,7 @@ function get_posts(criterion, cb) {
 				m.favs = posts[m.id].favs;
 				return m;
 			});
-			criterion.posts = check.concat(criterion.posts).sort(cmpfavs).splice(0,
+			criterion.posts = check.concat(criterion.posts).sort(cmpfavsD).splice(0,
 				criterion.count);
 		}
 	}
@@ -1041,7 +1063,7 @@ function get_even(criterion, cb) {
 				//console.log(fin);
 				fin = Object.keys(fin).map(function (p) {
 					return fin[p];
-				}).sort(cmpfavs);
+				}).sort(cmpfavsD);
 				posts.posts = fin;
 			}
 			//console.log(posts.posts);
