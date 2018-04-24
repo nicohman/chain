@@ -14,6 +14,7 @@ window.onload = function () {
 	var resultsPage = new Muuri(document.getElementById("results-posts"), {});
 	var selfGrid = new Muuri(document.getElementById("resu"), {});
 	var favGrid = new Muuri(document.getElementById("fav"), {});
+	var ownPage = new Muuri(document.getElementById("own"), {});
 	console.log(homePage);
 	setInterval(homePage.layout, 1000);
 	var home_num = 10;
@@ -298,7 +299,8 @@ window.onload = function () {
 		get_self_posts: function (cb) {
 			client.emit("c_get_self_posts", {
 				cid: client.id,
-				token: token
+				token: token,
+				count:50
 			});
 			client.once("c_got_self_posts", cb);
 		},
@@ -1560,6 +1562,20 @@ var res = /(https*:\/\/\S+\.\S+)/;
 				}
 			});
 		},
+		"own" : function(){
+						chain.get_self_posts(function (posts) {
+					if (posts) {
+						console.log(posts);
+						removeGrid(ownPage);
+						Object.keys(posts.posts).sort(pdate(posts.posts)).forEach(function(key){
+							ownPage.add(makePost(posts.posts[key], ownPage));
+						});
+					} else {
+						notify("Couldn't get your posts!");
+					}
+				});
+
+		},
 		"feed": function () {
 			var max_feed = 20;
 			//removeGrid(feedPage);
@@ -1628,6 +1644,9 @@ var res = /(https*:\/\/\S+\.\S+)/;
 			case "feed":
 				upGrid(feedPage);
 				break;
+			case "own":
+					upGrid(ownPage);
+					break;
 			case "favs":
 				upGrid(favGrid);
 				break;
@@ -2077,7 +2096,7 @@ var res = /(https*:\/\/\S+\.\S+)/;
 				document.getElementById("copy-div").style.display = "none";
 			});
 			var stSheet = document.createElement("style");
-			stSheet.innerHTML = "#main > div .post-container:nth-child(-n+"+(Math.floor($(window).width() / 300 * 0.6) - 1 )+") { margin-top:5%}";
+			stSheet.innerHTML = "#main > div .post-container:nth-child(-n+"+(Math.floor($(window).width() / 300 * 0.6) + 1 )+") { margin-top:5%}";
 			document.getElementById("head").appendChild(stSheet);
 			document.getElementById("big-comment").addEventListener("submit",
 				function (e) {
@@ -2234,15 +2253,12 @@ var res = /(https*:\/\/\S+\.\S+)/;
 						e.target.reset();
 					}
 				});
+			document.getElementById("big-img").addEventListener("click", function(e){
+				document.getElementById("bigger-img").style.display = "block";
+				document.getElementById("bigger-img").src = e.target.src;
+			});
 			document.getElementById("view-own").addEventListener("click", function () {
-				chain.get_self_posts(function (posts) {
-					if (posts) {
-						console.log(posts);
-						dispPostsU(posts.posts);
-					} else {
-						notify("Couldn't get your posts!");
-					}
-				});
+				showblocking("own");
 			});
 			document.getElementById("create-cur").addEventListener("submit", function (
 				e) {

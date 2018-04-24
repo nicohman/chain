@@ -1079,7 +1079,7 @@ function get_even(criterion, cb) {
 //Gets all posts of a user.
 function getPostsByUser(uid, cb, count) {
 	if (!count) {
-		count = 10;
+		count = 50;
 	}
 	get_even({
 		filter: "user",
@@ -2100,7 +2100,7 @@ var serv_handles = {
 				if (dec.uid == logged[req.cid]) {
 					getPostsByUser(dec.uid, function (posts) {
 						posts.posts = checkFavs(users[logged[req.cid]].favorites, posts.posts);
-						io.to(req.cid).emit("c_got_self_posts", posts, req.count || 10);
+						io.to(req.cid).emit("c_got_self_posts", posts, req.count || 50);
 					});
 				} else {
 					io.to(req.cid).emit("c_got_self_posts", false);
