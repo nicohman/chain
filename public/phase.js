@@ -876,7 +876,7 @@ var res = /(https*:\/\/\S+\.\S+)/;
 			if (gifIs){
 				var aft = document.createElement("div");
 				aft.className = "after";
-				aft.innerHTML = "||";
+				aft.innerHTML = "  ";
 				toAppend.appendChild(aft);
 			}
 			img.src = ilink

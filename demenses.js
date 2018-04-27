@@ -19,7 +19,7 @@ var request = require("request");
 var URL = require("url");
 var defaultsBig = ["0d3944", "FFFFFF"];
 var defaultsSmall = ["#ff6a00", "#4c4c4c"];
-
+var defaultIcon = ["#000000"];
 function hash(data) {
 	return shahash.createHash('sha1').update(data, 'utf-8').digest('hex');
 }
@@ -36,7 +36,10 @@ function decodeBase64Image(dataString) {
 }
 
 function hexToRgb(hex) {
+	
 	var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+	console.log(hex);
+	console.log(result);
 	return result ? {
 		r: parseInt(result[1], 16),
 		g: parseInt(result[2], 16),
@@ -45,17 +48,22 @@ function hexToRgb(hex) {
 }
 Caman.Filter.register("convertToC", function (cur, to) {
 	var convCur1 = hexToRgb(cur[0]);
-	var convCur2 = hexToRgb(cur[1]);
 	var convTo1 = hexToRgb(to[0]);
+	if(cur.length == 2){
 	var convTo2 = hexToRgb(to[1]);
+
+	var convCur2 = hexToRgb(cur[1]);
+	var two = true;
+	}
 	console.log(convCur1);
+	console.log(convTo1);
 	this.process("convertToC", function (rgba) {
 		var prev = rgba.a;
-		if (rgba.r == convCur1.r && rgba.b == convCur1.b && rgba.g == convCur1.g) {
+		if (rgba.r === convCur1.r && rgba.b === convCur1.b && rgba.g === convCur1.g) {
 			rgba.r = convTo1.r;
 			rgba.b = convTo1.b;
 			rgba.g = convTo1.g;
-		} else if (rgba.r == convCur2.r && rgba.b == convCur2.b && rgba.g ==
+		} else if (two && rgba.r === convCur2.r && rgba.b === convCur2.b && rgba.g ===
 			convCur2.g) {
 			rgba.r = convTo2.r;
 			rgba.b = convTo2.b;
@@ -140,6 +148,31 @@ client.on("connect", function () {
 			}
 		});
 		//  Start server
+		app.get("/icons/:icon/:color1", function(req, res){
+			fs.access("./public/icons/"+req.params.icon+"-"+req.params.color1+".png", function(err){
+				if(err){
+					console.log("Icon "+req.params.icon+" configuration not found generating");
+					if(fs.existsSync(__dirname+"/public/"+req.params.icon+".png")){
+						Caman(__dirname+"/public/"+req.params.icon+".png", function(){
+							this.convertToC(defaultIcon, [req.params.color1]);
+							this.render(function(){
+								this.save(__dirname + "/public/icons/"+req.params.icon+"-"+req.params.color1+".png");
+								setTimeout(function(){
+									res.sendFile("./public/icons/"+req.params.icon+"-"+req.params.color1+".png", {
+										root:__dirname
+									});
+								}, 20)
+							});
+						});
+					}
+				} else 
+				{
+					res.sendFile("./public/icons/"+req.params.icon+"-"+req.params.color1+".png", {
+						root:__dirname
+					});
+				}
+			});
+		});
 		app.get("/logo/big/:color1/:color2", function (req, res) {
 			console.log("Logo req");
 			fs.access('./public/logos/big/' + req.params.color1 + '-' + req.params.color2 +
