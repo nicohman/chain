@@ -1044,12 +1044,12 @@ transform: translate(-50%, 0%) !important;
 	.nav[href="#favs"] {
 		background-image:url("/fav.png");
 		background-repeat:no-repeat;
-		background-position:center bottom;
+		background-position:23% bottom;
 	}
 	.nav[href="#pop"] {
 		background-image:url("/create.png");
 		background-repeat:no-repeat;
-		background-position:center bottom;
+		background-position:23% bottom;
 	}
 	.nav[href="#home"] {
 		background-image:url("/home.png");
