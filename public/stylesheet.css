@@ -53,6 +53,9 @@
 	border:none;
 	font-weight:bold;
 }
+#about {
+	display:none;
+}
 #fol-curs li {
 	cursor:pointer;
 }
@@ -705,8 +708,9 @@ transform: translate(-50%, 0%) !important;
 	position:absolute;
 	top:45%;
 	left:45%;
-	width:100%;
-	height:100%;
+	width:32px;
+	background-image: url("/play.png");
+	height:32px;
 	display:inline-block;
 	cursor:pointer;
 	color:black;
@@ -907,6 +911,9 @@ transform: translate(-50%, 0%) !important;
 #mob-click {
 	display:none;
 }
+.show-mob {
+	display:none;
+}
 #comment-title {
 	font-weight:bold;
         margin-left: 2%;
@@ -972,9 +979,11 @@ transform: translate(-50%, 0%) !important;
 
 @media only screen and (max-device-width: 768px) {
 	div  {
-		font-size:x-large !important;
+		font-size:x-large;
 	}
-
+#main {
+	padding-top:0;
+}
 	div .post {
         	width: 90%;
 	margin-left: 0%;
@@ -998,21 +1007,32 @@ transform: translate(-50%, 0%) !important;
     }
 
     #navbar ul {
-    	height:1-%;
+    	height:5%;
 	width:100%;
 	display:flex;
-	top:94%;
+	top:95%;
 	left:0%;
 	z-index:80;
-	bottom:1%;
+	bottom:0%;
 	justify-content:flex-start;
 	flex-wrap:wrap;
     }
     .load {
     	width:90%;
     }
-    #navbar li {
+    .hide-mob {
+    	display:none;
+    }
+    .show-mob {
+    	display: block;
+    }
+     #navbar li {
+	width:18%;
     	border:2px var(--border) solid;
+    }
+    #navbar li a {
+    	color:transparent !important;
+	width:18%;
     }
     #main {
     margin-bottom:20%;
@@ -1021,6 +1041,26 @@ transform: translate(-50%, 0%) !important;
     	margin-left:0 !important;
 	justify-self:inherit !important;
     }
+	.nav[href="#feed"] {
+		background-image:url("/feed.png");
+		background-repeat:no-repeat;
+		background-position:center bottom;
+	}
+	.nav[href="#favs"] {
+		background-image:url("/fav.png");
+		background-repeat:no-repeat;
+		background-position:23% bottom;
+	}
+	.nav[href="#pop"] {
+		background-image:url("/create.png");
+		background-repeat:no-repeat;
+		background-position:23% bottom;
+	}
+	.nav[href="#home"] {
+		background-image:url("/home.png");
+		background-repeat:no-repeat;
+		background-position:center bottom;
+	}
     #navbar .loggedout {
     	margin-left:0 !important;
 	display:none;
@@ -1062,6 +1102,23 @@ transform: translate(-50%, 0%) !important;
     }
     #search {
     	font-size:75px;
+    }
+    #content {
+    font-size:x-large;
+    }
+    #pop > div {
+    	height:90%;
+	width: 90%;
+	margin-left:5%;
+	overflow-x : none;
+	top:0;
+	margin-top : 2.5%;
+    }
+    #pop {
+    	margin-top:0;
+    }
+    .post-date {
+    font-size:small;
     }
     #create-post #create-title {
     	font-size:large;

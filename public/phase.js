@@ -876,7 +876,7 @@ var res = /(https*:\/\/\S+\.\S+)/;
 			if (gifIs){
 				var aft = document.createElement("div");
 				aft.className = "after";
-				aft.innerHTML = "||";
+				aft.innerHTML = "  ";
 				toAppend.appendChild(aft);
 			}
 			img.src = ilink
@@ -2006,6 +2006,14 @@ var res = /(https*:\/\/\S+\.\S+)/;
 	}
 	client.on('connect', function () {
 		console.log("connected");
+
+			var isMobile = window.matchMedia("only screen and (max-device-width: 768px)");
+			if(isMobile.matches){
+				var cont = document.getElementById("content");
+				cont.rows = 20;
+				cont.cols = 40;
+				console.log("Worked");
+			}
 		if (token) {
 			chain.attempt_token(token, function (res) {
 				if (res) {

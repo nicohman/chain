@@ -10,6 +10,7 @@ public/logos/big/*
 public/logos/small*
 public/cdn/*
 imgs/*
+public/icons/*
 gifs/*
 errs
 *.swo

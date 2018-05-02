@@ -97,6 +97,31 @@ function changeColorscheme(scheme) {
 			document.getElementsByClassName("small-logo")[0].src =
 				"https://demenses.net/logo/small/" + schemes[scheme]["sec-bg"].replace(
 					"#", "") + "/" + schemes[scheme]["border"].replace("#", "");
+			var isMobile = window.matchMedia("only screen and (max-device-width: 768px)");
+			if(isMobile.matches){
+			var icons = document.getElementsByClassName("icon");
+			for(var i = 0; i < icons.length; i++) {
+				var name;
+				switch(icons.item(i).href.split("#")[1]){
+					case "home":
+						name = "home";
+						break;
+					case "favs":
+						name = "fav";
+						break;
+					case "feed":
+						name = "feed";
+						break;
+					case "pop":
+						name = "create";
+						break;
+					default:
+						//name = icons.item(i).href.replace("#","");
+						break;
+				}
+				icons.item(i).style["background-image"] = "url('https://demenses.net/icons/"+name+"/"+schemes[scheme]["follow"].replace("#", "")+"')";
+			}
+			}
 		}, 100);
 	}
 }
