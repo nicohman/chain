@@ -53,6 +53,9 @@
 	border:none;
 	font-weight:bold;
 }
+#about {
+	display:none;
+}
 #fol-curs li {
 	cursor:pointer;
 }
@@ -976,9 +979,11 @@ transform: translate(-50%, 0%) !important;
 
 @media only screen and (max-device-width: 768px) {
 	div  {
-		font-size:x-large !important;
+		font-size:x-large;
 	}
-
+#main {
+	padding-top:0;
+}
 	div .post {
         	width: 90%;
 	margin-left: 0%;
@@ -1097,6 +1102,23 @@ transform: translate(-50%, 0%) !important;
     }
     #search {
     	font-size:75px;
+    }
+    #content {
+    font-size:x-large;
+    }
+    #pop > div {
+    	height:90%;
+	width: 90%;
+	margin-left:5%;
+	overflow-x : none;
+	top:0;
+	margin-top : 2.5%;
+    }
+    #pop {
+    	margin-top:0;
+    }
+    .post-date {
+    font-size:small;
     }
     #create-post #create-title {
     	font-size:large;

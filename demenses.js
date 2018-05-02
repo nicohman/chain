@@ -264,7 +264,7 @@ var resetPassword = function (req, res) {
 				token: req.params.token
 			});
 			client.once("d_changed_pass_" + un.email, function (resd) {
-				if (resd) {
+				if (true) {
 					res.redirect("/changed.html");
 				}
 			});
