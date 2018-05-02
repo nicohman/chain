@@ -115,6 +115,9 @@ function changeColorscheme(scheme) {
 					case "pop":
 						name = "create";
 						break;
+					case "drop-up":
+						name = "drop";
+						break;
 					default:
 						//name = icons.item(i).href.replace("#","");
 						break;

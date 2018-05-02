@@ -722,6 +722,7 @@ window.onload = function () {
 	function hide_big_post() {
 		var bigCon = document.getElementById("big-container");
 		bigCon.style.display = "none";
+		document.getElementById("bigger-img").style.display = "none";
 		document.getElementById("overlay").style.display = "none";
 		curBig = false;
 	}
@@ -2010,8 +2011,8 @@ var res = /(https*:\/\/\S+\.\S+)/;
 			var isMobile = window.matchMedia("only screen and (max-device-width: 768px)");
 			if(isMobile.matches){
 				var cont = document.getElementById("content");
-				cont.rows = 20;
-				cont.cols = 40;
+				cont.rows = 10;
+				cont.cols = 25;
 				console.log("Worked");
 			}
 		if (token) {
@@ -2263,7 +2264,12 @@ var res = /(https*:\/\/\S+\.\S+)/;
 				});
 			document.getElementById("big-img").addEventListener("click", function(e){
 				document.getElementById("bigger-img").style.display = "block";
+				document.getElementById("overlay-background").style.display = "block";
 				document.getElementById("bigger-img").src = e.target.src;
+			});
+			document.getElementById("bigger-img").addEventListener("click", function(e){
+				document.getElementById("bigger-img").style.display = "none";
+				//document.getElementById("overlay-background").style.display = "none";
 			});
 			document.getElementById("view-own").addEventListener("click", function () {
 				showblocking("own");
@@ -2443,6 +2449,7 @@ var res = /(https*:\/\/\S+\.\S+)/;
 				function () {
 					if (curBig) {
 						hide_big_post();
+					
 					} else {
 						hide_comments();
 					}

@@ -316,10 +316,12 @@ body {
 #bigger-img {
 	display:none;
 	cursor:pointer;
-	width:auto;
-	height:auto;
-	z-index:1;
-	position:absolute;
+	max-width:85%;
+	max-height:85%;
+	min-height:60%;
+	min-width:60%;
+	z-index:99;
+	position:fixed;
 }
 #cur-seperator {
         margin-right: 20px;
@@ -353,7 +355,7 @@ body {
 	z-index:-1;
 	top:95%;
 	height:100.5;
-	width:88.75px;
+	width:88.5px;
 	opacity:0.3;
 	left:50%;
 	transform:translate(-50%,-100%);
@@ -1037,6 +1039,17 @@ transform: translate(-50%, 0%) !important;
     #main {
     margin-bottom:20%;
     }
+    #create-title > input {
+    	width:75%;
+	font-size:x-large;
+    }
+    #create-tags > input {
+    	font-size:large;
+	width:75%;
+    }
+    #create-tags > input[type="submit"] {
+    	width:25%;
+    }
     #navbar .loggedin {
     	margin-left:0 !important;
 	justify-self:inherit !important;
@@ -1060,6 +1073,11 @@ transform: translate(-50%, 0%) !important;
 		background-image:url("/home.png");
 		background-repeat:no-repeat;
 		background-position:center bottom;
+	}
+	.nav[href="#drop-up"] {
+		background-image:url("/drop.png");
+		background-repeat:no-repeat;
+		background-position:120% top;
 	}
     #navbar .loggedout {
     	margin-left:0 !important;
@@ -1106,8 +1124,17 @@ transform: translate(-50%, 0%) !important;
     #content {
     font-size:x-large;
     }
+    #upload {
+    	width:5%;
+	height:5%;
+	color:transparent;
+	background-image:url("/camera.png");
+	background-repeat:no-repeat;
+	background-color:none;
+	background-position:center bottom;
+    }
     #pop > div {
-    	height:90%;
+    	height:100%;
 	width: 90%;
 	margin-left:5%;
 	overflow-x : none;
