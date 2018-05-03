@@ -15,8 +15,7 @@ window.onload = function () {
 	var selfGrid = new Muuri(document.getElementById("resu"), {});
 	var favGrid = new Muuri(document.getElementById("fav"), {});
 	var ownPage = new Muuri(document.getElementById("own"), {});
-	console.log(homePage);
-	setInterval(homePage.layout, 1000);
+	//setInterval(homePage.layout, 1000);
 	var home_num = 10;
 	var cur_show = "home";
 	var resCur = false;
@@ -34,7 +33,6 @@ window.onload = function () {
 					return false;
 				}
 			});
-			console.log(its);
 			grid.remove(its, {
 				removeElements: true
 			});
@@ -54,7 +52,6 @@ window.onload = function () {
 	}
 
 	function getParameter(name) {
-		console.log(location.search);
 		return decodeURIComponent((new RegExp('[?|&]' + name + '=' +
 			'([^&;]+?)(&|#|;|$)').exec(window.location) || [null, ''])[1].replace(
 			/\+/g, '%20')) || null;
@@ -196,7 +193,6 @@ window.onload = function () {
 				cid: client.id
 			});
 			client.once("c_logged_in_" + uid, function (newtoken) {
-				console.log("res");
 				if (newtoken) {
 					token = newtoken
 					localStorage.setItem("auth_token", newtoken);
@@ -213,8 +209,6 @@ window.onload = function () {
 				uid: loggedin.uid
 			});
 			client.once("c_got_cur_mod_" + cur, function (res) {
-				console.log(res);
-				console.log("MOD" + cur);
 				cb(res);
 			});
 		},
@@ -322,7 +316,6 @@ window.onload = function () {
 				token: token
 			});
 			client.once("c_deleted_curation", function (res) {
-				console.log(res);
 				cb(res)
 			});
 		},
@@ -337,7 +330,6 @@ window.onload = function () {
 					cb(favs)
 				});
 			} else {
-				console.log("not logged in");
 			}
 		},
 		rm_notif: function (id, cb) {
@@ -368,10 +360,8 @@ window.onload = function () {
 					token: token,
 					uid: loggedin.uid
 				});
-				console.log("c_followed_tag_" + tag);
-				console.log(client.id);
+
 				client.once("c_followed_tag_" + tag, function (res) {
-					console.log("FJSAFJ");
 					cb(res);
 				});
 			}
@@ -409,7 +399,6 @@ window.onload = function () {
 		},
 		add_favorite: function add_favorite(pid, cb) {
 			if (loggedin.uid && token) {
-				console.log("Emitting");
 				client.emit("c_add_favorite", {
 					cid: client.id,
 					pid: pid,
@@ -423,7 +412,6 @@ window.onload = function () {
 		},
 		unfavorite: function (pid, cb) {
 			if (loggedin.uid && token) {
-				console.log(pid);
 				client.emit("c_unfavorite", {
 					cid: client.id,
 					pid: pid,
@@ -432,7 +420,6 @@ window.onload = function () {
 				});
 				client.once("c_unfavorited_" + pid, function (res) {
 					cb(res);
-					console.log("RECEIEVED");
 				});
 			}
 		},
@@ -448,7 +435,6 @@ window.onload = function () {
 				time: time
 			});
 			client.once("c_got_cur_posts_" + cur + "_" + time, function (posts) {
-				console.log("RES FROM SERVER");
 				cb(posts)
 			});
 		},
@@ -474,7 +460,6 @@ window.onload = function () {
 		},
 		get_feed: function get_feed(cb, count) {
 			if (!count) {
-				console.log("DEFAULTS");
 				count = 10;
 			}
 			client.emit("c_get_feed", {
@@ -485,10 +470,8 @@ window.onload = function () {
 				cid: client.id,
 				count: count
 			});
-			console.log("c_got_feed_" + loggedin.uid);
 			client.once("c_got_feed_" + loggedin.uid, function (posts) {
-				console.log("GOT FEED");
-				console.log(posts);
+		
 				cb(posts);
 			});
 		},
@@ -520,9 +503,7 @@ window.onload = function () {
 				token: token,
 				cid: client.id
 			});
-			console.log("emitted");
 			client.once("c_token_logged_in", function (res) {
-				console.log(res);
 				if (res) {
 					login();
 					set_username(res.username);
@@ -557,7 +538,6 @@ window.onload = function () {
 				id: client.id
 			});
 			client.once("c_got_top", function (posts) {
-				console.log("TOP RES");
 				cb(posts.posts);
 			});
 		},
@@ -633,7 +613,6 @@ window.onload = function () {
 			del_com.className = "del-com niceinput";
 			del_com.addEventListener("click", function () {
 				var toind = post.comments.indexOf(comment);
-				console.log(toind);
 				chain.delete_comment(post.id, toind, function (res) {
 					if (res) {
 						notify("Comment deleted!");
@@ -661,7 +640,6 @@ window.onload = function () {
 		var commentsCon = document.getElementById("comments-list");
 		removeFrom(commentsCon);
 		cur_com = post.id;
-		console.log(post);
 		post.comments.filter(function (x) {
 			return x != null
 		}).forEach(function (comment) {
@@ -672,13 +650,10 @@ window.onload = function () {
 	function upGrid(grid) {
 		var eles = grid.getItems();
 		eles.forEach(function (ele, ind) {
-			console.log(ele);
 			var id = ele._element.children.item(0).children.item(4).innerHTML;
 			if (id.length > 0) {
-				console.log(id);
 				chain.get_by_id(id, function (post) {
 					if (post) {
-						console.log(post);
 						var madePost = makePost(post);
 						grid.add(madePost);
 						grid.remove(ele, {
@@ -699,7 +674,6 @@ window.onload = function () {
 		var res = /(https*:\/\/\S+\.\S+)/
 		var is = url.match(res);
 		if (is) {
-			console.log("RETURNING URL");
 			return {
 				res: is,
 				un: url.replace(res, "")
@@ -736,7 +710,6 @@ window.onload = function () {
 			for (var i = 0; i < posts.length; i++) {
 				if (posts.item(i).getElementsByClassName("post-id").item(0).innerHTML.trim() ==
 					cur_com.trim()) {
-					console.log("Found!");
 					posts.item(i).getElementsByClassName("comment-post").item(0).innerHTML =
 						"Comments: " + post.comments.filter(function (x) {
 							return x != null
@@ -793,17 +766,19 @@ window.onload = function () {
 		}
 	}
 
-	function createContent(content, toAppend, grid, alt) {
+	function createContent(content, toAppend, grid, alt, post) {
 		var e = checkUrl(content.trim());
 		var res = e.res;
 		var img;
 		var gifIs = false;
 		var ilink;
 		if (res) {
-			console.log("URLRL");
 			var imgC = checkImage(res[0]);
 			if (imgC) {
 				img = document.createElement("img");
+				img.addEventListener("click", function(){
+					show_big_post(post);
+				});
 				var base = res[0];
 				if(base.indexOf(".gif") === -1){
 				ilink = "https://images.weserv.nl/?url=" + base.replace("https://", "").replace(
@@ -832,7 +807,6 @@ window.onload = function () {
 						}
 					});
 						}
-				console.log("IT'S A MEME");
 				img.className = "post-image";
 				res.shift();
 			}
@@ -851,17 +825,14 @@ var res = /(https*:\/\/\S+\.\S+)/;
 			return "";
 		});
 		if(test != "" || links.indexOf("iframe") != -1){
-			console.log("NOT ONLY LINKS");
-			console.log(links);
-			console.log(content);
+
 		toAppend.innerHTML = links;
 		}
 		if (img) {
 			img.addEventListener("load", function () {
 				if (grid) {
 					setTimeout(function () {
-						console.log(grid);
-						console.log("refreshing");
+
 						grid.refreshItems();
 						grid.layout();
 					}, 75);
@@ -883,7 +854,6 @@ var res = /(https*:\/\/\S+\.\S+)/;
 			img.src = ilink
 		}
 		if(test == "" && !img && links.indexOf("iframe") == -1){
-			console.log("LINK ONLY");
 			toAppend.innerHTML = "";
 			return content;
 		}
@@ -903,7 +873,6 @@ var res = /(https*:\/\/\S+\.\S+)/;
 		if (!post.title) {
 			return;
 		}
-		console.log(post);
 		var postt = document.createElement("div");
 		postt.className = "post";
 		var title = document.createElement("div");
@@ -919,9 +888,8 @@ var res = /(https*:\/\/\S+\.\S+)/;
 		if (post.content) {
 			var content = document.createElement("div");
 			content.className = "post-content";
-			var all = createContent(post.content, content, grid, post.alt);
+			var all = createContent(post.content, content, grid, post.alt, post);
 			if(all){
-				console.log("ONLY LINK");
 				title.innerHTML = "<a href ='"+all+"' target='_blank'>"+post.title+" - "+post.favs +"</a>";
 				content.style.display = "none";
 			} else {
@@ -980,11 +948,9 @@ var res = /(https*:\/\/\S+\.\S+)/;
 				});
 			});
 		} else {
-			console.log(post);
 			fav.innerHTML = "Favorite"
 			fav.addEventListener("click", function (e) {
 				prevent(e);
-				console.log("Favoriting");
 				chain.add_favorite(post.id, function () {
 					reloadCur();
 				});
@@ -1181,13 +1147,11 @@ var res = /(https*:\/\/\S+\.\S+)/;
 				bigCont.style.display = "block";
 				bImg.style.display = "block";
 			} else if (img) {
-				console.log("img");
 				bImg.className = "big-centered";
 				bImg.style.display = "block";
 				bigCont.style.display = "none";
 				bigCont.className = "";
 			} else if (links.length > 0) {
-				console.log("text");
 				bigCont.style.display = "block";
 				bImg.style.display = "none";
 				bImg.className = "";
@@ -1220,7 +1184,6 @@ var res = /(https*:\/\/\S+\.\S+)/;
 		} else {
 			new_fav.innerHTML = "Favorite"
 			new_fav.addEventListener("click", function () {
-				console.log("Favoriting");
 				chain.add_favorite(post.id, function () {
 					reloadCur();
 				});
@@ -1271,7 +1234,6 @@ var res = /(https*:\/\/\S+\.\S+)/;
 	function set_username(username) {
 		var us = document.getElementsByClassName("username");
 		for (var i = 0; i < us.length; i++) {
-			console.log("set");
 			us.item(i).innerHTML = username;
 		}
 	}
@@ -1324,13 +1286,11 @@ var res = /(https*:\/\/\S+\.\S+)/;
 			var gotter = {};
 			removeGrid(homePage);
 			chain.get_top(function (posts) {
-				console.log(posts);
 				var sorted = Object.keys(posts).sort(function (post1, post2) {
 					var b1 = 0;
 					var b2 = 0;
 					if (posts[post1].stickied) {
 						b1 += posts[post1].date;
-						console.log("b1!:" + b1);
 					}
 					if (posts[post2].stickied) {
 						b2 += posts[post2].date;
@@ -1348,7 +1308,6 @@ var res = /(https*:\/\/\S+\.\S+)/;
 					if (inc < 10) {
 						var post = posts[key];
 						gotter[post.id] = true;
-						console.log(post);
 						if (post.title) {
 							homePage.add([makePost(post, homePage)]);
 						}
@@ -1358,16 +1317,12 @@ var res = /(https*:\/\/\S+\.\S+)/;
 				if (sorted.length >= 10) {
 					max = 10;
 					makeLoad(homePage, function (load, cb) {
-						console.log("LOADING MORE OF " + home_num + "|" + max + "|" +
-							sorted.length)
 						chain.get_top(function (posts) {
-							console.log(posts);
 							var sorted = Object.keys(posts).sort(function (post1, post2) {
 								var b1 = 0;
 								var b2 = 0;
 								if (posts[post1].stickied) {
 									b1 += posts[post1].date;
-									console.log("b1!:" + b1);
 								}
 								if (posts[post2].stickied) {
 									b2 += posts[post2].date;
@@ -1384,13 +1339,10 @@ var res = /(https*:\/\/\S+\.\S+)/;
 								return !gotter[posts[x].id];
 							});
 							sorted.splice(10, 1000);
-							console.log(sorted);
-							console.log("SPLICED:");
-							console.log(sorted);
+				
 							sorted.forEach(function (key) {
 								var post = posts[key];
-								console.log(key);
-								console.log(post);
+					
 								gotter[post.id] = true;
 								if (post.title) {
 									homePage.add(makePost(post, homePage));
@@ -1405,7 +1357,6 @@ var res = /(https*:\/\/\S+\.\S+)/;
 			}, 40);
 		},
 		"notifications": function () {
-			console.log("SHOWING NOTIFIcATIONS");
 			refreshNotifs(function (notifs) {
 				removeFrom(document.getElementById("notif-div"));
 				notifs.forEach(function (not) {
@@ -1482,21 +1433,17 @@ var res = /(https*:\/\/\S+\.\S+)/;
 			chain.get_top(function (posts) {
 				removeFrom(document.getElementById("pop-tags"));
 				var tags = {};
-				console.log(posts);
 				Object.keys(posts).forEach(function (key) {
 					var post = posts[key]
-					console.log(post);
 					if (post.tags) {
 						post.tags.forEach(function (tag) {
 							if (tags[tag] == undefined) {
 								tags[tag] = 0;
 							}
-							console.log(post);
 							tags[tag] += post.favs
 						});
 					}
 				});
-				console.log(tags);
 				var fin = Object.keys(tags).sort(function (tag1, tag2) {
 					if (tags[tag1] > tags[tag2]) {
 						return -1;
@@ -1506,7 +1453,6 @@ var res = /(https*:\/\/\S+\.\S+)/;
 						return 0;
 					}
 				}).splice(0, 5);
-				console.log(fin)
 				fin.forEach(function (tag) {
 					var li = document.createElement("li");
 					li.innerHTML = tag;
@@ -1530,7 +1476,6 @@ var res = /(https*:\/\/\S+\.\S+)/;
 			document.getElementById("owned-curs").appendChild(def);
 			chain.get_self(function (me) {
 				removeFrom(document.getElementById("owned-curs"));
-				console.log(me.curations_owned);
 				Object.keys(me.curations_owned).filter(function (x) {
 					if (me.curations_owned[x]) {
 						return true;
@@ -1566,7 +1511,6 @@ var res = /(https*:\/\/\S+\.\S+)/;
 		"own" : function(){
 						chain.get_self_posts(function (posts) {
 					if (posts) {
-						console.log(posts);
 						removeGrid(ownPage);
 						Object.keys(posts.posts).sort(pdate(posts.posts)).forEach(function(key){
 							ownPage.add(makePost(posts.posts[key], ownPage));
@@ -1584,7 +1528,6 @@ var res = /(https*:\/\/\S+\.\S+)/;
 			var max = 0; //eslint-disable-line
 			feedPage.add(makeFake("No found posts!"));
 			chain.get_feed(function (posts) {
-				console.log("GOT FEED POSTS");
 				removeGrid(feedPage);
 				Object.keys(posts).sort(pdate(posts)).forEach(function (key) {
 					coll[key] = true;
@@ -1596,19 +1539,14 @@ var res = /(https*:\/\/\S+\.\S+)/;
 				}
 				if (Object.keys(posts).length >= 10) {
 					makeLoad(feedPage, function (load, cb) {
-						console.log("getting");
 						chain.get_feed(function (posts2) {
 							var arr = Object.keys(posts2);
-							console.log(posts2);
-							console.log("_");
-							console.log(posts);
+					
 							arr.sort(pdate(posts2));
 							arr.forEach(function (key) {
 								if (coll[key]) {
-									console.log(key);
 								} else {
 									max++;
-									console.log("DISPLAYING");
 									coll[key] = true;
 									feedPage.add(makePost(posts2[key], feedPage));
 								}
@@ -1630,11 +1568,9 @@ var res = /(https*:\/\/\S+\.\S+)/;
 	});
 
 	function reloadCur() {
-		console.log("reloading current page");
 		if (curBig) {
 			chain.get_by_id(bigPost.id, function (res) {
-				console.log("up");
-				console.log(res);
+
 				show_big_post(res);
 			});
 		} else {
@@ -1672,8 +1608,7 @@ var res = /(https*:\/\/\S+\.\S+)/;
 		notContent.innerHTML = not.content;
 		notTitle.innerHTML = not.title;
 		read.addEventListener("click", function () {
-			console.log("rming");
-			console.log(not);
+
 			chain.rm_notif(not.id, function () {
 				reloadCur();
 			});
@@ -1687,7 +1622,6 @@ var res = /(https*:\/\/\S+\.\S+)/;
 	var totNot = 0
 
 	function refreshNotifs(cb) {
-		console.log("GETTING NOTIFS");
 		chain.get_notifs(function (notifs) {
 			notifs = Object.keys(notifs).map(function (x) {
 				return notifs[x];
@@ -1737,33 +1671,27 @@ var res = /(https*:\/\/\S+\.\S+)/;
 				if (main.ref) {
 					main.ref(main);
 				}
-				console.log("Shown");
 			} else {
 				main.el.style.display = "none";
 			}
-			console.log(main.el.id + " " + toshow);
 		});
 		if (toshow === "post") {
 			show_big_post(bigPost);
 		}
-		console.log(document.getElementById("results").style)
 		document.getElementById("results").style.display = "none";
 		removeFrom(document.getElementById("results-posts"));
-		console.log(document.getElementById("results").style)
 		cur_show = toshow;
 		window.scrollTo(0,0);
 	}
 
 	function hideall() {
 		Object.keys(mains).forEach(function (key) {
-			console.log(key);
 			document.getElementById(key).style.display = "none";
 		});
 	}
 	document.getElementById("navbar").addEventListener("click", function (e) {
 		if (e.target.tagName.toLowerCase() == "a") {
 			var tar = e.target.attributes.href.value.slice(1);
-			console.log(tar);
 			showblocking(tar);
 		}
 	});
@@ -1815,7 +1743,6 @@ var res = /(https*:\/\/\S+\.\S+)/;
 		var coll = {};
 		var max = 0; //eslint-disable-line
 		chain.get_cur_posts(cur, function (posts) {
-			console.log("CUR POSTS CALLED");
 			removeGrid(resultsPage);
 			removeFrom(document.getElementById("cur-mod-tags-list"));
 			document.getElementById("results").style.display = "block";
@@ -1824,8 +1751,7 @@ var res = /(https*:\/\/\S+\.\S+)/;
 				var post = posts[key];
 				coll[key] = true;
 				max++;
-				console.log("CUR:");
-				console.log(posts);
+			
 				resultsPage.add(makePost(post, resultsPage));
 			});
 			if (Object.keys(posts).length >= 10) {
@@ -1913,13 +1839,10 @@ var res = /(https*:\/\/\S+\.\S+)/;
 		var max_res = 20;
 		var coll = {};
 		var max = 0; //eslint-disable-line
-		console.log("trigged tag");
 		chain.get_posts("tag", [tag], function (posts) {
 			removeGrid(resultsPage);
-			console.log(":TUREND ON RESULTS");
 			document.getElementById("results").style.display = "block";
 			hideall();
-			console.log(posts);
 			Object.keys(posts).forEach(function (key) {
 				var post = posts[key];
 				coll[key] = true;
@@ -1932,10 +1855,8 @@ var res = /(https*:\/\/\S+\.\S+)/;
 						var arr = Object.keys(posts2);
 						arr.forEach(function (key) {
 							if (coll[key]) {
-								console.log(key);
 							} else {
 								max++;
-								console.log("DISPLAYING");
 								coll[key] = true;
 								resultsPage.add(makePost(posts2[key], resultsPage));
 								//document.getElementById("results-posts").insertBefore(makePost(
@@ -1949,20 +1870,17 @@ var res = /(https*:\/\/\S+\.\S+)/;
 			}
 			resultsTag = tag;
 			resCur = false;
-			console.log("TOTAL TAG: ") + tag;
 			resultsPage.layout();
 			checkRes();
 		}, 20);
 	}
 
 	function checkRes() {
-		console.log("checking");
 		var follow = document.getElementById("results-follow");
 		var unfollow = document.getElementById("results-unfollow");
 		if (resCur) {
 			chain.get_cur_mod(resultsTag, function (rules) {
-				console.log(rules);
-				console.log("RULES");
+
 				document.getElementById("results-cur").style.display = "block";
 				document.getElementById("results-tag").style.display = "none";
 				document.getElementById('cur-span').innerHTML = resultsTag;
@@ -1990,9 +1908,7 @@ var res = /(https*:\/\/\S+\.\S+)/;
 			} else {
 				Object.keys(me.tags).forEach(function (tag) {
 					if (me.tags[tag] == true && tag == resultsTag) {
-						console.log(tag);
-						console.log(me.tags);
-						console.log("FAFS");
+
 						follow.style.display = "none";
 						unfollow.style.display = "block";
 						yes = true;
@@ -2006,14 +1922,12 @@ var res = /(https*:\/\/\S+\.\S+)/;
 		});
 	}
 	client.on('connect', function () {
-		console.log("connected");
 
 			var isMobile = window.matchMedia("only screen and (max-device-width: 768px)");
 			if(isMobile.matches){
 				var cont = document.getElementById("content");
 				cont.rows = 10;
 				cont.cols = 25;
-				console.log("Worked");
 			}
 		if (token) {
 			chain.attempt_token(token, function (res) {
@@ -2021,14 +1935,12 @@ var res = /(https*:\/\/\S+\.\S+)/;
 					setInterval(function () {
 						refreshNotifs(function () {});
 					}, 30000);
-					if (res.admin) {
-						console.log("ADMIN");
-					}
+
 					loggedin.username = res.username;
 					loggedin.uid = res.uid;
 					loggedin.admin = res.admin;
 					loggedin.email = res.email;
-					console.log(res);
+				
 					if (loggedin.admin) {
 						document.getElementById("color-admin").style.display = "block";
 						document.getElementById("color-form").addEventListener("submit",
@@ -2064,8 +1976,7 @@ var res = /(https*:\/\/\S+\.\S+)/;
 								}
 							});
 						} else {
-							console.log("NO RIGHT PID");
-							console.log(pid);
+				
 							showblocking("home");
 						}
 					} else {
@@ -2081,10 +1992,10 @@ var res = /(https*:\/\/\S+\.\S+)/;
 				if (content.length > 0) {
 					if (content.length < 256) {
 						e.target.reset();
-						console.log(cur_com);
+					
 						chain.add_comment(content, cur_com, function () {
 							chain.get_by_id(cur_com, function (post) {
-								console.log(post);
+							
 								show_comments(post);
 							});
 						});
@@ -2133,7 +2044,6 @@ var res = /(https*:\/\/\S+\.\S+)/;
 						type: "POST",
 						url: "/image/new",
 						success: function (res) {
-							console.log(res);
 							document.getElementById("content").innerHTML += ("https://demenses.net/cdn/"+res);
 						},
 						processData: false,
