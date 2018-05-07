@@ -1185,4 +1185,26 @@ transform: translate(-50%, 0%) !important;
 	.small-logo {
 		display:none !important;
 	}
+	#curations > div {
+		width:95%;
+		margin-left:0;
+		margin-right:0;
+		height:75%;	
+	}
+	#search > div {
+		height:75%;
+	}
+
+	input[name="cur"] {
+	font-size:x-large;
+	}
+	#curs-find {
+		display:flex;
+		flex-direction:column;
+	}
+	#cur-seperator {
+	margin-right:0;
+	margin-left:0;
+	height:150%;
+	}
 }

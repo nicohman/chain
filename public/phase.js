@@ -15,7 +15,6 @@ window.onload = function () {
 	var selfGrid = new Muuri(document.getElementById("resu"), {});
 	var favGrid = new Muuri(document.getElementById("fav"), {});
 	var ownPage = new Muuri(document.getElementById("own"), {});
-	//setInterval(homePage.layout, 1000);
 	var home_num = 10;
 	var cur_show = "home";
 	var resCur = false;
@@ -859,16 +858,6 @@ var res = /(https*:\/\/\S+\.\S+)/;
 		}
 
 	}
-	/*function refreshPost(post, grid) {
-		var id = post.getElementsByClassName("post-id")[0].innerHTML;
-		if (id) {
-			chain.get_by_id(id, function (p) {
-				post.outerHTML = makePost(p, grid);
-			});
-		} else {
-			console.log("Invalid post element!");
-		}
-	}*/
 	function makePost(post, grid) {
 		if (!post.title) {
 			return;
@@ -1013,37 +1002,9 @@ var res = /(https*:\/\/\S+\.\S+)/;
 					});
 				}
 			});
-			//buttons.appendChild(stickyBut);
 			var banBut = document.createElement("button");
 			banBut.className = "ban-post";
 			banBut.type = "button";
-			/*chain.check_banned(post.uid, function (res) {
-				if (res && !res.banned) {
-					banBut.innerHTML = "Ban User";
-				} else if (res) {
-					banBut.innerHTML = "Unban User";
-				}
-				banBut.addEventListener("click", function () {
-					if (!res.banned) {
-						chain.ban(post.uid, function (res) {
-							if (res) {
-								notify("User banned!");
-							} else {
-								notify("Couldn't ban user");
-							}
-						});
-					} else {
-						chain.unban(post.uid, function (res) {
-							if (res) {
-								notify("User unbanned!");
-							} else {
-								notify("Couldn't unban user");
-							}
-						});
-					}
-				});
-			});*/
-			//buttons.appendChild(banBut);
 		}
 		var bigBut = document.createElement("button");
 		bigBut.innerHTML = "Expand";
@@ -1077,12 +1038,6 @@ var res = /(https*:\/\/\S+\.\S+)/;
 		containerDiv.appendChild(postt);
 		return containerDiv;
 	}
-	/*function show_post(post, toAppend) {
-		var made = makePost(post);
-		if (made) {
-			toAppend.appendChild(made);
-		}
-	}*/
 	function make_big_post(post) {
 		curBig = true;
 		bigPost = post;
@@ -1224,11 +1179,8 @@ var res = /(https*:\/\/\S+\.\S+)/;
 		});
 	}
 
-	function show_big_post(post /*, toAppend*/ ) {
+	function show_big_post(post) {
 		make_big_post(post);
-		/*if (made) {
-			toAppend.appendChild(made);
-		}*/
 	}
 
 	function set_username(username) {
@@ -1246,7 +1198,7 @@ var res = /(https*:\/\/\S+\.\S+)/;
 		var button = document.createElement("button");
 		button.className = "load-button";
 		button.innerHTML = "Load More";
-		button.addEventListener("click", function (e) {
+		div.addEventListener("click", function (e) {
 			cb(load, function () {
 				grid.layout();
 				grid.move(load, -1);
@@ -1278,11 +1230,6 @@ var res = /(https*:\/\/\S+\.\S+)/;
 		"home": function () {
 			home_num = 20;
 			var max = 0;
-			/*if (enDub) {
-				document.getElementById("home").style.display = "flex";
-			} else {
-				document.getElementById("home").style["margin-left"] = "0";
-			}*/
 			var gotter = {};
 			removeGrid(homePage);
 			chain.get_top(function (posts) {
@@ -1493,7 +1440,6 @@ var res = /(https*:\/\/\S+\.\S+)/;
 			});
 		},
 		"favs": function () {
-			//removeGrid(favGrid);
 			favGrid.add(makeFake("No favorited posts!"));
 			chain.get_favorites(function (favs) {
 				removeGrid(favGrid);
@@ -1524,9 +1470,8 @@ var res = /(https*:\/\/\S+\.\S+)/;
 		"drop-up":function(){},
 		"feed": function () {
 			var max_feed = 20;
-			//removeGrid(feedPage);
 			var coll = {};
-			var max = 0; //eslint-disable-line
+			var max = 0; 
 			feedPage.add(makeFake("No found posts!"));
 			chain.get_feed(function (posts) {
 				removeGrid(feedPage);
@@ -2190,7 +2135,6 @@ var res = /(https*:\/\/\S+\.\S+)/;
 			});
 			document.getElementById("bigger-img").addEventListener("click", function(e){
 				document.getElementById("bigger-img").style.display = "none";
-				//document.getElementById("overlay-background").style.display = "none";
 			});
 			document.getElementById("view-own").addEventListener("click", function () {
 				showblocking("own");
