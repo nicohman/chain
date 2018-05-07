@@ -1521,6 +1521,7 @@ var res = /(https*:\/\/\S+\.\S+)/;
 				});
 
 		},
+		"drop-up":function(){},
 		"feed": function () {
 			var max_feed = 20;
 			//removeGrid(feedPage);
@@ -1695,7 +1696,12 @@ var res = /(https*:\/\/\S+\.\S+)/;
 			showblocking(tar);
 		}
 	});
-
+	document.getElementById("drop-list").addEventListener("click", function(e){
+		if (e.target.tagName.toLowerCase() =="a") {
+			var tar = e.target.attributes.href.value.slice(1);
+			showblocking(tar);
+		}
+	});
 	function removeFrom(feed) {
 		while (feed.hasChildNodes()) {
 			feed.removeChild(feed.lastChild);
@@ -2132,6 +2138,11 @@ var res = /(https*:\/\/\S+\.\S+)/;
 				});
 			document.getElementById("logout").addEventListener("click", function () {
 				logout()
+				localStorage.removeItem("auth_token");
+				location.reload();
+			});
+			document.getElementById("drop-log").addEventListener("click", function(){
+				logout();
 				localStorage.removeItem("auth_token");
 				location.reload();
 			});

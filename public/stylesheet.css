@@ -1144,6 +1144,17 @@ transform: translate(-50%, 0%) !important;
     #pop {
     	margin-top:0;
     }
+    #drop-list {
+    	list-style-type:none;
+	display:flex;
+	flex-direction:column;
+	justify-content:space-between;
+	height:300%;
+    }
+    #drop-list li {
+    	color:var(--follow);
+	margin-top:10%;
+    }
     .post-date {
     font-size:small;
     }
