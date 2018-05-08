@@ -1185,7 +1185,7 @@ function get_feed(toget, cb) {
 				posts: {}
 			}, function (gposts) {
 				console.log("respost " + gotten);
-				got[get.tag] = true;
+				got[get.tag+"_tag"] = true;
 				Object.keys(gposts.posts).forEach(function (key) {
 					console.log("I GOT ONE" + key)
 					posts[key] = gposts.posts[key];
@@ -1209,7 +1209,7 @@ function get_feed(toget, cb) {
 				});
 				console.log(posts);
 				console.log("THOSE WERE C POSTS");
-				got[get.cur] = true;
+				got[get.cur+"_cur"] = true;
 				console.log(got);
 				check();
 			}, amount);
@@ -2686,11 +2686,6 @@ var serv_handles = {
 }
 io.on('connection', function (gsocket) {
 	console.log("CONNECTED TO" + process.argv[2]);
-	/*Object.keys(serv_handles).forEach(function(key) {
-		//	console.log(key);
-		//	console.log(serv_handles[key]);
-	//	gsocket.on(key, serv_handles[key]);
-});*/
 	gsocket.on("add_neighbor", function (res) {
 		gsocket.on("disconnect", function () {
 			delete adjacent[flip(res.dir)];
