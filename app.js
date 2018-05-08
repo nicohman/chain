@@ -204,8 +204,7 @@ function writeLast() {
 function checkYt() {
 	ytChannels.forEach(function (item) {
 		yt.setKey(config.yt);
-
-		console.log("KEY : "+config.yt);
+		console.log("KEY : " + config.yt);
 		yt.getPlayListsItemsById(item, function (err, res) {
 			if (err) {
 				console.error(err);
@@ -214,7 +213,7 @@ function checkYt() {
 					console.log(res.items[0]);
 					var uid = "johnnyfiveisalive"
 					var vid = res.items[0].snippet;
-					if(!lastYts[item]){
+					if (!lastYts[item]) {
 						lastYts[item] = "";
 					}
 					if (vid.resourceId.videoId.trim() != lastYts[item].trim()) {
@@ -229,7 +228,7 @@ function checkYt() {
 						writeLast();
 					} else {
 						console.log("NO NEW VIDEO FOR " + item)
-						console.log(vid.resourceId.videoId.trim()+","+lastYts[item].trim());
+						console.log(vid.resourceId.videoId.trim() + "," + lastYts[item].trim());
 					}
 				}
 			}
@@ -329,71 +328,73 @@ function verify(token, cb) {
 
 function checkX() {
 	try {
-	var req = https.get("https://xkcd.com/info.0.json", function (res) {
-		var data = '';
-		res.on('data', function (bit) {
-			data += bit;
+		var req = https.get("https://xkcd.com/info.0.json", function (res) {
+			var data = '';
+			res.on('data', function (bit) {
+				data += bit;
+			});
+			res.on("error", function (err) {
+				console.error(err);
+				data = {};
+			});
+			res.on('end', function () {
+				console.log(data);
+				data = JSON.parse(data);
+				if (data) {
+					if (data.num > parseInt(lastX)) {
+						var uid = "johnnyfiveisalive"
+						createPost({
+							title: "XKCD #" + data.num + " " + data.title,
+							content: data.img,
+							auth: "xkcd_bot",
+							uid: uid,
+							alt: data.alt,
+							tags: ["xkcd", "bot", "comics"]
+						});
+						lastX = data.num;
+						fs.writeFile("/home/nicohman/.demenses/lastX", data.num, function () {
+							console.log("XKCD Last updated!");
+						});
+					} else {
+						console.log("NO XKCD")
+						console.log(data.num + "" + lastX);
+					}
+				}
+			})
 		});
-		res.on("error", function(err){
-			console.error(err);
-			data = {};
+		req.on('error', function (e) {
+			console.error(e);
 		});
-		res.on('end', function () {
-			console.log(data);
-			data = JSON.parse(data);
-			if(data){
-			if (data.num > parseInt(lastX)) {
-				var uid = "johnnyfiveisalive"
-				createPost({
-					title: "XKCD #" + data.num + " " + data.title,
-					content: data.img,
-					auth: "xkcd_bot",
-					uid: uid,
-					alt:data.alt,
-					tags: ["xkcd", "bot", "comics"]
-				});
-				lastX = data.num;
-				fs.writeFile("/home/nicohman/.demenses/lastX", data.num, function () {
-					console.log("XKCD Last updated!");
-				});
-			} else {
-				console.log("NO XKCD")
-				console.log(data.num +""+lastX) ;
-			}
-			}
-		})
-	});
-	req.on('error', function(e){
-		console.error(e);
-	});
-	} catch(e){
+	} catch (e) {
 		console.error(e);
 	}
 }
-var checkGames = function (){
+var checkGames = function () {
 	console.log("Checking /r/gamedeals!");
-	var req = https.get("https://www.reddit.com/r/GameDeals/hot/.json?count=1&limit=1",
-		function(res){
+	var req = https.get(
+		"https://www.reddit.com/r/GameDeals/hot/.json?count=1&limit=1",
+		function (res) {
 			var data = "";
-			res.on("data", function(bit){
-				data +=bit;
+			res.on("data", function (bit) {
+				data += bit;
 			});
-			res.on("end", function(){
+			res.on("end", function () {
 				console.log(data);
 				data = JSON.parse(data);
 				var uid = "domoarigato";
 				var post = data.data.children[0].data;
-				if(post.title.toLowerCase().indexOf("(free)") != -1){
-					if(!deals[post.url]){
-				createPost({
-					title:post.title.replace("(Free)", ""),
-					content:post.url,
-					auth:"gamedeals_free_bot",
-					uid:uid,
-					tags:["gamedeals","free_games","bot"]
-				});
+				if (post.title.toLowerCase().indexOf("(free)") != -1) {
+					if (!deals[post.url]) {
+						createPost({
+							title: post.title.replace("(Free)", ""),
+							content: post.url,
+							auth: "gamedeals_free_bot",
+							uid: uid,
+							tags: ["gamedeals", "free_games", "bot"]
+						});
 						deals[post.url] = true;
-						fs.writeFile("/home/nicohman/.demenses/deals.json", JSON.stringify(deals), function(){
+						fs.writeFile("/home/nicohman/.demenses/deals.json", JSON.stringify(
+							deals), function () {
 							console.log("Wrote updated deals");
 						})
 					}
@@ -402,7 +403,7 @@ var checkGames = function (){
 				}
 			});
 		});
-	req.on('error', function(e){
+	req.on('error', function (e) {
 		console.error(e);
 	});
 }
@@ -412,7 +413,8 @@ var checkMe = function () {
 		time = moment();
 		fs.writeFile("/home/nicohman/.demenses/timer", time.valueOf(), "utf-8",
 			function () {
-				var req = https.get("https://www.reddit.com/r/me_irl/top/.json?count=1&limit=1",
+				var req = https.get(
+					"https://www.reddit.com/r/me_irl/top/.json?count=1&limit=1",
 					function (res) {
 						var data = "";
 						res.on("data", function (bit) {
@@ -437,7 +439,7 @@ var checkMe = function () {
 							});
 						});
 					});
-				req.on('error', function(e){
+				req.on('error', function (e) {
 					console.error(e);
 				});
 			});
@@ -570,7 +572,7 @@ var sslopts = {
 var to_open = ports[commandArg];
 var htt = https.Server(sslopts);
 io = io(htt);
-console.log("OPENING "+to_open);
+console.log("OPENING " + to_open);
 htt.listen(to_open);
 io.use(middleware);
 var adjacent = [];
@@ -706,7 +708,7 @@ function createPost(post) {
 		id: id,
 		title: san.escape(post.title),
 		auth: auth,
-		alt:post.alt,
+		alt: post.alt,
 		color: color,
 		uid: post.uid,
 		date: Date.now(),
@@ -828,6 +830,7 @@ function never(eventname) {
 	io.removeAllListeners(eventname);
 }
 //Compares favorite numbers of two posts. Intended for use with Array.sort().
+/*
 function cmpfavs(post1, post2) {
 	var a2bo = 0;
 	var a1bo = 0;
@@ -844,7 +847,7 @@ function cmpfavs(post1, post2) {
 	} else {
 		return 0;
 	}
-}
+}*/
 function cmpfavsD(post1, post2) {
 	var a2bo = 0;
 	var a1bo = 0;
@@ -1280,16 +1283,19 @@ var favsUpdate = new fulfill("update_favs", function (req) {
 	}
 	return true;
 }, false, "once", true);
-var delete_curation = new fulfill("delete_curation", function(req){
-	if(curations[req.cur]){
+var delete_curation = new fulfill("delete_curation", function (req) {
+	if (curations[req.cur]) {
 		return true;
 	} else {
 		return false;
 	}
-}, function(req){
-	if(req.uid == curations[req.cur].own){
+}, function (req) {
+	if (req.uid == curations[req.cur].own) {
 		delete curations[req.cur];
-		take_cur_own({cid:req.cur, token:req.token}, function(){});
+		take_cur_own({
+			cid: req.cur,
+			token: req.token
+		}, function () {});
 		updateCurs(curations[req.cur]);
 		return true;
 	} else {
@@ -1464,38 +1470,35 @@ var unfavorite = new fulfill("unfavorite", function (req) {
 	}, function () {});
 	return true;
 }, true, "once", true);
-var add_notif = new fulfill("add_notif", function(req){
-	if(users[req.Tuid]){
+var add_notif = new fulfill("add_notif", function (req) {
+	if (users[req.Tuid]) {
 		return users[req.Tuid].original;
 	} else {
 		console.log("no");
 		console.log(req.Tuid);
 	}
 	return false;
-
-}, function(req){
+}, function (req) {
 	console.log("notif");
 	var id = hash(req.notif.title + req.notif.content + req.Tuid);
-	if(users[req.Tuid].notifs){
+	if (users[req.Tuid].notifs) {
 		users[req.Tuid].notifs[id] = req.notif
 	} else {
 		users[req.Tuid].notifs = {}
 		users[req.Tuid].notifs[id] = req.notif;
-		
 	}
 	users[req.Tuid].notifs[id].id = id;
 	console.log(users[req.Tuid]);
 	updateUsers(users[req.Tuid]);
 	return true;
 }, true, "once", true);
-var rm_notif = new fulfill("rm_notif", function(req){
-	if(users[req.uid]){
-			return users[req.uid].original;
+var rm_notif = new fulfill("rm_notif", function (req) {
+	if (users[req.uid]) {
+		return users[req.uid].original;
 	}
 	return false;
-
-}, function(req){
-	if(users[req.uid].notifs){
+}, function (req) {
+	if (users[req.uid].notifs) {
 		delete users[req.uid].notifs[req.nid];
 	}
 	console.log(users[req.uid].notifs);
@@ -1503,13 +1506,13 @@ var rm_notif = new fulfill("rm_notif", function(req){
 	updateUsers(users[req.uid]);
 	return true;
 }, true, "once", true);
-var get_notifs = new fulfill("get_notifs", function(req){
-	if(users[req.uid]){
+var get_notifs = new fulfill("get_notifs", function (req) {
+	if (users[req.uid]) {
 		return users[req.uid].original;
 	}
 	return false;
-}, function(req){
-	if(users[req.uid].notifs){
+}, function (req) {
+	if (users[req.uid].notifs) {
 		return users[req.uid].notifs;
 	} else {
 		users[req.uid].notifs = {};
@@ -1727,7 +1730,7 @@ function get_curation_posts(cur, cb, count) {
 						rules: cur.rules,
 						original: selfId,
 						posts: {}
-					}, rec("yes_s_"+rule.value));
+					}, rec("yes_s_" + rule.value));
 					break;
 				case "yes_u":
 					need++;
@@ -1919,21 +1922,24 @@ var serv_handles = {
 			}
 		});
 	},
-	"add_notif":add_notif,
-	"rm_notif":rm_notif,
-	"c_rm_notif":function(req){
-		jwt.verify(req.token, secret, function(err, dec){
-			if(err){
+	"add_notif": add_notif,
+	"rm_notif": rm_notif,
+	"c_rm_notif": function (req) {
+		jwt.verify(req.token, secret, function (err) {
+			if (err) {
 				console.log("TOKEN ERROR");
-			io.to(req.cid).emit("c_rmed_notif_"+req.id, false);
+				io.to(req.cid).emit("c_rmed_notif_" + req.id, false);
 			} else {
-				rm_notif.easy({token:req.token, nid:req.id}, function(res){
-					io.to(req.cid).emit("c_rmed_notif_"+req.id, res);
+				rm_notif.easy({
+					token: req.token,
+					nid: req.id
+				}, function (res) {
+					io.to(req.cid).emit("c_rmed_notif_" + req.id, res);
 				});
 			}
 		});
 	},
-	"get_notifs":get_notifs,
+	"get_notifs": get_notifs,
 	"c_unban": function (req) {
 		jwt.verify(req.token, secret, function (err, dec) {
 			if (!err) {
@@ -1977,37 +1983,40 @@ var serv_handles = {
 				auth: req.auth,
 				date: Date.now()
 			}, function (res) {
-				var reg  =/@(\w+)/
+				var reg = /@(\w+)/
 				var match = reg.exec(req.content);
 				console.log(match);
-				if (match){
-					get_post_by_id(req.id, function(post){
+				if (match) {
+					get_post_by_id(req.id, function (post) {
 						var arr = [];
-						post.comments.forEach(function(com){
+						post.comments.forEach(function (com) {
 							arr.push(com);
 						});
-						arr.push({auth:post.auth,uid:post.uid});
-						arr.filter(function(x){
-							if(x){
+						arr.push({
+							auth: post.auth,
+							uid: post.uid
+						});
+						arr.filter(function (x) {
+							if (x) {
 								return true;
 							}
-						}).forEach(function(com){
-							if(com.auth == match[1]){
+						}).forEach(function (com) {
+							if (com.auth == match[1]) {
 								console.log("MATCHING");
 								console.log(com);
 								add_notif.easy({
-									notif:{
-									title:req.auth+" mentioned you in a post!",
-
-									content:"View this at <a target='_blank' href='https://demenses.net/index.html#post?postid="+req.id+"'>this post</a>",
-									date:Date.now()
+									notif: {
+										title: req.auth + " mentioned you in a post!",
+										content: "View this at <a target='_blank' href='https://demenses.net/index.html#post?postid=" +
+											req.id + "'>this post</a>",
+										date: Date.now()
 									},
-									Tuid:com.uid,
-									token:req.token,
-								}, function(res){
+									Tuid: com.uid,
+									token: req.token,
+								}, function (res) {
 									console.log("NOTIF MADE");
 									console.log(res);
-								});	
+								});
 							}
 						});
 					})
@@ -2263,14 +2272,17 @@ var serv_handles = {
 			//	});
 		}
 	},
-	"delete_curation":delete_curation,
-	"c_delete_curation":function(req){
-		if(logged[req.cid]){
-			jwt.verify(req.token, secret, function(err, decode){
-				if(!err){
-					get_curation_by_name(req.cur, function(cur){
-						if(cur.own == decode.uid){
-							delete_curation.easy({token:req.token, cur:req.cur}, function(res){
+	"delete_curation": delete_curation,
+	"c_delete_curation": function (req) {
+		if (logged[req.cid]) {
+			jwt.verify(req.token, secret, function (err, decode) {
+				if (!err) {
+					get_curation_by_name(req.cur, function (cur) {
+						if (cur.own == decode.uid) {
+							delete_curation.easy({
+								token: req.token,
+								cur: req.cur
+							}, function (res) {
 								io.to(req.cid).emit("c_deleted_curation", res);
 							});
 						} else {
@@ -2280,9 +2292,7 @@ var serv_handles = {
 				} else {
 					io.to(req.cid).emit("c_deleted_curation", false);
 				}
-
 			});
-
 		}
 	},
 	"delete_post": deletePost,
@@ -2304,11 +2314,6 @@ var serv_handles = {
 			}
 		});
 	},
-	/*"c_get_curation_posts": function(req) {
-		getCurationById(req.id, function(curation) {
-			io.to(req.cid).emit("c_got_curation_" + req.id);
-		});
-	},*/
 	"c_get_favorites": function (req) {
 		console.log("got request");
 		if (logged[req.cid]) {
@@ -2542,13 +2547,10 @@ var serv_handles = {
 						} else {
 							console.log("does not own curation");
 							//io.to(req.cid).emit("c_got_cur_mod_" + req.cur, false);
-							get_curation_by_name(req.cur, function(cur){
-															io.to(req.cid).emit("c_got_cur_mod_" + req.cur, {
-
+							get_curation_by_name(req.cur, function (cur) {
+								io.to(req.cid).emit("c_got_cur_mod_" + req.cur, {
 									favs: cur.favs
 								});
-
-							
 							});
 						}
 					})
@@ -2631,7 +2633,7 @@ var serv_handles = {
 			}
 		})
 	},
-	"take_cur_own":take_cur_own,
+	"take_cur_own": take_cur_own,
 	"c_get_post_by_id": function (req) {
 		get_post_by_id(req.pid, function (res) {
 			if (logged[req.cid]) {
@@ -2639,18 +2641,18 @@ var serv_handles = {
 					res.favorited = true;
 				}
 			}
-			io.to(req.cid).emit("c_got_post_by_id_"+req.pid, res);
+			io.to(req.cid).emit("c_got_post_by_id_" + req.pid, res);
 		});
 	},
-	"c_get_notifs":function(req){
-		jwt.verify(req.token, secret, function(err, dec){
-
-			if(err){
+	"c_get_notifs": function (req) {
+		jwt.verify(req.token, secret, function (err, dec) {
+			if (err) {
 				io.to(req.cid).emit("c_got_notifs", false);
 			} else {
-
-			console.log(dec);
-				get_notifs.easy({token:req.token}, function(res){
+				console.log(dec);
+				get_notifs.easy({
+					token: req.token
+				}, function (res) {
 					io.to(req.cid).emit("c_got_notifs", res);
 				});
 			}
@@ -2719,7 +2721,7 @@ function createClient(to_connect) {
 	console.log("attempting a connec tto " + to_connect);
 	var client = socketclient(to_connect, {
 		secure: true,
-		transports:['websocket']
+		transports: ['websocket']
 	});
 	patch(client);
 	var client_handles = {
@@ -2810,7 +2812,7 @@ if (process.argv[2] == "1") {
 	setTimeout(checkMe, 1000);
 	setTimeout(checkYt, 2000);
 	setTimeout(checkX, 3000);
-	setTimeout(function(){
+	setTimeout(function () {
 		console.log("ADD");
 	}, 4000);
 	setTimeout(checkGames, 4000);

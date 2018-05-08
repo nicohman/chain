@@ -16,15 +16,14 @@ var cert = fs.readFileSync("/etc/letsencrypt/live/demenses.net/fullchain.pem",
 var config = require("./config.json");
 var client = require("socket.io-client");
 var request = require("request");
-var URL = require("url");
 var defaultsBig = ["0d3944", "FFFFFF"];
 var defaultsSmall = ["#ff6a00", "#4c4c4c"];
 var defaultIcon = ["#000000"];
+
 function hash(data) {
 	return shahash.createHash('sha1').update(data, 'utf-8').digest('hex');
 }
-
-function decodeBase64Image(dataString) {
+/*function decodeBase64Image(dataString) {
 	var matches = dataString.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/),
 		response = {};
 	if (matches.length !== 3) {
@@ -33,10 +32,8 @@ function decodeBase64Image(dataString) {
 	response.type = matches[1];
 	response.data = new Buffer(matches[2], 'base64');
 	return response;
-}
-
+}*/
 function hexToRgb(hex) {
-	
 	var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
 	console.log(hex);
 	console.log(result);
@@ -49,17 +46,17 @@ function hexToRgb(hex) {
 Caman.Filter.register("convertToC", function (cur, to) {
 	var convCur1 = hexToRgb(cur[0]);
 	var convTo1 = hexToRgb(to[0]);
-	if(cur.length == 2){
-	var convTo2 = hexToRgb(to[1]);
-
-	var convCur2 = hexToRgb(cur[1]);
-	var two = true;
+	if (cur.length == 2) {
+		var convTo2 = hexToRgb(to[1]);
+		var convCur2 = hexToRgb(cur[1]);
+		var two = true;
 	}
 	console.log(convCur1);
 	console.log(convTo1);
 	this.process("convertToC", function (rgba) {
 		var prev = rgba.a;
-		if (rgba.r === convCur1.r && rgba.b === convCur1.b && rgba.g === convCur1.g) {
+		if (rgba.r === convCur1.r && rgba.b === convCur1.b && rgba.g === convCur1
+			.g) {
 			rgba.r = convTo1.r;
 			rgba.b = convTo1.b;
 			rgba.g = convTo1.g;
@@ -90,7 +87,7 @@ client.on("connect", function () {
 		//  Install middleware
 		app.use(bodyParser.urlencoded({
 			extended: true,
-			uploadDir:"./public/cdn/"
+			uploadDir: "./public/cdn/"
 		}));
 		app.use(express.static(path.join("/home/nicohman/chain/public", "")));
 		app.use(function (req, res, next) {
@@ -102,44 +99,40 @@ client.on("connect", function () {
 		app.post("/reset/:token", resetPassword);
 		app.post("/image/new", function (req, res) {
 			console.log(req.body);
-			var id = hash(Date.now() + ""+req.ip);
-			var ext ="";
+			var id = hash(Date.now() + "" + req.ip);
+			var ext = "";
 			var form = new formidable.IncomingForm();
-			form.on('fileBegin', function(name, file){
+			form.on('fileBegin', function (name, file) {
 				ext = file.name.substr(file.name.length - 4);
-				file.path = __dirname+"/public/cdn/" + id+ext;;
+				file.path = __dirname + "/public/cdn/" + id + ext;
 			});
-			form.on('end', function(){
-			
-			res.status(201).send(id+ext);
+			form.on('end', function () {
+				res.status(201).send(id + ext);
 			});
-			form.parse(req, function(err,fields,files){
-			
-			});
-
+			form.parse(req, function () {});
 		});
-		app.get("/gif/get", function(req, res){
-			if(req.query.url){
+		app.get("/gif/get", function (req, res) {
+			if (req.query.url) {
 				var murl = req.query.url.replace("/", "-");
-			//	var murl = new URL(req.query.url);
-			//	murl = URL.format(murl, {auth:false})
-				fs.access("./gifs/"+murl, function(err){
-					if(err){
-						var writeStream = fs.createWriteStream(__dirname+ "/gifs/"+murl, {flags:"w+"});
-						writeStream.on('close', function(){
-							res.sendFile("./gifs/"+murl, {
-								root:__dirname
+				//	var murl = new URL(req.query.url);
+				//	murl = URL.format(murl, {auth:false})
+				fs.access("./gifs/" + murl, function (err) {
+					if (err) {
+						var writeStream = fs.createWriteStream(__dirname + "/gifs/" + murl, {
+							flags: "w+"
+						});
+						writeStream.on('close', function () {
+							res.sendFile("./gifs/" + murl, {
+								root: __dirname
 							});
 						});
 						console.log("WRITING");
-						request(req.query.url.replace("AhttpA", "https://").replace("AhttpsA","https://")).pipe(writeStream);
-						
-	
-					} else 
-					{
+						request(req.query.url.replace("AhttpA", "https://").replace(
+							"AhttpsA", "https://")).pipe(writeStream);
+					} else {
 						console.log("sending");
-						res.sendFile("./gifs/"+murl,{
-							root:__dirname
+						res.sendFile("./gifs/" + murl, {
+							root: __dirname
 						});
 					}
 				});
@@ -148,30 +141,35 @@ client.on("connect", function () {
 			}
 		});
 		//  Start server
-		app.get("/icons/:icon/:color1", function(req, res){
-			fs.access("./public/icons/"+req.params.icon+"-"+req.params.color1+".png", function(err){
-				if(err){
-					console.log("Icon "+req.params.icon+" configuration not found generating");
-					if(fs.existsSync(__dirname+"/public/"+req.params.icon+".png")){
-						Caman(__dirname+"/public/"+req.params.icon+".png", function(){
-							this.convertToC(defaultIcon, [req.params.color1]);
-							this.render(function(){
-								this.save(__dirname + "/public/icons/"+req.params.icon+"-"+req.params.color1+".png");
-								setTimeout(function(){
-									res.sendFile("./public/icons/"+req.params.icon+"-"+req.params.color1+".png", {
-										root:__dirname
-									});
-								}, 20)
+		app.get("/icons/:icon/:color1", function (req, res) {
+			fs.access("./public/icons/" + req.params.icon + "-" + req.params.color1 +
+				".png",
+				function (err) {
+					if (err) {
+						console.log("Icon " + req.params.icon +
+							" configuration not found generating");
+						if (fs.existsSync(__dirname + "/public/" + req.params.icon + ".png")) {
+							Caman(__dirname + "/public/" + req.params.icon + ".png", function () {
+								this.convertToC(defaultIcon, [req.params.color1]);
+								this.render(function () {
+									this.save(__dirname + "/public/icons/" + req.params.icon + "-" +
+										req.params.color1 + ".png");
+									setTimeout(function () {
+										res.sendFile("./public/icons/" + req.params.icon + "-" +
+											req.params.color1 + ".png", {
+												root: __dirname
+											});
+									}, 20)
+								});
 							});
-						});
+						}
+					} else {
+						res.sendFile("./public/icons/" + req.params.icon + "-" + req.params.color1 +
+							".png", {
+								root: __dirname
+							});
 					}
-				} else 
-				{
-					res.sendFile("./public/icons/"+req.params.icon+"-"+req.params.color1+".png", {
-						root:__dirname
-					});
-				}
-			});
+				});
 		});
 		app.get("/logo/big/:color1/:color2", function (req, res) {
 			console.log("Logo req");
@@ -263,10 +261,8 @@ var resetPassword = function (req, res) {
 				pass2: req.body.pass2,
 				token: req.params.token
 			});
-			client.once("d_changed_pass_" + un.email, function (resd) {
-				if (true) {
-					res.redirect("/changed.html");
-				}
+			client.once("d_changed_pass_" + un.email, function () {
+				res.redirect("/changed.html");
 			});
 		} else {
 			//  Access denied!!
