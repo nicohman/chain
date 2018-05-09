@@ -336,7 +336,7 @@ body {
         margin-right: 20px;
         margin-left: 20px;
         display: flex;
-        height: 200px;
+        height: auto !important;
 
         justify-content: space-between;
 }
@@ -1009,10 +1009,11 @@ transform: translate(-50%, 0%) !important;
     }
 
     #navbar ul {
-    	height:5%;
+    	height:6%;
+	border:none;
 	width:100%;
 	display:flex;
-	top:95%;
+	top:94%;
 	left:0%;
 	z-index:80;
 	bottom:0%;
@@ -1023,6 +1024,9 @@ transform: translate(-50%, 0%) !important;
     	width:90%;
     }
     .hide-mob {
+    	display:none;
+    }
+    .mob-hide {
     	display:none;
     }
     .show-mob {
@@ -1062,12 +1066,12 @@ transform: translate(-50%, 0%) !important;
 	.nav[href="#favs"] {
 		background-image:url("/fav.png");
 		background-repeat:no-repeat;
-		background-position:23% bottom;
+		background-position:center bottom;
 	}
 	.nav[href="#pop"] {
 		background-image:url("/create.png");
 		background-repeat:no-repeat;
-		background-position:23% bottom;
+		background-position:center bottom;
 	}
 	.nav[href="#home"] {
 		background-image:url("/home.png");
@@ -1077,7 +1081,7 @@ transform: translate(-50%, 0%) !important;
 	.nav[href="#drop-up"] {
 		background-image:url("/drop.png");
 		background-repeat:no-repeat;
-		background-position:120% top;
+		background-position:center bottom;
 	}
     #navbar .loggedout {
     	margin-left:0 !important;
@@ -1115,7 +1119,7 @@ transform: translate(-50%, 0%) !important;
     	display:block !important;
     }
     #tags-seperator {
-    	height:400px !important;
+    	height:auto !important;
 	font-size: 50px !important;
     }
     #search {
@@ -1165,7 +1169,6 @@ transform: translate(-50%, 0%) !important;
     	margin-left:0;
     }
     #tags-find {
-    	margin-top:20% !important;
     }
     .muuri {
     	margin-right : 0;
@@ -1192,14 +1195,21 @@ transform: translate(-50%, 0%) !important;
 		height:75%;	
 	}
 	#search > div {
-		height:75%;
+		height:80%;
 	}
-
+	input[name="tag"] {
+		font-size:x-large;
+	}
 	input[name="cur"] {
 	font-size:x-large;
 	}
 	#curs-find {
 		display:flex;
+		flex-direction:column;
+	}
+	#tags-find {
+		display:flex;
+		margin-top:none !important;
 		flex-direction:column;
 	}
 	#cur-seperator {

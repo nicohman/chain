@@ -1567,6 +1567,7 @@ window.onload = function () {
 	}
 
 	function logout() {
+		
 		var ls = document.getElementsByClassName("loggedout");
 		var li = document.getElementsByClassName("loggedin");
 		for (var i = 0; i < ls.length; i++) {
@@ -1578,6 +1579,10 @@ window.onload = function () {
 	}
 
 	function login() {
+		var isMobile = window.matchMedia("only screen and (max-device-width: 768px)");
+			if(isMobile.matches){
+			//mobile, keep hidden
+			} else {
 		var ls = document.getElementsByClassName("loggedin");
 		var li = document.getElementsByClassName("loggedout");
 		for (var i = 0; i < ls.length; i++) {
@@ -1586,6 +1591,7 @@ window.onload = function () {
 		for (var i = 0; i < li.length; i++) {
 			li.item(i).style.display = 'none';
 		}
+			}
 	}
 	var showblocking = function (toshow) {
 		document.getElementById("resu").display = "none";
@@ -1747,7 +1753,12 @@ window.onload = function () {
 			checkRes();
 		}, 20);
 	}
+		var isMobile = window.matchMedia("only screen and (max-device-width: 768px)");
+			if(isMobile.matches){
+				document.querySelector("li a[href='#favs']").innerHTML = "Favs";
 
+				document.querySelector("li a[href='#pop']").innerHTML = "Crea";
+			}
 	function createTagDiv(tag, cb) {
 		var toAdd = document.createElement("a");
 		toAdd.style['font-size'] = "small";
@@ -1851,6 +1862,9 @@ window.onload = function () {
 			}
 		});
 	}
+	client.on('disconnect', function(){
+		Location.reload();
+	});
 	client.on('connect', function () {
 		var isMobile = window.matchMedia(
 			"only screen and (max-device-width: 768px)");
@@ -2021,6 +2035,7 @@ window.onload = function () {
 						value: ""
 					}, null, true) + ":";
 				});
+
 			document.getElementById("add-rules").addEventListener("submit", function (
 				e) {
 				prevent(e);
