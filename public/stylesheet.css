@@ -221,7 +221,7 @@ a {
 .post-bar div {
         padding: 0 5px 0 5px;
 }
-#notif-button {
+.notif-button {
 	background:none;
 	color:var(--text);
 	border:none;
@@ -1193,6 +1193,30 @@ transform: translate(-50%, 0%) !important;
 		margin-left:0;
 		margin-right:0;
 		height:75%;	
+	}
+	.notif-button {
+		color:var(--follow);
+		font-size:x-large;
+		padding:0;
+	}
+	#notif-label {
+		margin:1%;
+	}
+	#big-date {
+		display:none;
+	}
+	#big-title {
+		margin-bottom:1%;
+	}
+	#results-posts {
+		margin-top:10%;
+	}
+	#results-nav ul {
+		height:6%;
+		border-bottom:1% var(--border) solid;
+		font-size:medium;
+		top:0%;
+		z-index:50;
 	}
 	#search > div {
 		height:80%;
