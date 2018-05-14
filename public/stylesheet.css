@@ -316,10 +316,9 @@ body {
 #bigger-img {
 	display:none;
 	cursor:pointer;
-	max-width:85%;
-	max-height:85%;
+	max-height:120%;
+	width:85%;
 	min-height:60%;
-	min-width:60%;
 	z-index:99;
 	position:fixed;
 }
@@ -1051,6 +1050,17 @@ transform: translate(-50%, 0%) !important;
     	font-size:large;
 	width:75%;
     }
+    #settings > .main-con {
+    	height:auto;
+	padding-bottom:1%;
+	padding-top:1%;
+    }
+    #settings input[type="email"] {
+    	font-size:x-large;
+    }
+    #settings input[type="text"] {
+    	font-size:x-large;
+    }
     #create-tags > input[type="submit"] {
     	width:25%;
     }
@@ -1213,7 +1223,9 @@ transform: translate(-50%, 0%) !important;
 	}
 	#results-nav ul {
 		height:6%;
-		border-bottom:1% var(--border) solid;
+		left:0%;
+		padding-left:4%;
+		border-bottom:3px var(--border) solid;
 		font-size:medium;
 		top:0%;
 		z-index:50;

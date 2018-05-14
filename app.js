@@ -994,9 +994,10 @@ function get_posts(criterion, cb) {
 	if (cb && Object.keys(criterion.posts).length >= criterion.count) {
 		cb(criterion);
 	} else if (cb) {
+		criterion.date =Date.now();
 		console.log("got_posts_" + criterion.filter + "_" + criterion.filter_data);
 		var count = 0;
-		var eventname = "got_posts_" + criterion.filter + "_" + criterion.filter_data;
+		var eventname = "got_posts_" + criterion.filter + "_" + criterion.filter_data+"_"+criterion.date;
 		var cbe = function (postse) {
 			console.log("GOT RESPONSE");
 			count++;
@@ -1014,9 +1015,9 @@ function get_posts(criterion, cb) {
 		passAlong("get_posts", criterion);
 	} else {
 		console.log("Finishing requests");
-		console.log("emitting : got_posts_" + criterion.filter + "_" + criterion.filter_data +
+		console.log("emitting : got_posts_" + criterion.filter + "_" + criterion.filter_data +"_"+criterion.date+
 			"   " + getDir(criterion.from));
-		onedir("got_posts_" + criterion.filter + "_" + criterion.filter_data, {
+		onedir("got_posts_" + criterion.filter + "_" + criterion.filter_data+"_"+criterion.date, {
 			to: criterion.original,
 			filter: criterion.filter,
 			posts: criterion.posts,

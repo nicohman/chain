@@ -134,22 +134,6 @@ window.onload = function () {
 		useYt = !useYt;
 		checkYt();
 	});
-	document.getElementById("dub-button").addEventListener("click", function () {
-		localStorage.setItem("dub", !enDub);
-		enDub = !enDub;
-		checkDub();
-	});
-
-	function checkDub() {
-		if (enDub) {
-			document.getElementById("dub-button").innerHTML =
-				"Show one column of posts on the home page";
-		} else {
-			document.getElementById("dub-button").innerHTML =
-				"Show two columns of posts on the home page";
-		}
-	}
-
 	function checkYt() {
 		if (useYt) {
 			document.getElementById("yt-button").innerHTML = "Disable youtube embeds";
@@ -168,18 +152,6 @@ window.onload = function () {
 			break;
 		}
 	}
-	if (localStorage.getItem("dub")) {
-		var got = localStorage.getItem("dub");
-		switch (got) {
-		case "false":
-			enDub = false;
-			break;
-		case "true":
-			enDub = true;
-			break;
-		}
-	}
-	checkDub();
 	checkYt();
 	var cur_com = "";
 	var token = localStorage.getItem("auth_token");
