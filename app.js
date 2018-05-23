@@ -1163,6 +1163,10 @@ function get_feed(toget, cb) {
 			console.log(posts);
 			cb(posts);
 			called = true;
+		
+		}
+		if(called){
+			console.log("called already!");
 		}
 	}
 	toget.forEach(function (get) {
@@ -2480,7 +2484,6 @@ var serv_handles = {
 			console.log("getting");
 			get_feed(toget, function (postsR) {
 				postsR = checkFavs(users[logged[req.cid]].favorites, postsR);
-				console.log("c_got_feed_" + logged[req.cid]);
 				io.to(req.cid).emit("c_got_feed_" + logged[req.cid], postsR);
 			});
 		}

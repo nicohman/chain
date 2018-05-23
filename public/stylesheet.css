@@ -303,7 +303,7 @@ body {
 	margin-top:5%;
 }
 #settings-name input {
-        margin-top: 1%;
+        margin-top: 1%i;
         margin-bottom: 1%;
 
 }
@@ -316,9 +316,10 @@ body {
 #bigger-img {
 	display:none;
 	cursor:pointer;
-	max-height:120%;
-	width:85%;
-	min-height:60%;
+	margin-top:1%;
+	height:90%;
+	width:auto;
+	margin-bottom:2%;
 	z-index:99;
 	position:fixed;
 }
