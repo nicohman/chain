@@ -801,9 +801,9 @@ transform: translate(-50%, 0%) !important;
 	z-index:95;
 	position: fixed;
 	width: 80%;
-	height: 80%;
+	height: auto;
 	border: 4px var(--border) solid;
-	top:10%;
+	top:7%;
 	left:10%;
 	overflow-y: visible;
 	overflow-x: hidden;
@@ -874,9 +874,12 @@ transform: translate(-50%, 0%) !important;
 }
 #big-content-container{
 	display: flex;
+	max-height:400px;
 	justify-content: center;
 }
 #big-comments{
+	overflow-y:scroll;
+	height:200px;
 	list-style-type: none;
 	color:var(--text);
 	border-bottom: 0.5% var(--border) solid;

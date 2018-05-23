@@ -588,7 +588,13 @@ window.onload = function () {
 					}
 				});
 				chain.get_by_id(cur_com, function (post) {
-					show_comments(post);
+					console.log(commentsCon.id);
+					console.log(post);
+					if (commentsCon.id.indexOf("big") != -1){
+						show_big_post(post);
+					} else {
+						show_comments(post);
+					}
 				});
 			});
 			del_com.innerHTML = "Delete"
@@ -1005,6 +1011,7 @@ window.onload = function () {
 
 	function make_big_post(post) {
 		curBig = true;
+		cur_com = post.id;
 		bigPost = post;
 		var title = document.getElementById("big-title-content")
 		title.innerHTML = post.title + " - " + post.favs + "<br>" + post.auth;
@@ -1566,11 +1573,13 @@ window.onload = function () {
 			}
 	}
 	var showblocking = function (toshow) {
+		var found = false;
 		document.getElementById("resu").display = "none";
 		removeFrom(document.getElementById("resu"));
 		Object.keys(mains).forEach(function (key) {
 			var main = mains[key];
 			if (key.trim() == toshow.trim()) {
+				found = true;
 				main.el.style.display = "block";
 				if (main.ref) {
 					main.ref(main);
@@ -1580,7 +1589,12 @@ window.onload = function () {
 			}
 		});
 		if (toshow === "post") {
+			found = true;
 			show_big_post(bigPost);
+		}
+		if(!found){
+		//	showblocking("home");	
+		window.location.href ="/404.html";
 		}
 		document.getElementById("results").style.display = "none";
 		removeFrom(document.getElementById("results-posts"));
