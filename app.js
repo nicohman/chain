@@ -1158,12 +1158,16 @@ function get_feed(toget, cb) {
 
 	function check() {
 		console.log("MIDAY:" + Object.keys(got).length + ":" + need);
-		if (Object.keys(got).length >= need && !called) {
+		if (Object.keys(got).length >= need && !called ) {
 			console.log("Calling to get feed." + gotten + need);
 			console.log(posts);
 			cb(posts);
 			called = true;
 		
+		} else {
+			console.log("NOT READY");
+			console.log(got);
+			console.log(need);
 		}
 		if(called){
 			console.log("called already!");

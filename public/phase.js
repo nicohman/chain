@@ -430,6 +430,7 @@ window.onload = function () {
 			if (!count) {
 				count = 10;
 			}
+			console.log("Getting feed");
 			client.emit("c_get_feed", {
 				cid: client.id,
 				count: count
@@ -439,6 +440,7 @@ window.onload = function () {
 				count: count
 			});
 			client.once("c_got_feed_" + loggedin.uid, function (posts) {
+				console.log(posts);
 				cb(posts);
 			});
 		},
