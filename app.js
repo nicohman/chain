@@ -370,7 +370,6 @@ function checkX() {
 	}
 }
 var checkGames = function () {
-	console.log("Checking /r/gamedeals!");
 	var req = https.get(
 		"https://www.reddit.com/r/GameDeals/hot/.json?count=1&limit=1",
 		function (res) {
@@ -379,7 +378,6 @@ var checkGames = function () {
 				data += bit;
 			});
 			res.on("end", function () {
-				console.log(data);
 				data = JSON.parse(data);
 				var uid = "domoarigato";
 				var post = data.data.children[0].data;
@@ -1158,7 +1156,7 @@ function get_feed(toget, cb) {
 
 	function check() {
 		console.log("MIDAY:" + Object.keys(got).length + ":" + need);
-		if (Object.keys(got).length >= need && !called ) {
+		if (Object.keys(got).length >= need/* && !called*/ ) {
 			console.log("Calling to get feed." + gotten + need);
 			console.log(posts);
 			cb(posts);
