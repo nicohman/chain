@@ -209,6 +209,7 @@ function checkYt() {
 			if (err) {
 				console.error(err);
 			} else {
+				if (res.items){
 				if (res.items[0]) {
 					console.log(res.items[0]);
 					var uid = "johnnyfiveisalive"
@@ -231,6 +232,7 @@ function checkYt() {
 						console.log(vid.resourceId.videoId.trim() + "," + lastYts[item].trim());
 					}
 				}
+			}
 			}
 		});
 	});
@@ -361,7 +363,7 @@ function checkX() {
 					}
 				}
 			})
-		});
+		fixed});
 		req.on('error', function (e) {
 			console.error(e);
 		});

@@ -1110,6 +1110,12 @@ transform: translate(-50%, 0%) !important;
 	display:none;
 	justify-content:flex-start;
     }
+    #create-content {
+    height:150%;
+    }
+    #pop {
+height:200%;
+    }
      #manage-curs-nav {
     	display:none;
 
