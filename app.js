@@ -11,6 +11,7 @@ var io = require('socket.io'),
 	fs = require("fs"),
 	names = ["dragon", "defiant", "dragon's teeth", "saint", "weaver"],
 	semaphore = require('semaphore'),
+	mongoose = require("mongoose"),
 	sem = semaphore(1),
 	YouTube = require("youtube-node"),
 	yt = new YouTube(),
@@ -52,6 +53,27 @@ var io = require('socket.io'),
 	},
 	rec = {},
 	logged = {};
+
+	mongoose.connect("mongodb://localhost/demenses");
+	var 	Post = mongoose.model('Post', {
+		id:String,
+		title:String,
+		auth:String,
+		alt:String,
+		color:String,
+		uid:String,
+		date:String,
+		tags:Array,
+		content:String,
+		comments:Array,
+		favs:Number
+	});
+	var Curation = mongoose.model('Curation', {
+		tags:Array,
+		rules:Array,
+		own:String,
+		name:String
+	});
 var https = require("https");
 console.log(config.yt);
 yt.setKey(config.yt);
@@ -363,7 +385,7 @@ function checkX() {
 					}
 				}
 			})
-		fixed});
+		});
 		req.on('error', function (e) {
 			console.error(e);
 		});
@@ -704,7 +726,7 @@ function createPost(post) {
 			color = users[post.uid].color
 		}
 	}
-	posts[id] = {
+	pO= {
 		id: id,
 		title: san.escape(post.title),
 		auth: auth,
@@ -712,12 +734,13 @@ function createPost(post) {
 		color: color,
 		uid: post.uid,
 		date: Date.now(),
-		tags: post.tags.map(san.escape),
+		tags: post.tags.map(san.escape).map(function(t){t.toLowerCase()}),
 		content: san.escape(post.content),
 		comments: [],
 		favs: 0
 	}
-	updatePosts(posts[id]);
+	var npost = new Post(pO);
+	npost.save();
 	return id;
 }
 //Writes curations to disk.
@@ -910,7 +933,40 @@ function postDate(post1, post2) {
 }
 //Get posts event function.
 function get_posts(criterion, cb) {
-	Object.keys(posts).sort(postDate).forEach(function (key) {
+//	var search;
+	switch (criterion.filter) {
+		case 'tag':
+			search  = Post.find({tags:criterion.filter_data},null,{limit:criterion.count});
+			break;
+		case 'user':
+			search = Post.find({uid:criterion.filter_data.trim()},null,{limit:criterion.count});
+			break;
+		case 'string':
+			console.log(criterion.filter_data);
+			search = Post.find({$text:{$search:criterion.filter_data.trim()}},null,{limit:criterion.count});
+			break;
+		case 'id':
+			search = Post.find({id:criterion.filter_data});
+			break;
+		case 'favs':
+			search = Post.find({},null,{sort:{favs:-1},limit:criterion.count});
+			
+			break;
+		default:
+			search = Post.find({},null,{sort:{favs:-1},limit:criterion.count});
+			break;
+	}
+	console.log(criterion.filter);
+	console.log(search);
+	search.exec(function(err, p){
+		criterion.posts = p;
+	console.log(criterion.posts);
+	if(typeof criterion.posts === Array){
+	criterion.posts.forEach(function(post){
+		criterion.posts[post.id] = post;
+	});
+	}
+	/*Object.keys(posts).sort(postDate).forEach(function (key) {
 		var post = posts[key]
 		switch (criterion.filter) {
 		case 'tag':
@@ -990,7 +1046,8 @@ function get_posts(criterion, cb) {
 			criterion.posts = check.concat(criterion.posts).sort(cmpfavsD).splice(0,
 				criterion.count);
 		}
-	}
+	}*/
+				cb(criterion);/*
 	if (cb && Object.keys(criterion.posts).length >= criterion.count) {
 		cb(criterion);
 	} else if (cb) {
@@ -1025,7 +1082,8 @@ function get_posts(criterion, cb) {
 			from: selfId,
 			original: selfId,
 		}, getDir(criterion.from));
-	}
+	}*/
+});
 }
 //Get a post by id easily.
 function get_post_by_id(id, cb) {
@@ -1577,7 +1635,7 @@ var unsticky = new fulfill("unsticky", function (req) {
 	}
 }*/
 function get_curation_by_name(name, cb) {
-	get_curation.easy({
+	get_curation({
 		filter: "name",
 		filter_data: name
 	}, function (res) {
@@ -1604,18 +1662,11 @@ var take_cur_own = new fulfill("take_cur_own", function (req) {
 	updateUsers(users[req.uid]);
 	return true;
 }, true, "once", true);
-var get_curation = new fulfill('get_curation', function (req) {
+var get_curation =function (req , cb) {
 	if (req.filter == "name") {
-		if (curations[req.filter_data]) {
-			return req.filter_data;
-		} else {
-			return false;
-		}
+		Curation.findOne({name:req.filter_data}, function(err, p){cb(p)});
 	}
-}, function (req) {
-	return curations[req.filter_data];
-}, false, "once", true);
-
+}
 function create_curation(req, cb) {
 	jwt.verify(req.token, secret, function (err, decode) {
 		if (decode.uid == req.uid) {
@@ -1728,6 +1779,7 @@ function get_curation_posts(cur, cb, count) {
 			}
 			Object.keys(cur.rules).forEach(function (key) {
 				var rule = cur.rules[key];
+				if(rule){
 				switch (rule.type) {
 				case "yes_string":
 					need++;
@@ -1753,6 +1805,7 @@ function get_curation_posts(cur, cb, count) {
 						posts: {}
 					}, rec("yes_y"));
 					break;
+				}
 				}
 			});
 			if (need == 0) {
@@ -2815,9 +2868,6 @@ if (process.argv[2] == "1") {
 	setTimeout(checkMe, 1000);
 	setTimeout(checkYt, 2000);
 	setTimeout(checkX, 3000);
-	setTimeout(function () {
-		console.log("ADD");
-	}, 4000);
 	setTimeout(checkGames, 4000);
 	setInterval(checkGames, 60000);
 	setInterval(checkX, 60000)
