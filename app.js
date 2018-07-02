@@ -74,6 +74,18 @@ var io = require('socket.io'),
 		own:String,
 		name:String
 	});
+	var User = mongoose.model('User', {
+		id:String,
+		date:String,
+		pass:String,
+		username:String,
+		subbed:Array,
+		curs:Object,
+		email:String,
+		tags:Object,
+		curations_owned:Object,
+		favorites:Object
+	});
 var https = require("https");
 console.log(config.yt);
 yt.setKey(config.yt);
@@ -259,87 +271,6 @@ function checkYt() {
 		});
 	});
 }
-/*var get_posts_top = new indefinite("get_posts_top", function(req){
-	var check = Object.keys(posts).map(function(m) {
-		return posts[m];
-	}).sort(cmpfavs).sort(cmpstickied).splice(0, req.count);
-	check.forEach(function(check2, index) {
-		if (req.posts[check2.id]) {
-			check = check.splice(index, 1);
-		}
-	});
-
-
-	check = check.map(function(m) {
-		m.favs = posts[m.id].favs;
-		return m;
-	});
-	req.posts = check.concat(req.posts).sort(cmpfavs).sort(cmpstickied).splice(0, req.count);
-	return req;
-}, function(req){}, false, function(req, cb, acc, t){
-	if(!acc){
-		acc = [];
-	}
-	acc.push(req.posts);
-	acc.sort(cmpfavs).sort(cmpstickied).splice(0, req.count);
-	if(t >= 3){
-		cb(acc);
-		return "fin";
-	} else {
-		return acc;
-	}
-}, true, {posts:[]});
-
-function indefinite (name, exec, cond, auth, amal, easy, def) {
-	var t = 0;
-	var acc = undefined;
-	function done (req, cb){
-		if(cb){
-			t++;
-			acc = amal(req, cb, acc, t);
-			if(acc === "fin"){
-				never(name+req.id);
-			}
-		} else {
-			onedir(name+req.id, req, flip(getDir(req.from)));
-		}
-	}
-	var doneFunc = function(req, cb){
-		req = exec(req);
-		var con = cond(req);
-		if(cb){
-			done(req, cb);
-			alldir(name, req);
-			when(name+req.id, function(res){
-				done(res, cb);
-			});
-		} else {
-
-			if(con){
-				done(req, cb);
-			} else {
-				if(adjacent[flip(getDir(req.from))]){
-					passAlong(name, req);
-				} else {
-					onedir(name+req.id, req, flip(getDir(req.from)));
-				}
-			}
-		}
-	}
-	if(easy){
-		doneFunc.easy = function(props, cb){
-			var def = {from:selfId, original:selfId};
-			Object.keys(props).forEach(function(key){
-				def[key] = props[key];
-			});
-			def.id = hash(Date.now()+selfId+name);
-			doneFunc(def, cb);
-		};
-	}
-
-	return doneFunc;
-
-}*/
 function verify(token, cb) {
 	jwt.verify(token, secret, function (err, decode) {
 		if (err) {
@@ -786,7 +717,7 @@ function updatePosts(post) {
 }
 //Adds a comment.
 function addComment(comment) {
-	Post.findOne({id:comment.postid}, function(post){
+	Post.findOne({id:comment.postid}, function(err, post){
 		post.comments.push(comment);
 		post.save();
 	});
@@ -1088,23 +1019,9 @@ function get_posts(criterion, cb) {
 }
 //Get a post by id easily.
 function get_post_by_id(id, cb) {
-	if (posts[id]) {
-		cb(posts[id]);
-	} else {
-		/*
-		alldir("get_posts", {
-			filter: "id",
-			filter_data: id,
-			from: selfId,
-			original: selfId,
-			count: 1,
-			posts: {}
-		});
-		whenonce("got_posts_id_" + id, function(post) {
-			cb(post.posts);
-		})*/
-		cb(false);
-	}
+	Post.findOne({id:id}, function(req, p){
+		cb(p);
+	})
 }
 //Gets an even amount of posts from both directions.
 function get_even(criterion, cb) {
@@ -1342,13 +1259,12 @@ var add_favorite = new fulfill("add_favorite", function (req) {
 	return true;
 }, true, "once", true);
 var favsUpdate = new fulfill("update_favs", function (req) {
-	return posts[req.pid]
+	return true;
 }, function (req) {
-	posts[req.pid].favs += req.num;
-	updatePosts(posts[req.pid]);
-	if (req.original == selfId) {
-		alldir("update_favs", req);
-	}
+	Post.findOne({id:req.pid}, function(err, p){
+		p.favs += req.num;
+		p.save();
+	});
 	return true;
 }, false, "once", true);
 var delete_curation = new fulfill("delete_curation", function (req) {
@@ -1371,10 +1287,12 @@ var delete_curation = new fulfill("delete_curation", function (req) {
 	}
 }, true, "once", true);
 var delete_comment = new fulfill("delete_comment", function (req) {
-	return posts[req.pid];
+	return true;
 }, function (req) {
-	delete posts[req.pid].comments[req.cpos];
-	updatePosts(posts[req.pid]);
+	Post.find({id:req.pid}, function(err, p){
+		delete p.comments[req.cpos];
+		p.save();
+	})
 	return true;
 }, true, "once", true);
 var favsCur = new fulfill("update_cur_favs", function (req) {
@@ -1392,57 +1310,24 @@ var favsCur = new fulfill("update_cur_favs", function (req) {
 }, false, "once", true);
 //Delete post event function. Requires either author's jwt token or admin status.
 function deletePost(req, cb) {
-	if (posts[req.pid]) {
+	Post.findOne({id:req.pid}, function(err, p){
+	if (!err) {
 		jwt.verify(req.token, secret, function (err, decode) {
 			if (!err) {
-				if (decode.uid == posts[req.pid].uid || decode.admin === true) {
-					delete posts[req.pid];
-					updatePosts();
+				if (decode.uid == p.uid || decode.admin === true) {
+					Post.deleteOne({id:req.pid}, function(){
 					req.deleted++;
-					if (adjacent[flip(getDir(req.from))]) {
-						passAlong("delete_post", req);
-					} else {
-						if (cb) {
-							alldir('delete_post', req);
-						} else {
-							onedir("deleted_post_" + req.pid, req.deleted, flip(getDir(req.from)));
-						}
-					}
+					cb(req);
+				});
 				} else {
-					if (cb) {
-						cb(req.deleted)
-					} else {
-						onedir("deleted_post_" + req.pid, req.deleted, flip(getDir(req.from)));
-					}
+					cb(false);
 				}
 			} else {
-				if (cb) {
-					cb(req.deleted);
-				} else {
-					onedir("deleted_post_" + req.pid, req.deleted, flip(getDir(req.from)));
-				}
-			}
-		});
-	} else if (adjacent[flip(getDir(req.from))]) {
-		passAlong("delete_post", req);
-	} else if (!cb) {
-		onedir("deleted_post_" + req.pid, req.deleted, flip(getDir(req.from)));
-	} else if (cb) {
-		alldir("delete_post", req);
-	}
-	if (cb) {
-		var had = 0;
-		var del = 0;
-		when("deleted_post_" + req.pid, function (deli) {
-			had++;
-			console.log("Would delete post");
-			del += deli;
-			if (had >= 2) {
-				never("deleted_post_" + req.pid);
-				cb(del);
+				cb(false)
 			}
 		});
 	}
+	}); 
 }
 // Easy way to delete a post given a token and pid.
 function easyDel(pid, token, cb) {
@@ -1589,37 +1474,40 @@ var get_notifs = new fulfill("get_notifs", function (req) {
 	}
 }, true, "once", true);
 var add_comment = new fulfill("add_comment", function (req) {
-	if (posts[req.pid]) {
-		return posts[req.pid];
-	} else {
-		console.log("It is not here" + req.pid);
-	}
-	return false;
+	return true;
 }, function (req) {
-	posts[req.pid].comments.push(req);
-	console.log("Added comment");
-	updatePosts(posts[req.pid]);
+	Post.findOne({id:req.pid}, function(err, p){
+		p.comments.push(req);
+		p.save();
+			console.log("Added comment");
+
+	})
 	return true;
 }, false, "once", true);
 var sticky = new fulfill("sticky", function (req) {
-	return posts[req.pid];
+	return true;
 }, function (req) {
 	if (req.admin) {
-		posts[req.pid].stickied = true;
-		updatePosts(posts[req.pid]);
+		Post.findOne({id:req.pid}, function(p){
+			p.stickied = true;
+			p.save();
+		})
 		return true;
 	}
 	return false;
 }, true, "once", true);
 var unsticky = new fulfill("unsticky", function (req) {
-	return posts[req.pid];
+	return true;
 }, function (req) {
 	if (req.admin) {
-		posts[req.pid].stickied = false;
-		updatePosts(posts[req.pid]);
+		Post.findOne({id:req.pid}, function(p){
+			p.stickied = false;
+			p.save();
+		})
 		return true;
 	}
 	return false;
+
 }, true, "once", true);
 /*function getCurationById(id, cb) {
 	if (curations[id]) {
