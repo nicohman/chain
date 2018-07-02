@@ -786,9 +786,10 @@ function updatePosts(post) {
 }
 //Adds a comment.
 function addComment(comment) {
-	if (posts[comment.postid]) {
-		posts.comments.push(comment);
-	}
+	Post.findOne({id:comment.postid}, function(post){
+		post.comments.push(comment);
+		post.save();
+	});
 }
 //When given a number-based id, returns a human-readable string.
 function dirToString(dir) {
