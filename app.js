@@ -893,11 +893,10 @@ function get_posts(criterion, cb) {
 	search.exec(function(err, p){
 		criterion.posts = p;
 	console.log(criterion.posts);
-	if(typeof criterion.posts === Array){
-	criterion.posts.forEach(function(post){
-		criterion.posts[post.id] = post;
+	Object.keys(criterion.posts).forEach(function(pk){
+		criterion.posts[criterion.posts[pk].id] = criterion.posts[pk];
 	});
-	}
+	 
 	/*Object.keys(posts).sort(postDate).forEach(function (key) {
 		var post = posts[key]
 		switch (criterion.filter) {
@@ -1353,6 +1352,7 @@ function checkFavs(favs, rposts) {
 			if (fposts[fav]) {
 				fposts[fav].favorited = true;
 			} else {
+			
 				console.log(fposts);
 				console.log("POST NOT HERE")
 			}
