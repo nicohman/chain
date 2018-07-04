@@ -401,19 +401,16 @@ var checkMe = function () {
 	}
 }
 var follow_cur = new fulfill("follow_cur", function (req) {
-	if (users[req.uid]) {
-		if (users[req.uid].original === true) {
-			return true;
-		}
-	}
-	return false;
+	return true;
 }, function (req) {
 	favsCur.easy({
 		cid: req.cur,
 		num: 1
 	}, function () {});
-	users[req.uid].curs[req.cur] = true;
-	updateUsers(users[req.uid]);
+	User.find({id:req.uid}, function(err,u){
+		u.curs[req.cur] = true;
+		u.save();
+	})
 	return true;
 }, true, "once", true);
 //Lets a user follow a curation. Event function.
@@ -425,54 +422,8 @@ transporter.verify(function (err) {
 		process.exit(0);
 	}
 });
-var m_info = function (req, cb) {
-		console.log(commandArg);
-		console.log(req);
-		req.active[commandArg] = true;
-		req.users[commandArg] = io.engine.clientsCount - 1;
-		if (commandArg == 2) {
-			req.users[commandArg] += 1;
-		} else if (commandArg == "1") {
-			req.users[commandArg] -= 2;
-		}
-		console.log("USERS CONNECTED: " + io.engine.clientsCount);
-		if (cb) {
-			var dne = {
-				active: req.active,
-				users: req.users,
-				accounts: Object.keys(users).length
-			}
-			var got = 0;
-			when("m_infoed", function (res) {
-				console.log("infoed");
-				got++;
-				res.active.forEach(function (val, ind) {
-					if (val !== null) {
-						dne.active[ind] = val;
-					}
-				});
-				res.users.forEach(function (val, ind) {
-					if (val != null) {
-						dne.users[ind] = val;
-					}
-				});
-				if (got >= adjacent.filter(function (x) {
-						return x !== null
-					}).length) {
-					console.log("DONE");
-					never("m_infoed");
-					cb(dne);
-				}
-			});
-			alldir("m_info", req);
-		} else if (adjacent[flip(getDir(req.from))]) {
-			passAlong("m_info", req)
-		} else {
-			console.log("returning");
-			onedir("m_infoed", req, getDir(req.from));
-		}
-	}
-	//Generates a Password reset link based on an user's email.
+
+		//Generates a Password reset link based on an user's email.
 function genRecLink(email, cb) {
 	easyEmail({
 		email: email
@@ -550,51 +501,25 @@ function getDir(id) {
 }
 //Shortcut to get a user by uid.
 function get_user(uid, cb) {
-	if (users[uid]) {
-		cb(users[uid]);
-	} else {
-		alldir('get_user', {
-			from: selfId,
-			original: selfId,
-			uid: uid,
-			condition: 'fulfill'
-		});
-		whenonce('got_user_' + uid, function (got) {
-			cb(got);
-		});
-	}
+	User.find({id:uid}, function(err, u){
+		cb(u);
+	})
 }
 var emails = {}
 
 function search_email(email) {
-	var found = false;
-	console.log(email);
-	if (emails[email]) {
-		found = users[emails[email]];
-		return found;
-	}
-	Object.keys(users).forEach(function (key) {
-		if (users[key].email.trim() == email.trim()) {
-			if (!found) {
-				found = users[key];
-			}
-			emails[email] = key;
-		}
-	});
-	if (!found) {
-		return false;
+	var res = await User.find({email:email}).exec();
+	if(res){
+		return res;
 	} else {
-		return found;
+		return false;
 	}
 }
 var get_user_by_email = new fulfill("find_user_by_email", function (req) {
-	if (search_email(req.email)) {
 		return true;
-	} else {
-		return false;
-	}
 }, function (req) {
 	console.log("Found");
+
 	return search_email(req.email)
 }, false, "once", true);
 var easyEmail = get_user_by_email.easy;
@@ -1403,47 +1328,45 @@ var change_color = new fulfill("change_color", function (req) {
 	return false;
 }, function (req) {
 	var id = search_email(req.Temail).id;
-	console.log(users[id]);
 	console.log("CHANGE");
-	users[id].color = req.color;
-	updateUsers(users[id]);
+	User.find({id:id}, function(err, r){
+		r.color = req.color;
+		r.save();
+	});
 	return true;
 }, true, "once", true);
 var unfavorite = new fulfill("unfavorite", function (req) {
-	if (users[req.uid]) {
-		return users[req.uid].original
-	}
-	return false
+	return true 
 }, function (req) {
-	users[req.uid].favorites[req.pid] = false;
-	updateUsers(users[req.uid]);
+	User.find({id:req.uid}, function(err, r){
+		r.favorites[req.pid] = false;
+		r.save();
 	favsUpdate.easy({
 		pid: req.pid,
 		num: -1
 	}, function () {});
+
+	});
+
 	return true;
 }, true, "once", true);
 var add_notif = new fulfill("add_notif", function (req) {
-	if (users[req.Tuid]) {
-		return users[req.Tuid].original;
-	} else {
-		console.log("no");
-		console.log(req.Tuid);
-	}
-	return false;
+	return true;
 }, function (req) {
 	console.log("notif");
 	var id = hash(req.notif.title + req.notif.content + req.Tuid);
-	if (users[req.Tuid].notifs) {
-		users[req.Tuid].notifs[id] = req.notif
+	User.find({id:req.Tuid}, function(err, r){
+		
+	if (r.notifs) {
+		r.notifs[id] = req.notif
 	} else {
-		users[req.Tuid].notifs = {}
-		users[req.Tuid].notifs[id] = req.notif;
+		r.notifs = {}
+		r.notifs[id] = req.notif;
 	}
-	users[req.Tuid].notifs[id].id = id;
-	console.log(users[req.Tuid]);
-	updateUsers(users[req.Tuid]);
-	return true;
+	r.notifs[id].id = id;
+		r.save();
+	});
+		return true;
 }, true, "once", true);
 var rm_notif = new fulfill("rm_notif", function (req) {
 	if (users[req.uid]) {
@@ -1460,10 +1383,7 @@ var rm_notif = new fulfill("rm_notif", function (req) {
 	return true;
 }, true, "once", true);
 var get_notifs = new fulfill("get_notifs", function (req) {
-	if (users[req.uid]) {
-		return users[req.uid].original;
-	}
-	return false;
+	return true;
 }, function (req) {
 	if (users[req.uid].notifs) {
 		return users[req.uid].notifs;

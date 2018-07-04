@@ -992,6 +992,7 @@ window.onload = function () {
 		bar.appendChild(buttons);
 		var id = document.createElement("div");
 		id.className = "post-id";
+		console.log(post.date);
 		var date = new Date(post.date);
 		id.innerHTML = post.id;
 		var dI = document.createElement("div");
