@@ -502,14 +502,17 @@ function getDir(id) {
 //Shortcut to get a user by uid.
 function get_user(uid, cb) {
 	User.find({id:uid}, function(err, u){
+	if(!err){
 		cb(u);
+	}
 	})
 }
 var emails = {}
 
-function search_email(email) {
-	var res = await User.find({email:email}).exec();
-	if(res){
+async function search_email(email){
+	var prom  =  User.find({email:email});
+	var res = await prom.exec();
+if(res){
 		return res;
 	} else {
 		return false;
@@ -643,9 +646,11 @@ function updatePosts(post) {
 //Adds a comment.
 function addComment(comment) {
 	Post.findOne({id:comment.postid}, function(err, post){
+		if (!err){
 		post.comments.push(comment);
 		post.save();
-	});
+		}
+		});
 }
 //When given a number-based id, returns a human-readable string.
 function dirToString(dir) {
@@ -1736,18 +1741,6 @@ var serv_handles = {
 		} else {
 			passAlong("check_login");
 		}
-	},
-	"m_info": m_info,
-	"m_get_info": function (req) {
-		m_info({
-			from: selfId,
-			active: [],
-			users: [],
-			original: selfId
-		}, function (res) {
-			console.log("ressing for m" + process.argv[2])
-			io.to(req.cid).emit("m_got_info", res);
-		});
 	},
 	"change_color": change_color,
 	"c_change_color": function (req) {
