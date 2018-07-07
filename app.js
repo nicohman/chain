@@ -501,8 +501,8 @@ function getDir(id) {
 }
 //Shortcut to get a user by uid.
 function get_user(uid, cb) {
-	User.find({id:uid}, function(err, u){
-	if(!err){
+	User.findOne({id:uid}, function(err, u){
+	if(!err && u){
 		cb(u);
 	}
 	})
@@ -798,21 +798,19 @@ function get_posts(criterion, cb) {
 //	var search;
 	switch (criterion.filter) {
 		case 'tag':
-			search  = Post.find({tags:criterion.filter_data},null,{limit:criterion.count});
+			search  = Post.find({tags:{$in:criterion.filter_data}},null,{limit:criterion.count});
 			break;
 		case 'user':
 			search = Post.find({uid:criterion.filter_data.trim()},null,{limit:criterion.count});
 			break;
 		case 'string':
-			console.log(criterion.filter_data);
 			search = Post.find({$text:{$search:criterion.filter_data.trim()}},null,{limit:criterion.count});
 			break;
 		case 'id':
 			search = Post.find({id:criterion.filter_data});
 			break;
 		case 'favs':
-			search = Post.find({},null,{sort:{favs:-1},limit:criterion.count});
-			
+			search = Post.find({},null,{sort:{favs:-1},limit:criterion.count});	
 			break;
 		default:
 			search = Post.find({},null,{sort:{favs:-1},limit:criterion.count});
@@ -822,128 +820,12 @@ function get_posts(criterion, cb) {
 	console.log(search);
 	search.exec(function(err, p){
 		criterion.posts = p;
+	Object.keys(p).forEach(function(pk){
+		criterion.posts[p[pk].id] = p[pk];
+	});
+	console.log("CRITPOSTS");
 	console.log(criterion.posts);
-	Object.keys(criterion.posts).forEach(function(pk){
-		criterion.posts[criterion.posts[pk].id] = criterion.posts[pk];
-	});
-	 
-	/*Object.keys(posts).sort(postDate).forEach(function (key) {
-		var post = posts[key]
-		switch (criterion.filter) {
-		case 'tag':
-			if (Object.keys(criterion.posts).length < criterion.count) {
-				if (post.tags) {
-					post.tags.forEach(function (tag) {
-						tag = tag.toLowerCase();
-						criterion.filter_data.forEach(function (filter) {
-							if (filter.trim() == tag.trim()) {
-								if (!criterion.posts[key]) {
-									if (checkRules(post, criterion.rules)) {
-										criterion.posts[key] = post;
-									}
-								}
-							}
-						});
-					});
-				}
-			} else {
-				console.log(Object.keys(criterion.posts).length + " " + criterion.count);
-			}
-			break;
-		case "user":
-			if (Object.keys(criterion.posts).length < criterion.count) {
-				console.log("LOOKING BY USER");
-				if (post.uid.trim() == criterion.filter_data.trim()) {
-					console.log("FOUND A POST BY USER");
-					if (!criterion.posts[key]) {
-						if (checkRules(post, criterion.rules)) {
-							criterion.posts[key] = post;
-						}
-					}
-				}
-			}
-			break;
-		case "string":
-			if (Object.keys(criterion.posts).length < criterion.count) {
-				if (post.content.indexOf(criterion.filter_data) !== -1) {
-					if (!criterion.posts[key]) {
-						if (checkRules(post, criterion.rules)) {
-							criterion.posts[key] = post;
-						}
-					}
-				}
-			}
-			break;
-		default:
-			break;
-		}
-	});
-	if (criterion.filter == "id") {
-		console.log("id");
-		if (Object.keys(criterion.posts).length < criterion.count) {
-			if (posts[criterion.filter_data]) {
-				console.log("I d found a post");
-				criterion.posts[criterion.filter_data] = posts[criterion.filter_data];
-			}
-		}
-	}
-	if (criterion.filter == "favs") {
-		console.log("favs");
-		if (Object.keys(criterion.posts).length < criterion.count) {
-			var check = Object.keys(posts).map(function (m) {
-				return posts[m];
-			}).sort(cmpfavsD).splice(0, criterion.count);
-			check.forEach(function (check2, index) {
-				if (criterion.posts[check2.id]) {
-					check = check.splice(index, 1);
-				}
-			});
-			console.log("CHECK: ");
-			console.log(check);
-			check = check.map(function (m) {
-				m.favs = posts[m.id].favs;
-				return m;
-			});
-			criterion.posts = check.concat(criterion.posts).sort(cmpfavsD).splice(0,
-				criterion.count);
-		}
-	}*/
-				cb(criterion);/*
-	if (cb && Object.keys(criterion.posts).length >= criterion.count) {
-		cb(criterion);
-	} else if (cb) {
-		criterion.date =Date.now();
-		console.log("got_posts_" + criterion.filter + "_" + criterion.filter_data);
-		var count = 0;
-		var eventname = "got_posts_" + criterion.filter + "_" + criterion.filter_data+"_"+criterion.date;
-		var cbe = function (postse) {
-			console.log("GOT RESPONSE");
-			count++;
-			if (count >= 1) {
-				console.log("NEVERING");
-			}
-			never(eventname);
-			cb(postse);
-		};
-		when(eventname, cbe);
-		alldir("get_posts", criterion);
-	} else if (Object.keys(criterion.posts).length < criterion.count && adjacent[
-			flip(getDir(criterion.from))]) {
-		console.log("Passing along");
-		passAlong("get_posts", criterion);
-	} else {
-		console.log("Finishing requests");
-		console.log("emitting : got_posts_" + criterion.filter + "_" + criterion.filter_data +"_"+criterion.date+
-			"   " + getDir(criterion.from));
-		onedir("got_posts_" + criterion.filter + "_" + criterion.filter_data+"_"+criterion.date, {
-			to: criterion.original,
-			filter: criterion.filter,
-			posts: criterion.posts,
-			filter_data: criterion.filter_data,
-			from: selfId,
-			original: selfId,
-		}, getDir(criterion.from));
-	}*/
+				cb(criterion);
 });
 }
 //Get a post by id easily.
@@ -2183,6 +2065,7 @@ var serv_handles = {
 		if (logged[req.cid]) {
 			if (logged[req.cid] == req.uid) {
 				get_user(req.uid, function (user) {
+					console.log(user);
 					var favs = Object.keys(user.favorites);
 					var got = 0;
 					var full = [];

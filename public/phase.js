@@ -992,8 +992,8 @@ window.onload = function () {
 		bar.appendChild(buttons);
 		var id = document.createElement("div");
 		id.className = "post-id";
-		console.log(post.date);
-		var date = new Date(post.date);
+		var date = new Date(parseInt(post.date));
+
 		id.innerHTML = post.id;
 		var dI = document.createElement("div");
 		dI.innerHTML = date.toDateString() + " " + date.toLocaleTimeString("en-US");
@@ -1199,6 +1199,7 @@ window.onload = function () {
 			var gotter = {};
 			removeGrid(homePage);
 			chain.get_top(function (posts) {
+				console.log(posts);
 				var sorted = Object.keys(posts).sort(function (post1, post2) {
 					var b1 = 0;
 					var b2 = 0;
