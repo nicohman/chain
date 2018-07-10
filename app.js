@@ -31,12 +31,13 @@ var io = require('socket.io'),
     config = require(DEMPATH + "config.json"),
     jwt = require("jsonwebtoken"),
     name = names[commandArg],
-    posts = require(DEMPATH + 'posts_' + name + '.json'),
-    users = require(DEMPATH + "users_" + name + ".json"),
-    deals = require(DEMPATH + "deals.json"),
+    /*
+        posts = require(DEMPATH + 'posts_' + name + '.json'),
+        users = require(DEMPATH + "users_" + name + ".json"),
+        deals = require(DEMPATH + "deals.json"),*/
     port = ports[commandArg - 1],
     ytChannels = ["UUQD3awTLw9i8Xzh85FKsuJA"],
-    curations = require(DEMPATH + "curations_" + name + ".json"),
+    //curations = require(DEMPATH + "curations_" + name + ".json"),
     secret = config.secret,
     emailSecret = config.emailSecret,
     moment = require('moment'),
@@ -538,9 +539,9 @@ var change_pass = new fulfill("change_pass", function(req) {
     return true
 }, function(req, u) {
     bcrypt.hash(req.pass, 10, function(err, hashed) {
-    	var u = search_email(req.email);
-    	u.pass = hashed;
-    	u.save();
+        var u = search_email(req.email);
+        u.pass = hashed;
+        u.save();
     });
 }, true, "once", true);
 //Does exactly what it says on the tin. Used to reverse an event's direction.
@@ -962,7 +963,7 @@ function updateUsers(u) {
 function createUser(username, password, email, cb) {
     var id = hash(username + Date.now());
     bcrypt.hash(password, 10, function(err, hashed) {
-    	var nu = new User({
+        var nu = new User({
             id: id,
             date: Date.now(),
             pass: hashed,
@@ -1065,10 +1066,12 @@ var follow_tag = new fulfill("follow_tag", function(req) {
 
     return true;
 }, function(req) {
-	User.findOne({req.uid}, function(err, u){
-		u.tags[req.tag] = true;
-		u.save();
-	})
+    User.findOne({
+        req.uid
+    }, function(err, u) {
+        u.tags[req.tag] = true;
+        u.save();
+    })
     return true;
 }, true, "once", true);
 //Lets a user unfollow a curation. Event function.
@@ -1079,23 +1082,24 @@ var unfollow_cur = new fulfill("unfollow_cur", function(req) {
         num: -1,
         cid: req.cur
     }, function() {})
-    User.find({id:req.uid}, function(err, u){
-    	if(!err){
-    		u.curs[req.cur] = true;
-    	}
+    User.find({
+        id: req.uid
+    }, function(err, u) {
+        if (!err) {
+            u.curs[req.cur] = true;
+        }
     })
     return true;
 }, true, "once", true);
 var unfollow = new fulfill("unfollow", function(req) {
-    if (users[req.uid]) {
-        return users[req.uid].original
-    }
     return true;
 }, function(req) {
-	User.findOne({id:req.uid}, function(err, u){
-		u.tags[req.tag] = false;
-		u.save();
-	});
+    User.findOne({
+        id: req.uid
+    }, function(err, u) {
+        u.tags[req.tag] = false;
+        u.save();
+    });
     return true;
 }, true, "once", true);
 //Lets a user unfollow a tag. Event function.
@@ -1103,10 +1107,12 @@ var unfollow = new fulfill("unfollow", function(req) {
 var add_favorite = new fulfill("add_favorite", function(req) {
     return true
 }, function(req) {
-	User.findOne({id:req.uid}, function(err, u){
-		u.favorites[req.pid] = true;
-		u.save();
-	})
+    User.findOne({
+        id: req.uid
+    }, function(err, u) {
+        u.favorites[req.pid] = true;
+        u.save();
+    })
     favsUpdate.easy({
         pid: req.pid,
         num: 1
@@ -1237,21 +1243,25 @@ function checkFavsArr(favs, rposts) {
 }
 //Change username event function
 var change_username = new fulfill("change_username", function(req) {
-            return true;
+    return true;
 }, function(req) {
-	User.findOne({id:req.uid}, function(err, u){
-		u.username = req.new_u;
-		u.save();
-	})
+    User.findOne({
+        id: req.uid
+    }, function(err, u) {
+        u.username = req.new_u;
+        u.save();
+    })
     return true;
 }, true, "once", true);
 var changeEmail = new fulfill("change_email", function(req) {
     return true;
 }, function(req) {
-	User.findOne({id:req.uid}, function(err, u){
-		u.email = req.email;
-		u.save();
-	})
+    User.findOne({
+        id: req.uid
+    }, function(err, u) {
+        u.email = req.email;
+        u.save();
+    })
     return true;
 }, true, "once", true);
 var change_color = new fulfill("change_color", function(req) {
@@ -1312,18 +1322,22 @@ var add_notif = new fulfill("add_notif", function(req) {
 var rm_notif = new fulfill("rm_notif", function(req) {
     return true;
 }, function(req) {
-	User.findOne({id:req.uid}, function(err, u){
-		if(u.notifs){
-			delete u.notifs[req.nid];
-		}
-		u.save();
-	})
+    User.findOne({
+        id: req.uid
+    }, function(err, u) {
+        if (u.notifs) {
+            delete u.notifs[req.nid];
+        }
+        u.save();
+    })
     return true;
 }, true, "once", true);
 var get_notifs = new fulfill("get_notifs", function(req) {
     return true;
 }, async function(req) {
-	var u = await User.findOne({id:req.uid}).exec();
+    var u = await User.findOne({
+        id: req.uid
+    }).exec();
     if (u.notifs) {
         return u.notifs;
     } else {
@@ -1399,19 +1413,23 @@ function get_curation_by_name(name, cb) {
 var add_cur_own = new fulfill("add_cur_own", function(req) {
     return true;
 }, function(req) {
-	User.findOne({id:req.uid}, function(err, u){
-		u.curations_owned[req.cid] = true;
-		u.save();
-	})
+    User.findOne({
+        id: req.uid
+    }, function(err, u) {
+        u.curations_owned[req.cid] = true;
+        u.save();
+    })
     return true;
 }, true, "once", true);
 var take_cur_own = new fulfill("take_cur_own", function(req) {
     return true;
 }, function(req) {
-	User.findOne({id:req.uid}, function(err, u){
-		u.curations_owned[req.cid] = false;
-		u.save();
-	})
+    User.findOne({
+        id: req.uid
+    }, function(err, u) {
+        u.curations_owned[req.cid] = false;
+        u.save();
+    })
     return true;
 }, true, "once", true);
 var get_curation = function(req, cb) {
@@ -1479,13 +1497,15 @@ function updateRec(id) {
     });
 }
 var ban = new fulfill(function(req) {
-	return true;
+    return true;
 }, function(req) {
     if (req.admin) {
-    	User.findOne({id:req.uid}, function(err, u){
-    		u.banned = true;
-    		u.save();
-    	})
+        User.findOne({
+            id: req.uid
+        }, function(err, u) {
+            u.banned = true;
+            u.save();
+        })
         return true;
     }
     return false;
@@ -1494,10 +1514,12 @@ var unban = new fulfill(function(req) {
     return true
 }, function(req) {
     if (req.admin) {
-    	User.findOne({id:req.uid}, function(err, u){
-    		u.banned = false;
-    		u.save();
-    	})
+        User.findOne({
+            id: req.uid
+        }, function(err, u) {
+            u.banned = false;
+            u.save();
+        })
         return true;
     }
     return false;
@@ -1666,14 +1688,19 @@ var serv_handles = {
             }
         }
     },
-    "check_login": function(u) {
-        if (users[u.uid]) {
-            if (users[u.uid].banned) {
-                onedir("check_result_" + u.uid, {
+    /*"check_login": function(u) {
+    	user.findOne({id:u.uid}, function(err, ur){
+    		if(ur.banned){
+    			                onedir("check_result_" + u.uid, {
                     user: u.uid,
                     name: users[u.uid].username,
                     result: false
                 }, getDir(u.from));
+    		}
+    	})
+        if (users[u.uid]) {
+            if (users[u.uid].banned) {
+
             } else {
                 bcrypt.compare(u.pwd, users[u.pass], function(err, res) {
                     if (res) {
@@ -1688,7 +1715,7 @@ var serv_handles = {
         } else {
             passAlong("check_login");
         }
-    },
+    },*/
     "change_color": change_color,
     "c_change_color": function(req) {
         jwt.verify(req.token, secret, function(err, dec) {
@@ -1712,8 +1739,12 @@ var serv_handles = {
         });
     },
     "c_check_ban": function(req) {
-        io.to(req.cid).emit("c_checked_ban_" + req.uid, users[req.uid] && !users[
-            req.uid].banned);
+        User.findOne({
+            id: req.uid
+        }, function(err, u) {
+            io.to(req.cid).emit("c_checked_ban_" + req.uid, u && !u.banned);
+        })
+
     },
     "c_ban": function(req) {
         jwt.verify(req.token, secret, function(err, dec) {
@@ -1782,58 +1813,66 @@ var serv_handles = {
     "add_comment": add_comment,
     "c_add_comment": function(req) {
         if (logged[req.cid]) {
-            var color = false;
-            if (users[logged[req.cid]] && users[logged[req.cid]].color) {
-                color = users[logged[req.cid]].color;
-            }
-            add_comment.easy({
-                uid: req.uid,
-                pid: req.id,
-                content: req.content,
-                color: color,
-                auth: req.auth,
-                date: Date.now()
-            }, function(res) {
-                var reg = /@(\w+)/
-                var match = reg.exec(req.content);
-                console.log(match);
-                if (match) {
-                    get_post_by_id(req.id, function(post) {
-                        var arr = [];
-                        post.comments.forEach(function(com) {
-                            arr.push(com);
-                        });
-                        arr.push({
-                            auth: post.auth,
-                            uid: post.uid
-                        });
-                        arr.filter(function(x) {
-                            if (x) {
-                                return true;
-                            }
-                        }).forEach(function(com) {
-                            if (com.auth == match[1]) {
-                                console.log("MATCHING");
-                                console.log(com);
-                                add_notif.easy({
-                                    notif: {
-                                        title: req.auth + " mentioned you in a post!",
-                                        content: "View this at <a target='_blank' href='https://demenses.net/index.html#post?postid=" +
-                                            req.id + "'>this post</a>",
-                                        date: Date.now()
-                                    },
-                                    Tuid: com.uid,
-                                    token: req.token,
-                                }, function(res) {
-                                    console.log("NOTIF MADE");
-                                    console.log(res);
-                                });
-                            }
-                        });
-                    })
+            User.findOne({
+                id: logged[req.cid]
+            }, function(err, u) {
+                var color = false;
+
+                if (u.color) {
+                    color = users[logged[req.cid]].color;
+
                 }
-                io.to(req.cid).emit("c_added_comment", res);
-            });
+
+                add_comment.easy({
+                    uid: req.uid,
+                    pid: req.id,
+                    content: req.content,
+                    color: color,
+                    auth: req.auth,
+                    date: Date.now()
+                }, function(res) {
+                    var reg = /@(\w+)/
+                    var match = reg.exec(req.content);
+                    console.log(match);
+                    if (match) {
+                        get_post_by_id(req.id, function(post) {
+                            var arr = [];
+                            post.comments.forEach(function(com) {
+                                arr.push(com);
+                            });
+                            arr.push({
+                                auth: post.auth,
+                                uid: post.uid
+                            });
+                            arr.filter(function(x) {
+                                if (x) {
+                                    return true;
+                                }
+                            }).forEach(function(com) {
+                                if (com.auth == match[1]) {
+                                    console.log("MATCHING");
+                                    console.log(com);
+                                    add_notif.easy({
+                                        notif: {
+                                            title: req.auth + " mentioned you in a post!",
+                                            content: "View this at <a target='_blank' href='https://demenses.net/index.html#post?postid=" +
+                                                req.id + "'>this post</a>",
+                                            date: Date.now()
+                                        },
+                                        Tuid: com.uid,
+                                        token: req.token,
+                                    }, function(res) {
+                                        console.log("NOTIF MADE");
+                                        console.log(res);
+                                    });
+                                }
+                            });
+                        })
+                    }
+                    io.to(req.cid).emit("c_added_comment", res);
+                });
+            })
+
         }
     },
     "add_reg": function(toAdd) {
@@ -1919,8 +1958,13 @@ var serv_handles = {
             if (!err) {
                 if (dec.uid == logged[req.cid]) {
                     getPostsByUser(dec.uid, function(posts) {
-                        posts.posts = checkFavs(users[logged[req.cid]].favorites, posts.posts);
-                        io.to(req.cid).emit("c_got_self_posts", posts, req.count || 50);
+                        User.findOne({
+                            id: dec.uid
+                        }, function(err, u) {
+                            posts.posts = checkFavs(u.favorites, posts.posts);
+                            io.to(req.cid).emit("c_got_self_posts", posts, req.count || 50);
+                        })
+
                     });
                 } else {
                     io.to(req.cid).emit("c_got_self_posts", false);
@@ -1993,11 +2037,15 @@ var serv_handles = {
         get_curation_posts(req.cur, function(posts) {
             var got = false;
             if (!got) {
-                posts = checkFavs(users[logged[req.cid]].favorites, posts);
-                io.to(req.cid).emit("c_got_cur_posts_" + req.cur + "_" + req.time,
-                    posts);
-                console.log("EMITTING EVENT C: " + req.time);
-                got = true;
+                User.findOne({
+                    id: logged[req.cid]
+                }, function(err, u) {
+                    posts = checkFavs(u.favorites, posts);
+                    io.to(req.cid).emit("c_got_cur_posts_" + req.cur + "_" + req.time,
+                        posts);
+                    got = true;
+                })
+
             }
         }, req.count);
     },
@@ -2028,10 +2076,15 @@ var serv_handles = {
             from: selfId,
             posts: {}
         }, function(postsR) {
-            postsR = checkFavs(users[logged[req.id]].favorites, postsR.posts);
-            io.to(req.id).emit("c_got_posts_" + req.data, {
-                posts: postsR
-            });
+            User.findOne({
+                id: req.id
+            }, function(err, u) {
+                postsR = checkFavs(u.favorites, postsR.posts);
+                io.to(req.id).emit("c_got_posts_" + req.data, {
+                    posts: postsR
+                });
+            })
+
         });
     },
     "delete_comment": delete_comment,
@@ -2063,13 +2116,18 @@ var serv_handles = {
             posts: {},
             from: selfId
         }, function(postsR) {
-            postsR = checkFavsArr(users[logged[req.id || req.cid]].favorites, postsR
-                .posts);
-            console.log("GOT OTP< COUNT:" + Object.keys(postsR).length);
-            console.log(postsR);
-            io.to(req.id).emit("c_got_top", {
-                posts: postsR
+            User.findOne({
+                id: req.id
+            }, function(err, u) {
+                postsR = checkFavsArr(u.favorites, postsR
+                    .posts);
+                console.log("GOT OTP< COUNT:" + Object.keys(postsR).length);
+                console.log(postsR);
+                io.to(req.id).emit("c_got_top", {
+                    posts: postsR
+                })
             })
+
         });
     },
     "get_curation": get_curation,
@@ -2252,47 +2310,52 @@ var serv_handles = {
     },
     "c_get_feed": function(req) {
         if (logged[req.cid]) {
-            var toget = Object.keys(users[logged[req.cid]].tags).map(function(item) {
-                if (users[logged[req.cid]].tags[item] == true) {
-                    return {
-                        type: 'tag',
-                        tag: item
+            User.findOne({
+                id: logged[req.cid]
+            }, function(err, u) {
+                var toget = Object.keys(u.tags).map(function(item) {
+                    if (u.tags[item] == true) {
+                        return {
+                            type: 'tag',
+                            tag: item
+                        }
+                    } else {
+                        return undefined;
                     }
-                } else {
-                    return undefined;
-                }
-            }).filter(function(e) {
-                if (e !== undefined) {
-                    return true;
-                } else {
-                    return false;
-                }
-            });
-            var to2 = Object.keys(users[logged[req.cid]].curs).map(function(key) {
-                if (users[logged[req.cid]].curs[key] === true) {
-                    return {
-                        type: 'cur',
-                        cur: key
+                }).filter(function(e) {
+                    if (e !== undefined) {
+                        return true;
+                    } else {
+                        return false;
                     }
-                } else {
-                    return undefined;
-                }
-            }).filter(function(e) {
-                if (e !== undefined) {
-                    return true;
-                } else {
-                    return false;
-                }
-            });
-            toget.push.apply(toget, to2);
-            console.log(toget);
-            console.log(users[logged[req.cid]]);
-            toget.count = req.count * 2;
-            console.log("getting");
-            get_feed(toget, function(postsR) {
-                postsR = checkFavs(users[logged[req.cid]].favorites, postsR);
-                io.to(req.cid).emit("c_got_feed_" + logged[req.cid], postsR);
-            });
+                });
+                var to2 = Object.keys(uu.curs).map(function(key) {
+                    if (u.curs[key] === true) {
+                        return {
+                            type: 'cur',
+                            cur: key
+                        }
+                    } else {
+                        return undefined;
+                    }
+                }).filter(function(e) {
+                    if (e !== undefined) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                });
+                toget.push.apply(toget, to2);
+                console.log(toget);
+                console.log(users[logged[req.cid]]);
+                toget.count = req.count * 2;
+                console.log("getting");
+                get_feed(toget, function(postsR) {
+                    postsR = checkFavs(u.favorites, postsR);
+                    io.to(req.cid).emit("c_got_feed_" + logged[req.cid], postsR);
+                });
+            })
+
         }
     },
     "d_change_pass": function(req) {
@@ -2448,11 +2511,17 @@ var serv_handles = {
     "c_get_post_by_id": function(req) {
         get_post_by_id(req.pid, function(res) {
             if (logged[req.cid]) {
-                if (users[logged[req.cid]].favorites[req.pid] === true) {
-                    res.favorited = true;
-                }
+                User.findOne({
+                    id: logged[req.cid]
+                }, function(err, u) {
+                    if (u.favorites[req.pid] === true) {
+                        res.favorited = true;
+                    }
+                    io.to(req.cid).emit("c_got_post_by_id_" + req.pid, res);
+
+                })
+
             }
-            io.to(req.cid).emit("c_got_post_by_id_" + req.pid, res);
         });
     },
     "c_get_notifs": function(req) {
