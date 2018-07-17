@@ -37,7 +37,7 @@ var io = require('socket.io'),
         deals = require(DEMPATH + "deals.json"),*/
     port = ports[commandArg - 1],
     ytChannels = ["UUQD3awTLw9i8Xzh85FKsuJA"],
-    //curations = require(DEMPATH + "curations_" + name + ".json"),
+    curations = require(DEMPATH + "curations_" + name + ".json"),
     secret = config.secret,
     emailSecret = config.emailSecret,
     moment = require('moment'),
@@ -589,7 +589,7 @@ function createPost(post) {
     User.findOne({
         id: post.uid
     }, function(err, u) {
-        if (!err) {
+        if (!err && u) {
             if (u.color) {
                 color = u.color
 
@@ -759,8 +759,8 @@ function cmpfavsD(post1, post2) {
     if (post2.stickied) {
         a2bo += 2000;
     }
-    var p1d = moment(post1.date);
-    var p2d = moment(post2.date);
+    var p1d = moment(parseInt(post1.date));
+    var p2d = moment(parseInt(post2.date));
     var now = moment();
     a1bo += p1d.diff(now, 'days');
     a2bo += p2d.diff(now, 'days');
@@ -820,6 +820,9 @@ function get_posts(criterion, cb) {
                     $in: criterion.filter_data
                 }
             }, null, {
+                sort: {
+                    date: -1
+                },
                 limit: criterion.count
             });
             break;
@@ -827,15 +830,22 @@ function get_posts(criterion, cb) {
             search = Post.find({
                 uid: criterion.filter_data.trim()
             }, null, {
+                sort: {
+			date:-1
+},
                 limit: criterion.count
             });
             break;
         case 'string':
             search = Post.find({
+
                 $text: {
                     $search: criterion.filter_data.trim()
                 }
             }, null, {
+                sort: {
+			date:-1
+                },
                 limit: criterion.count
             });
             break;
@@ -864,10 +874,14 @@ function get_posts(criterion, cb) {
     console.log(criterion.filter);
     console.log(search);
     search.exec(function(err, p) {
-        criterion.posts = p;
+        criterion.posts = {};
+	    if(criterion.filter == 'favs'){
+	    	criterion.posts = p;
+	    } else {
         Object.keys(p).forEach(function(pk) {
             criterion.posts[p[pk].id] = p[pk];
         });
+	    }
         console.log("CRITPOSTS");
         console.log(criterion.posts);
         cb(criterion);
@@ -1067,7 +1081,7 @@ var follow_tag = new fulfill("follow_tag", function(req) {
     return true;
 }, function(req) {
     User.findOne({
-        req.uid
+	    id:req.uid
     }, function(err, u) {
         u.tags[req.tag] = true;
         u.save();
@@ -2077,7 +2091,7 @@ var serv_handles = {
             posts: {}
         }, function(postsR) {
             User.findOne({
-                id: req.id
+                id: logged[req.id]
             }, function(err, u) {
                 postsR = checkFavs(u.favorites, postsR.posts);
                 io.to(req.id).emit("c_got_posts_" + req.data, {
@@ -2117,8 +2131,9 @@ var serv_handles = {
             from: selfId
         }, function(postsR) {
             User.findOne({
-                id: req.id
+                id: logged[req.id]
             }, function(err, u) {
+		    if(!err && u){
                 postsR = checkFavsArr(u.favorites, postsR
                     .posts);
                 console.log("GOT OTP< COUNT:" + Object.keys(postsR).length);
@@ -2126,7 +2141,8 @@ var serv_handles = {
                 io.to(req.id).emit("c_got_top", {
                     posts: postsR
                 })
-            })
+		    }
+		    })
 
         });
     },
@@ -2329,7 +2345,7 @@ var serv_handles = {
                         return false;
                     }
                 });
-                var to2 = Object.keys(uu.curs).map(function(key) {
+                var to2 = Object.keys(u.curs).map(function(key) {
                     if (u.curs[key] === true) {
                         return {
                             type: 'cur',
@@ -2347,7 +2363,6 @@ var serv_handles = {
                 });
                 toget.push.apply(toget, to2);
                 console.log(toget);
-                console.log(users[logged[req.cid]]);
                 toget.count = req.count * 2;
                 console.log("getting");
                 get_feed(toget, function(postsR) {
@@ -2489,7 +2504,8 @@ var serv_handles = {
         jwt.verify(token, secret, function(err, decode) {
             if (decode) {
                 get_user(decode.uid, function(res) {
-                    if (res) {
+                    console.log(res);
+			if (res) {
                         if (res.banned) {
                             io.to(req.cid).emit("c_token_logged_in", false);
                         } else {
