@@ -409,7 +409,7 @@ var follow_cur = new fulfill("follow_cur", function(req) {
         cid: req.cur,
         num: 1
     }, function() {});
-    User.find({
+    User.findOne({
         id: req.uid
     }, function(err, u) {
         u.curs[req.cur] = true;
@@ -516,7 +516,7 @@ function get_user(uid, cb) {
 var emails = {}
 
 async function search_email(email) {
-    var prom = User.find({
+    var prom = User.findOne({
         email: email
     });
     var res = await prom.exec();
@@ -1096,7 +1096,7 @@ var unfollow_cur = new fulfill("unfollow_cur", function(req) {
         num: -1,
         cid: req.cur
     }, function() {})
-    User.find({
+    User.findOne({
         id: req.uid
     }, function(err, u) {
         if (!err) {
@@ -1288,7 +1288,7 @@ var change_color = new fulfill("change_color", function(req) {
 }, function(req) {
     var id = search_email(req.Temail).id;
     console.log("CHANGE");
-    User.find({
+    User.findOne({
         id: id
     }, function(err, r) {
         r.color = req.color;
@@ -1299,16 +1299,17 @@ var change_color = new fulfill("change_color", function(req) {
 var unfavorite = new fulfill("unfavorite", function(req) {
     return true
 }, function(req) {
-    User.find({
+    User.findOne({
         id: req.uid
     }, function(err, r) {
+	    if(!err){
         r.favorites[req.pid] = false;
         r.save();
         favsUpdate.easy({
             pid: req.pid,
             num: -1
         }, function() {});
-
+	    }
     });
 
     return true;
@@ -1318,7 +1319,7 @@ var add_notif = new fulfill("add_notif", function(req) {
 }, function(req) {
     console.log("notif");
     var id = hash(req.notif.title + req.notif.content + req.Tuid);
-    User.find({
+    User.findOne({
         id: req.Tuid
     }, function(err, r) {
 
@@ -2530,11 +2531,13 @@ var serv_handles = {
                 User.findOne({
                     id: logged[req.cid]
                 }, function(err, u) {
-                    if (u.favorites[req.pid] === true) {
+			if(!err){
+                    if (u.favorites[req.pid]) {
                         res.favorited = true;
                     }
-                    io.to(req.cid).emit("c_got_post_by_id_" + req.pid, res);
 
+                    io.to(req.cid).emit("c_got_post_by_id_" + req.pid, res);
+			}
                 })
 
             }
