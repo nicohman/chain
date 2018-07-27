@@ -386,12 +386,7 @@ var checkMe = function() {
                                 uid: uid,
                                 tags: ["me_irl", "bot", "memes"]
                             });
-                            addComment({
-                                uid: uid,
-                                auth: "me_irl_bot",
-                                content: "Post made by " + post.author + " on /r/me_irl",
-                                id: id
-                            });
+
                         });
                     });
                 req.on('error', function(e) {
@@ -663,7 +658,10 @@ function addComment(comment) {
     Post.findOne({
         id: comment.postid
     }, function(err, post) {
-        if (!err) {
+        if (!err && post) {
+		if(post.comments){
+			post.comments = [];
+		}
             post.comments.push(comment);
             post.save();
         }
